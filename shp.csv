@@ -1,26 +1,26 @@
-﻿Bedding_PT
-Brecciated zones_PG
-Cataclastic zones_PG
-Dikes-Sills_PT
-Fold and crenulation axial planes_PT
-Fold axes_PT
-Foliation-cleavage_PT
-Fractured zones_PG
-Fractures_PT
-Lineations_PT
-Planar structures_LN
-Shear zones and faults_PT
-Veins_PT
-Alteration zones_PG
-Magnetic susceptibility_PT
-Metamorphic lithologies_PT
-Observations_LN
-Observations_PT
-Photographs_PT
-Plutonic lithologies_PT
-Sampling_PT
-Sedimentary lithologies_PT
-Stops_PT
-Supergene lithologies_PT
-Volcanic lithologies_PT
-Volcanoclastic lithologies_PT
+﻿Bedding_PT,1
+Brecciated zones_PG,1
+Cataclastic zones_PG,1
+Dikes-Sills_PT,1
+Fold and crenulation axial planes_PT,1
+Fold axes_PT,1
+Foliation-cleavage_PT,1
+Fractured zones_PG,1
+Fractures_PT,1
+Lineations_PT,1
+Planar structures_LN,1
+Shear zones and faults_PT,1
+Veins_PT,1
+Alteration zones_PG,2
+Magnetic susceptibility_PT,3
+Metamorphic lithologies_PT,2
+Observations_LN,0
+Observations_PT,0
+Photographs_PT,0
+Plutonic lithologies_PT,2
+Sampling_PT,0
+Sedimentary lithologies_PT,2
+Stops_PT,0
+Supergene lithologies_PT,2
+Volcanic lithologies_PT,2
+Volcanoclastic lithologies_PT,2
