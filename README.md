@@ -22,8 +22,6 @@ e.yMaximum()
 e.xMinimum()   
 e.yMinimum()   
 
-import processing
-
 #### Specify the input layer to be clipped
 project = QgsProject.instance()
 input_layer = project.mapLayersByName("layer_name")
