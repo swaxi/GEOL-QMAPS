@@ -16,11 +16,11 @@ c.f. addUserName code
 
 2) Spatial subset extraction to new project
 
-e = iface.mapCanvas().extent()
-e.xMaximum()
-e.yMaximum()
-e.xMinimum()
-e.yMinimum()
+e = iface.mapCanvas().extent()   
+e.xMaximum()   
+e.yMaximum()   
+e.xMinimum()   
+e.yMinimum()   
 
 import processing
 
