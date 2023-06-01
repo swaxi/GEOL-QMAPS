@@ -48,18 +48,18 @@ QgsProject.instance().addMapLayer(clipped_layer)
 
 3) Merge projects
 
-define principal local new_principal paths to folders
-
-loop through shp.csv 
-load same files from principal and local folders 
-concat to new shapefile
-drop duplicates on location and time
-save as new shapefile to new_principal folder according to directory code for subdirectory
+define principal local new_principal paths to folders   
+   
+loop through shp.csv    
+load same files from principal and local folders    
+concat to new shapefile   
+drop duplicates on location and time   
+save as new shapefile to new_principal folder according to directory code for subdirectory   
 
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)
 
-define export path to folder
-
-load relevant layers
-outer join
-save as shape files
+define export path to folder   
+   
+load relevant layers   
+outer join   
+save as shape files   
