@@ -24,26 +24,26 @@ e.yMinimum()
 
 import processing
 
-# Specify the input layer to be clipped
+#### Specify the input layer to be clipped
 project = QgsProject.instance()
 input_layer = project.mapLayersByName("layer_name")
 
-# Specify the output path for the clipped layer
+#### Specify the output path for the clipped layer
 output_path = "path_to_output_file.shp"  # Replace with the desired output file path
 
-# Specify the extent for clipping (xmin, xmax, ymin, ymax)
+#### Specify the extent for clipping (xmin, xmax, ymin, ymax)
 extent = QgsRectangle(xmin, ymin, xmax, ymax)  # Replace with the desired extents
 
-# Clip the layer to the specified extent
-processing.run("native:clip", {
-    'INPUT': input_layer,
-    'OUTPUT': output_path,
-    'MASK': extent
-})
+#### Clip the layer to the specified extent
+processing.run("native:clip", {   
+    'INPUT': input_layer,   
+    'OUTPUT': output_path,   
+    'MASK': extent   
+})   
 
-# Load the clipped layer back into QGIS
-clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")
-QgsProject.instance().addMapLayer(clipped_layer)
+#### Load the clipped layer back into QGIS 
+clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")   
+QgsProject.instance().addMapLayer(clipped_layer)   
 
 
 3) Merge projects
