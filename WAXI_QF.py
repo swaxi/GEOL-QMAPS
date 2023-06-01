@@ -172,9 +172,45 @@ class WAXI_QF:
         # will be set False in run()
         self.first_start = True
 
-    def rmvLyr(lyrname):
-        qinst = QgsProject.instance()
-        qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
+    def addUserName(self):
+        username = self.dlg.lineEdit.text()
+        description = self.dlg.lineEdit_2.text()
+        layer_name='User list'
+        project = QgsProject.instance()
+        layer = project.mapLayersByName(layer_name)
+        group = QgsProject.instance().layerTreeRoot()
+
+        if len(layer) > 0:
+            # Remove the layer from the project
+            for layer in project.mapLayers().values():
+                # Check if the layer name matches the target name
+                if layer.name() == layer_name:
+                    # Get the file path of the layer
+                    file_path = layer.dataProvider().dataSourceUri()
+
+                    QgsProject.instance().removeMapLayer(layer)
+                    User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
+                    User_List.loc[str(len(User_List))] = [username,description]
+                    User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
+                    updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
+                    if updated_layer.isValid():
+
+                        # Add the updated layer to the project
+                        QgsProject.instance().addMapLayer(updated_layer,False)
+                        group = QgsProject.instance().layerTreeRoot().findGroup("CSV FILES")
+                        
+                        if group:
+
+                            # Add the layer to the new group
+                            group.addLayer(updated_layer)
+                            self.iface.messageBar().pushMessage("User "+username+" added to User list", level=Qgis.Success, duration=5)
+
+                    else:
+                        self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
+                    break  # Stop iterating once the layer is found
+        else:
+            self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=15)
+
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -202,46 +238,5 @@ class WAXI_QF:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            username = self.dlg.lineEdit.text()
-            description = self.dlg.lineEdit_2.text()
-            self.iface.messageBar().pushMessage("new user "+username, level=Qgis.Warning, duration=15)
-            layer_name='User list'
-            project = QgsProject.instance()
-            layer = project.mapLayersByName(layer_name)
-            group = QgsProject.instance().layerTreeRoot()
-            print("group=",group)
-            if len(layer) > 0:
-                # Remove the layer from the project
-                for layer in project.mapLayers().values():
-                    # Check if the layer name matches the target name
-                    if layer.name() == layer_name:
-                        # Get the file path of the layer
-                        file_path = layer.dataProvider().dataSourceUri()
-                        print("File path:", file_path)
-                        import pandas as pd
-                        QgsProject.instance().removeMapLayer(layer)
-                        User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
-                        User_List.loc[str(len(User_List))] = [username,description]
-                        User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
-                        updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
-                        if updated_layer.isValid():
-                            # Remove the existing layer from the project
-
-                            # Add the updated layer to the project
-                            QgsProject.instance().addMapLayer(updated_layer,False)
-                            group = QgsProject.instance().layerTreeRoot().findGroup("CSV FILES")
-                            if group:
-                                # Remove the layer from its current group
-                                #QgsProject.instance().layerTreeRoot().removeLayer(updated_layer)
-
-                                # Add the layer to the new group
-                                group.addLayer(updated_layer)
-
-                                # Refresh the layer tree to reflect the changes
-                                #node = QgsProject.instance().layerTreeRoot().findLayer(self.myLayer.id())
-                                #self.iface.layerTreeView().layerTreeModel().refreshLayerLegend(node)                            print("Layer updated successfully.")
-                        else:
-                            print("Failed to load the updated layer.")
-                        break  # Stop iterating once the layer is found
-            else:
-                self.iface.messageBar().pushMessage("Layer Failed to Delete: "+layer_name, level=Qgis.Warning, duration=15)
+            self.addUserName()
+            
