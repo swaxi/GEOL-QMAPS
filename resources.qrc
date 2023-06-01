@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/WAXI_QF" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

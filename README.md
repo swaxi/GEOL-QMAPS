@@ -1,2 +1,2 @@
 # WAXI_QF
- QGIS plugin to support WAXI usage of QFIELD
+ QGIS Plugin to help QFIELD usage
