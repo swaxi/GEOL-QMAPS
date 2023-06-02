@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
 from qgis.core import Qgis, QgsProject, QgsVectorLayer
 import pandas as pd
 
@@ -172,11 +172,122 @@ class WAXI_QF:
         # will be set False in run()
         self.first_start = True
 
+    def clipToCanvas(self):
+        from qgis.core import QgsRectangle, Qgis
+        from qgis.core.additions.edit import edit
+        import processing
+        from qgis.core import (
+        QgsGeometry,
+        QgsWkbTypes,
+        QgsProject,
+        QgsVectorLayer,
+        QgsVectorFileWriter,
+        QgsApplication,
+        QgsFeature
+        )
+        import pandas as pd
+        import os
+        import shutil
+
+        dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
+        e = self.iface.mapCanvas().extent()  
+        extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
+        shp_list=QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv"
+        csv_list=QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+
+        shps=pd.read_csv(shp_list,names=['name','dir_code'])
+        shps=shps.set_index("name")
+        csvs=pd.read_csv(csv_list,names=['name'])
+
+        geom = QgsGeometry().fromRect(extent)
+
+        ftr = QgsFeature()
+        ftr.setGeometry(geom)
+
+        #Define your Coordinate Reference System here
+        project = QgsProject.instance()
+        crs = project.crs()
+
+        layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
+
+        with edit(layer):
+            layer.addFeature(ftr)
+
+
+        # Specify the output file path for the shapefile 
+        output_path = "C:/Users/00073294/Dropbox/WAXI4/gis/TESTCLIP"  # Replace with the desired output shapefile path
+        output_path = self.dlg.lineEdit_3.text()
+        
+        
+        overlay_path = output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp"  # Path to clip rectangle in memory
+        if(not os.path.exists(output_path)):
+            os.mkdir(output_path)
+        if(not os.path.exists(output_path+"/0. FIELD DATA")):
+            os.mkdir(output_path+"/0. FIELD DATA")
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION")):
+            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION")
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])):
+            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])):
+            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])):
+            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])):
+            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])
+            
+            
+        # Prepare the output shapefile parameters
+        output_fields = layer.fields()
+        output_geometry_type = layer.geometryType()
+        output_crs = layer.crs()
+        #print("XXX",output_fields,output_geometry_type,output_crs)
+        # Create the vector file writer instance
+        writer = QgsVectorFileWriter(overlay_path, "UTF-8", output_fields, QgsWkbTypes.Polygon, output_crs, "ESRI Shapefile")
+
+        if writer.hasError() != QgsVectorFileWriter.NoError:
+            print("Error occurred while creating shapefile:", writer.errorMessage())
+        else:
+            # Write features to the shapefile
+            for feature in layer.getFeatures():
+                writer.addFeature(feature)
+
+            # Finish writing and close the shapefile
+            del writer
+
+            print("Shapefile saved successfully.")
+        for layer in project.mapLayers().values():
+                        # Check if the layer name matches the target name
+                        if layer.name() in shps.index.tolist():   
+                            # Get the file path of the layer
+                            print("Clipping ",layer.name())
+                            input_path = layer.dataProvider().dataSourceUri()
+                            output_path_2="/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/"
+                            print("saving to",output_path+output_path_2+layer.name()+".shp")
+                            ### REDO output_path as output_dir + input_filename.shp
+                            processing.run("native:clip", {   
+                                'INPUT': input_path,   
+                                'OUTPUT': output_path+output_path_2+layer.name()+".shp",   
+                                'OVERLAY': overlay_path   
+                            })   
+
+        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
+            src_path=os.path.split(input_path)
+            src_path=src_path[0]+"/../"+dirs[4]
+            dst_path=output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/"
+            print("src",src_path)
+            print("dest",dst_path)
+            shutil.copytree(src_path, dst_path)
+
+        #clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")   
+        #QgsProject.instance().addMapLayer(clipped_layer)   
+        self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
+
     def addUserName(self):
         username = self.dlg.lineEdit.text()
         description = self.dlg.lineEdit_2.text()
         layer_name='User list'
         project = QgsProject.instance()
+
         layer = project.mapLayersByName(layer_name)
         group = QgsProject.instance().layerTreeRoot()
 
@@ -211,6 +322,10 @@ class WAXI_QF:
         else:
             self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=15)
 
+    def select_dst_directory(self):
+        filename = QFileDialog.getExistingDirectory(None, "Select Folder")
+
+        self.dlg.lineEdit_3.setText(filename)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -229,7 +344,7 @@ class WAXI_QF:
         if self.first_start == True:
             self.first_start = False
             self.dlg = WAXI_QFDialog()
-
+            self.dlg.pushButton.clicked.connect(self.select_dst_directory)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
@@ -238,5 +353,7 @@ class WAXI_QF:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            self.addUserName()
-            
+            if(self.dlg.lineEdit.text()):
+                self.addUserName()
+            if(self.dlg.checkBox.isChecked()):
+                self.clipToCanvas()
