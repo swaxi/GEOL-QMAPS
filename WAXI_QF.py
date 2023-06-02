@@ -356,4 +356,7 @@ class WAXI_QF:
             if(self.dlg.lineEdit.text()):
                 self.addUserName()
             if(self.dlg.checkBox.isChecked()):
-                self.clipToCanvas()
+                if(os.path.exists(self.dlg.lineEdit_3.text())):
+                   self.clipToCanvas()
+                else:
+                   self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)

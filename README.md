@@ -6,8 +6,9 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 
 ## Usage
 1. Select the plugin using the WAXI logo   
-2. Define new User and their Description
-3. Click on OK, new user will be added to *User list.csv*
+2. To clip all layers to surrent Canvas, select the Clip check box and define a new directory to contain all the layers
+3. And/or Define new User and their Description
+4. Click on OK, new Clipped Project will be created and/or new user will be added to *User list.csv*
 
 ## Roadmap
 1) Add users, rock types, etc to csv lists
