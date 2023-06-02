@@ -17,33 +17,7 @@ c.f. addUserName code OR via upload of csvs
 
 2) Spatial subset extraction to new project
 
-e = iface.mapCanvas().extent()   
-e.xMaximum()   
-e.yMaximum()   
-e.xMinimum()   
-e.yMinimum()   
-
-#### Specify the input layer to be clipped
-project = QgsProject.instance()
-input_layer = project.mapLayersByName("layer_name")
-
-#### Specify the output path for the clipped layer
-output_path = "path_to_output_file.shp"  # Replace with the desired output file path
-
-#### Specify the extent for clipping (xmin, xmax, ymin, ymax)
-extent = QgsRectangle(xmin, ymin, xmax, ymax)  # Replace with the desired extents
-
-#### Clip the layer to the specified extent
-processing.run("native:clip", {   
-    'INPUT': input_layer,   
-    'OUTPUT': output_path,   
-    'MASK': extent   
-})   
-
-#### Load the clipped layer back into QGIS 
-clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")   
-QgsProject.instance().addMapLayer(clipped_layer)   
-
+What to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
 
 3) Merge projects
 
