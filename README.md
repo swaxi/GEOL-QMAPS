@@ -12,7 +12,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Roadmap
 1) Add users, rock types, etc to csv lists
 
-c.f. addUserName code
+c.f. addUserName code OR via upload of csvs
 
 2) Spatial subset extraction to new project
 
