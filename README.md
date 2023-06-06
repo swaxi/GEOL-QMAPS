@@ -18,7 +18,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Roadmap
 1) Add users, rock types, etc to csv lists   
 
-c.f. addUserName code OR via upload of csvs or delimted data
+Done could do it via upload of csvs or delimted data
 
 2) Spatial subset extraction to new project   
 
@@ -30,7 +30,7 @@ Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz proj
 
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
-Done, not sure what to do with other unique layers, copy them over?     
+Done, not sure what to do with other unique layers, copy them over?   Should we add a provenance field?  
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
