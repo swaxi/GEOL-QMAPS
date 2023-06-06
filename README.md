@@ -17,17 +17,11 @@ c.f. addUserName code OR via upload of csvs
 
 2) Spatial subset extraction to new project
 
-What to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
+Done but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
 
 3) Merge projects
 
-define principal local new_principal paths to folders   
-   
-loop through shp.csv    
-load same files from principal and local folders    
-concat to new shapefile   
-drop duplicates on location and time   
-save as new shapefile to new_principal folder according to directory code for subdirectory   
+Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz project file  
 
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)
 

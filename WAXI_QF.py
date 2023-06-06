@@ -32,7 +32,21 @@ from .resources import *
 # Import the code for the dialog
 from .WAXI_QF_dialog import WAXI_QFDialog
 import os.path
-
+from qgis.core import QgsRectangle, Qgis
+from qgis.core.additions.edit import edit
+import processing
+from qgis.core import (
+QgsGeometry,
+QgsWkbTypes,
+QgsProject,
+QgsVectorLayer,
+QgsVectorFileWriter,
+QgsApplication,
+QgsFeature
+)
+import pandas as pd
+import os
+import shutil
 
 class WAXI_QF:
     """QGIS Plugin Implementation."""
@@ -172,22 +186,105 @@ class WAXI_QF:
         # will be set False in run()
         self.first_start = True
 
-    def clipToCanvas(self):
-        from qgis.core import QgsRectangle, Qgis
-        from qgis.core.additions.edit import edit
-        import processing
-        from qgis.core import (
-        QgsGeometry,
-        QgsWkbTypes,
-        QgsProject,
-        QgsVectorLayer,
-        QgsVectorFileWriter,
-        QgsApplication,
-        QgsFeature
-        )
+    def mergeProjects(self):
         import pandas as pd
         import os
-        import shutil
+        import processing
+        from qgis.core import (
+        QgsProject,
+        QgsApplication,
+        )
+
+        # set up directory structure and load filename lists
+        dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
+        shp_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv"
+        csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+        shps=pd.read_csv(shp_list,names=['name','dir_code'])
+        shps=shps.set_index("name")
+        csvs=pd.read_csv(csv_list,names=['name'])
+
+        main_project_path = self.dlg.lineEdit_4.text()
+        sub_project_path = self.dlg.lineEdit_5.text()
+        merge_project_path = self.dlg.lineEdit_6.text()
+
+        if(not os.path.exists(merge_project_path)):
+            os.mkdir(merge_project_path)
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA")):
+            os.mkdir(merge_project_path+"/0. FIELD DATA")
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION")):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION")
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])        
+        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
+            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])
+
+        project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use coty stored in plugin?
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        shutil.copyfile(proj_file_path, merge_project_path+'/'+head_tail[1])
+        for layer in shps.index.to_list():
+
+            main_layer_path = main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
+            sub_layer_path = sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
+            merge_layer_path = merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
+            
+            # merge two shapefiles
+            params = {
+            'LAYERS': [main_layer_path, sub_layer_path],
+            'OUTPUT': 'memory:'
+            }
+
+            merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+            
+            # extract geometries of merged file
+            params = { 
+            'CALC_METHOD' : 0, 
+            'INPUT' :  merged_layers, 
+            'OUTPUT' : 'memory:' 
+            }
+
+            added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
+
+            # remove duplicate rows
+            params = { 
+            'FIELDS' : ['Date','User','xcoord','ycoord'], 
+            'INPUT' : added_geom, 
+            'OUTPUT' : 'memory:' 
+            }
+
+            removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
+
+            # remove generated coordinate columns
+            params = {
+            'INPUT':removed_dups,
+            'COLUMN':['xcoord','ycoord'],
+            'OUTPUT':merge_layer_path
+            }
+
+            processing.run("native:deletecolumn", params)        
+            
+        # merge and de-duplicate csv files
+        for file in csvs.name:
+            main_path=main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
+            sub_path=sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
+            merge_path=merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
+
+            main=pd.read_csv(main_path,sep=";",encoding="latin_1")
+            sub=pd.read_csv(sub_path,sep=";",encoding="latin_1")
+            merge=pd.concat([main,sub])
+            merge=merge.drop_duplicates()
+            merge.to_csv(merge_path,index=False,sep=";")
+        self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
+
+
+    def clipToCanvas(self):
+
 
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
         e = self.iface.mapCanvas().extent()  
@@ -254,15 +351,15 @@ class WAXI_QF:
             # Finish writing and close the shapefile
             del writer
 
-            print("Shapefile saved successfully.")
+            #print("Shapefile saved successfully.")
         for layer in project.mapLayers().values():
                         # Check if the layer name matches the target name
                         if layer.name() in shps.index.tolist():   
                             # Get the file path of the layer
-                            print("Clipping ",layer.name())
+                            #print("Clipping ",layer.name())
                             input_path = layer.dataProvider().dataSourceUri()
                             output_path_2="/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/"
-                            print("saving to",output_path+output_path_2+layer.name()+".shp")
+                            #print("saving to",output_path+output_path_2+layer.name()+".shp")
                             ### REDO output_path as output_dir + input_filename.shp
                             processing.run("native:clip", {   
                                 'INPUT': input_path,   
@@ -274,8 +371,8 @@ class WAXI_QF:
             src_path=os.path.split(input_path)
             src_path=src_path[0]+"/../"+dirs[4]
             dst_path=output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/"
-            print("src",src_path)
-            print("dest",dst_path)
+            #print("src",src_path)
+            #print("dest",dst_path)
             shutil.copytree(src_path, dst_path)
 
         #clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")   
@@ -326,6 +423,21 @@ class WAXI_QF:
         filename = QFileDialog.getExistingDirectory(None, "Select Folder")
 
         self.dlg.lineEdit_3.setText(filename)
+    
+    def select_main_directory(self):
+        filename = QFileDialog.getExistingDirectory(None, "Select Main Project Folder")
+
+        self.dlg.lineEdit_4.setText(filename)
+    
+    def select_sub_directory(self):
+        filename = QFileDialog.getExistingDirectory(None, "Select Sub-Project Folder")
+
+        self.dlg.lineEdit_5.setText(filename)
+    
+    def select_merged_directory(self):
+        filename = QFileDialog.getExistingDirectory(None, "Select Destination Merged Folder")
+
+        self.dlg.lineEdit_6.setText(filename)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -334,7 +446,6 @@ class WAXI_QF:
                 self.tr(u'&WAXI_QF'),
                 action)
             self.iface.removeToolBarIcon(action)
-
 
     def run(self):
         """Run method that performs all the real work"""
@@ -345,6 +456,9 @@ class WAXI_QF:
             self.first_start = False
             self.dlg = WAXI_QFDialog()
             self.dlg.pushButton.clicked.connect(self.select_dst_directory)
+            self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
+            self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
+            self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
@@ -353,10 +467,15 @@ class WAXI_QF:
         if result:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
-            if(self.dlg.lineEdit.text()):
+            if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
                 self.addUserName()
             if(self.dlg.checkBox.isChecked()):
                 if(os.path.exists(self.dlg.lineEdit_3.text())):
                    self.clipToCanvas()
                 else:
                    self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
+            if(self.dlg.checkBox_3.isChecked()):
+                if(os.path.exists(self.dlg.lineEdit_4.text()) and 
+                   os.path.exists(self.dlg.lineEdit_5.text()) and 
+                   os.path.exists(self.dlg.lineEdit_6.text())):
+                        self.mergeProjects()
