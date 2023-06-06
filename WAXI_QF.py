@@ -561,4 +561,5 @@ class WAXI_QF:
                    os.path.exists(self.dlg.lineEdit_6.text())):
                         self.mergeProjects()
             if(self.dlg.checkBox_4.isChecked()):
-                self.exportLayers()
+                if(os.path.exists(self.dlg.lineEdit_7.text())):
+                    self.exportLayers()
