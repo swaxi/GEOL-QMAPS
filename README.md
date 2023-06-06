@@ -18,15 +18,15 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Roadmap
 1) Add users, rock types, etc to csv lists   
 
-Done could do it via upload of csvs or delimted data
+Done, but could do it via upload of csvs or delimited data
 
 2) Spatial subset extraction to new project   
 
-Done but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
+Done, but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
 
 3) Merge projects   
 
-Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz project file  
+Done, but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz project file  
 
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
