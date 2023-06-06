@@ -32,4 +32,6 @@ Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz proj
 
 Done, not sure what to do with other unique layers, copy them over?     
    
-
+## Credits    
+Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
+QFIELD Template - Julien Perret    
