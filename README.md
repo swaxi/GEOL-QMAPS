@@ -32,6 +32,4 @@ Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz proj
 
 Done, not sure what to do with other unique layers, copy them over?     
    
-load relevant layers   
-outer join   
-save as shape files   
+
