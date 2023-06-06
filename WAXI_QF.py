@@ -550,16 +550,23 @@ class WAXI_QF:
             # substitute with your code.
             if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
                 self.addCsvItem()
+
             if(self.dlg.checkBox.isChecked()):
                 if(os.path.exists(self.dlg.lineEdit_3.text())):
                    self.clipToCanvas()
                 else:
                    self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
+
             if(self.dlg.checkBox_3.isChecked()):
                 if(os.path.exists(self.dlg.lineEdit_4.text()) and 
                    os.path.exists(self.dlg.lineEdit_5.text()) and 
                    os.path.exists(self.dlg.lineEdit_6.text())):
                         self.mergeProjects()
+                else:
+                    self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
+                              
             if(self.dlg.checkBox_4.isChecked()):
                 if(os.path.exists(self.dlg.lineEdit_7.text())):
                     self.exportLayers()
+                else:
+                    self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
