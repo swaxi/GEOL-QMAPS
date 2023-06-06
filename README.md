@@ -1,5 +1,5 @@
 # WAXI_QF
- QGIS Plugin to help QFIELD usage related to the WAXI QFIELD Template: https://zenodo.org/record/7882352 
+ QGIS Plugin to help QFIELD usage related to the WAXI QFIELD Template V 0.2 (ctrl click on the link to access latest template): https://zenodo.org/record/7882352 
  
 ## Install
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
