@@ -7,26 +7,27 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Usage
 1. Select the plugin using the WAXI logo   
 2. To clip all layers to surrent Canvas, select the Clip check box and define a new directory to contain all the layers
-3. And/or Define new User and their Description
-4. And/or select two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
-5. Click on OK, new Clipped Project will be created and/or new user will be added to *User list.csv* and/or new merged project will be created
+3. And/or select the Add New User check box and define new User and their Description
+4. And/or select select the Merge Projects check box and two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
+5. And/or select select the Export layers to common themes check box and directory so zones, structures and lithologies can be merged as 3 composite shapefiles
+6. Click on OK, new Clipped Project will be created and/or new user will be added to *User list.csv* and/or new merged project will be created
 
 ## Roadmap
-1) Add users, rock types, etc to csv lists
+1) Add users, rock types, etc to csv lists   
 
-c.f. addUserName code OR via upload of csvs
+c.f. addUserName code OR via upload of csvs or delimted data
 
-2) Spatial subset extraction to new project
+2) Spatial subset extraction to new project   
 
 Done but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
 
-3) Merge projects
+3) Merge projects   
 
 Done but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz project file  
 
-4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)
+4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
-define export path to folder   
+Done, not sure what to do with other unique layers, copy them over?     
    
 load relevant layers   
 outer join   

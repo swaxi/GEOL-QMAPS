@@ -282,6 +282,63 @@ class WAXI_QF:
             merge.to_csv(merge_path,index=False,sep=";")
         self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
+    def exportLayers(self):
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+
+        # merge zone data
+        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp"
+        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp"
+        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp"
+        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp"
+        output=self.dlg.lineEdit_7.text()+"/zonal_data.shp"
+
+        # merge shapefiles
+        params = {
+        'LAYERS': [file1, file2,file3,file4],
+        'OUTPUT': output
+        }
+
+        processing.run("native:mergevectorlayers", params )
+
+        # merge lithology data
+        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"
+        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"
+        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"
+        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"
+        file5=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp"
+        file6=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"
+        output=self.dlg.lineEdit_7.text()+"/litho_data.shp"
+
+        # merge shapefiles
+        params = {
+        'LAYERS': [file1, file2,file3,file4,file5,file6],
+        'OUTPUT': output
+        }
+
+        processing.run("native:mergevectorlayers", params )
+
+        # merge lithology data
+        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp"
+        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp"
+        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp"
+        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp"
+        file5=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp"
+        file6=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp"
+        file7=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp"
+        file8=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp"
+        file9=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp"
+        output=self.dlg.lineEdit_7.text()+"/structure_data.shp"
+
+        # merge shapefiles
+        params = {
+        'LAYERS': [file1, file2,file3,file4,file5,file6,file7,file8,file9],
+        'OUTPUT': output
+        }
+
+        processing.run("native:mergevectorlayers", params )
+        self.iface.messageBar().pushMessage("Layers merged, saved in directory" + self.dlg.lineEdit_7.text(), level=Qgis.Success, duration=5)
 
     def clipToCanvas(self):
 
@@ -312,7 +369,7 @@ class WAXI_QF:
 
 
         # Specify the output file path for the shapefile 
-        output_path = "C:/Users/00073294/Dropbox/WAXI4/gis/TESTCLIP"  # Replace with the desired output shapefile path
+        #output_path = "C:/Users/00073294/Dropbox/WAXI4/gis/TESTCLIP"  # Replace with the desired output shapefile path
         output_path = self.dlg.lineEdit_3.text()
         
         
@@ -353,19 +410,19 @@ class WAXI_QF:
 
             #print("Shapefile saved successfully.")
         for layer in project.mapLayers().values():
-                        # Check if the layer name matches the target name
-                        if layer.name() in shps.index.tolist():   
-                            # Get the file path of the layer
-                            #print("Clipping ",layer.name())
-                            input_path = layer.dataProvider().dataSourceUri()
-                            output_path_2="/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/"
-                            #print("saving to",output_path+output_path_2+layer.name()+".shp")
-                            ### REDO output_path as output_dir + input_filename.shp
-                            processing.run("native:clip", {   
-                                'INPUT': input_path,   
-                                'OUTPUT': output_path+output_path_2+layer.name()+".shp",   
-                                'OVERLAY': overlay_path   
-                            })   
+            # Check if the layer name matches the target name
+            if layer.name() in shps.index.tolist():   
+                # Get the file path of the layer
+                #print("Clipping ",layer.name())
+                input_path = layer.dataProvider().dataSourceUri()
+                output_path_2="/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/"
+                #print("saving to",output_path+output_path_2+layer.name()+".shp")
+                ### REDO output_path as output_dir + input_filename.shp
+                processing.run("native:clip", {   
+                    'INPUT': input_path,   
+                    'OUTPUT': output_path+output_path_2+layer.name()+".shp",   
+                    'OVERLAY': overlay_path   
+                })   
 
         if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
             src_path=os.path.split(input_path)
@@ -439,6 +496,11 @@ class WAXI_QF:
 
         self.dlg.lineEdit_6.setText(filename)
 
+    def select_export_directory(self):
+        filename = QFileDialog.getExistingDirectory(None, "Select Export Folder")
+
+        self.dlg.lineEdit_7.setText(filename)
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -459,6 +521,7 @@ class WAXI_QF:
             self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
             self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
             self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
+            self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
@@ -479,3 +542,5 @@ class WAXI_QF:
                    os.path.exists(self.dlg.lineEdit_5.text()) and 
                    os.path.exists(self.dlg.lineEdit_6.text())):
                         self.mergeProjects()
+            if(self.dlg.checkBox_4.isChecked()):
+                self.exportLayers()
