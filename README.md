@@ -5,7 +5,10 @@
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
 
 ## Usage
-1. Select the plugin using the WAXI logo   
+1. Select the plugin using the WAXI logo   ![waxi_icon](icon.png) 
+
+ ![waxi_qf dialog](dialog.png) 
+
 2. To clip all layers to surrent Canvas, select the Clip check box and define a new directory to contain all the layers
 3. And/or select the Add New User check box and define new User and their Description
 4. And/or select select the Merge Projects check box and two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
