@@ -10,7 +10,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
  ![waxi_qf dialog](dialog.png) 
 
 2. To clip all layers to surrent Canvas, select the Clip check box and define a new directory to contain all the layers
-3. And/or select the Add New User check box and define new User and their Description
+3. And/or select the Add New item to CSV file check box and select whoch file to add item to and define Value and it's Description
 4. And/or select select the Merge Projects check box and two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
 5. And/or select select the Export layers to common themes check box and directory so zones, structures and lithologies can be merged as 3 composite shapefiles
 6. Click on OK, new Clipped Project will be created and/or new user will be added to *User list.csv* and/or new merged project will be created

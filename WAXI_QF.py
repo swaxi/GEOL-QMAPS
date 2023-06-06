@@ -79,6 +79,7 @@ class WAXI_QF:
         self.actions = []
         self.menu = self.tr(u'&WAXI_QF')
 
+        
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
@@ -351,6 +352,7 @@ class WAXI_QF:
 
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
+        
         csvs=pd.read_csv(csv_list,names=['name'])
 
         geom = QgsGeometry().fromRect(extent)
@@ -432,14 +434,22 @@ class WAXI_QF:
             #print("dest",dst_path)
             shutil.copytree(src_path, dst_path)
 
-        #clipped_layer = QgsVectorLayer(output_path, "Clipped Layer", "ogr")   
-        #QgsProject.instance().addMapLayer(clipped_layer)   
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        shutil.copyfile(proj_file_path, output_path+'/'+head_tail[1])
+
         self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
 
-    def addUserName(self):
-        username = self.dlg.lineEdit.text()
+    def addCsvItem(self):
+        csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+        csvs=pd.read_csv(csv_list,names=['name'])
+        csv_file_list=[]
+        for name in csvs.name:
+            csv_file_list.append(name)
+
+        value = self.dlg.lineEdit.text()
         description = self.dlg.lineEdit_2.text()
-        layer_name='User list'
+        layer_name=csv_file_list[self.dlg.comboBox.currentIndex()]
         project = QgsProject.instance()
 
         layer = project.mapLayersByName(layer_name)
@@ -455,7 +465,7 @@ class WAXI_QF:
 
                     QgsProject.instance().removeMapLayer(layer)
                     User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
-                    User_List.loc[str(len(User_List))] = [username,description]
+                    User_List.loc[str(len(User_List))] = [value,description]
                     User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
                     updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
                     if updated_layer.isValid():
@@ -468,7 +478,7 @@ class WAXI_QF:
 
                             # Add the layer to the new group
                             group.addLayer(updated_layer)
-                            self.iface.messageBar().pushMessage("User "+username+" added to User list", level=Qgis.Success, duration=5)
+                            self.iface.messageBar().pushMessage("Item "+value+" "+description+" added to "+layer_name, level=Qgis.Success, duration=15)
 
                     else:
                         self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
@@ -522,6 +532,14 @@ class WAXI_QF:
             self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
             self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
             self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
+            csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+            csvs=pd.read_csv(csv_list,names=['name'])
+            csv_file_list=[]
+            for name in csvs.name:
+                csv_file_list.append(name)
+            self.dlg.comboBox.addItems(csv_file_list)
+
+
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
@@ -531,7 +549,7 @@ class WAXI_QF:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
-                self.addUserName()
+                self.addCsvItem()
             if(self.dlg.checkBox.isChecked()):
                 if(os.path.exists(self.dlg.lineEdit_3.text())):
                    self.clipToCanvas()
