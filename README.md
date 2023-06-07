@@ -22,7 +22,7 @@ Done, but could do it via upload of csvs or delimited data
 
 2) Spatial subset extraction to new project   
 
-Done, but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   
+Done, but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   Maybe clip to polygon?   
 
 3) Merge projects   
 
