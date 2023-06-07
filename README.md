@@ -1,5 +1,5 @@
 # WAXI_QF
- QGIS Plugin to help QFIELD usage related to the WAXI QFIELD Template V 0.2 (ctrl click on the link to access latest template): https://zenodo.org/record/7882352 
+ QGIS Plugin to help QFIELD usage related to the WAXI QFIELD Template V 0.3 (ctrl click on the link to access latest template): https://zenodo.org/record/7882352 
  
 ## Install
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
@@ -31,6 +31,8 @@ Done, but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz pro
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
 Done, not sure what to do with other unique layers, copy them over?   Should we add a provenance field?  
+
+5) Edit the QGIS project name by providing the mission ID and the name of the country considered --> automatic edit of metadata for field data entry forms
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
