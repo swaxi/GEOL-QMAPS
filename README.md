@@ -31,6 +31,8 @@ Done, but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz pro
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
 Done, not sure what to do with other unique layers, copy them over?   Should we add a provenance field?  
+
+5) Edit the QGIS project name by providing the mission ID and the name of the country considered --> automatic edit of metadata for field data entry forms
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
