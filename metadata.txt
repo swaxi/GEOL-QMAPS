@@ -10,7 +10,7 @@ version=0.1
 author=Mark Jessell UWA
 email=mark.jessell@uwa.edu.au
 
-about=This plugin supports the custo QField layers produced for the WAXI project
+about=This plugin supports the custom QField layers produced for the WAXI project
 
 tracker=http://bugs
 repository=http://repo

@@ -188,6 +188,9 @@ class WAXI_QF:
         self.first_start = True
 
     def mergeProjects(self):
+    # Takes two WAXI QFIELD Projects and combines them, 
+    # removing duplicates and saves out the full structure to a new directory
+
         import pandas as pd
         import os
         import processing
@@ -198,8 +201,8 @@ class WAXI_QF:
 
         # set up directory structure and load filename lists
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
-        shp_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv"
-        csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+        shp_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv")
+        csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
         csvs=pd.read_csv(csv_list,names=['name'])
@@ -208,32 +211,32 @@ class WAXI_QF:
         sub_project_path = self.dlg.lineEdit_5.text()
         merge_project_path = self.dlg.lineEdit_6.text()
 
-        if(not os.path.exists(merge_project_path)):
-            os.mkdir(merge_project_path)
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA")):
-            os.mkdir(merge_project_path+"/0. FIELD DATA")
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION")):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION")
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])        
+        if(not os.path.exists(self.mynormpath(merge_project_path))):
+            os.mkdir(self.mynormpath(merge_project_path))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA"))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA"))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
+        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))        
         if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
-            os.mkdir(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])
+            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))
 
         project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use coty stored in plugin?
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-        shutil.copyfile(proj_file_path, merge_project_path+'/'+head_tail[1])
+        shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(merge_project_path+'/'+head_tail[1]))
         for layer in shps.index.to_list():
 
-            main_layer_path = main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
-            sub_layer_path = sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
-            merge_layer_path = merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp"
+            main_layer_path = self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+            sub_layer_path = self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+            merge_layer_path = self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
             
             # merge two shapefiles
             params = {
@@ -272,9 +275,9 @@ class WAXI_QF:
             
         # merge and de-duplicate csv files
         for file in csvs.name:
-            main_path=main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
-            sub_path=sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
-            merge_path=merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv'
+            main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
+            sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
+            merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
 
             main=pd.read_csv(main_path,sep=";",encoding="latin_1")
             sub=pd.read_csv(sub_path,sep=";",encoding="latin_1")
@@ -284,16 +287,18 @@ class WAXI_QF:
         self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
     def exportLayers(self):
+    # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
+
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
 
         # merge zone data
-        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp"
-        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp"
-        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp"
-        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp"
-        output=self.dlg.lineEdit_7.text()+"/zonal_data.shp"
+        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp")
+        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp")
+        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp")
+        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp")
+        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
 
         # merge shapefiles
         params = {
@@ -304,13 +309,13 @@ class WAXI_QF:
         processing.run("native:mergevectorlayers", params )
 
         # merge lithology data
-        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"
-        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"
-        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"
-        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"
-        file5=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp"
-        file6=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"
-        output=self.dlg.lineEdit_7.text()+"/litho_data.shp"
+        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp")
+        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp")
+        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp")
+        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp")
+        file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp")
+        file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp")
+        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/litho_data.shp")
 
         # merge shapefiles
         params = {
@@ -321,16 +326,16 @@ class WAXI_QF:
         processing.run("native:mergevectorlayers", params )
 
         # merge lithology data
-        file1=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp"
-        file2=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp"
-        file3=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp"
-        file4=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp"
-        file5=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp"
-        file6=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp"
-        file7=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp"
-        file8=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp"
-        file9=head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp"
-        output=self.dlg.lineEdit_7.text()+"/structure_data.shp"
+        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp")
+        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp")
+        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp")
+        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp")
+        file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp")
+        file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp")
+        file7=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp")
+        file8=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp")
+        file9=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp")
+        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/structure_data.shp")
 
         # merge shapefiles
         params = {
@@ -340,15 +345,19 @@ class WAXI_QF:
 
         processing.run("native:mergevectorlayers", params )
         self.iface.messageBar().pushMessage("Layers merged, saved in directory" + self.dlg.lineEdit_7.text(), level=Qgis.Success, duration=5)
+    
+    def mynormpath(self,path):
+        return(os.path.normpath(path).replace("\\","/"))
 
     def clipToCanvas(self):
-
+    # Clips all WAXI QFIELD vector layers to current canvas and 
+    # saves out layers in a new directory
 
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
         e = self.iface.mapCanvas().extent()  
         extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
-        shp_list=QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv"
-        csv_list=QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+        shp_list=self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv")
+        csv_list=self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
 
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
@@ -371,77 +380,82 @@ class WAXI_QF:
 
 
         # Specify the output file path for the shapefile 
-        #output_path = "C:/Users/00073294/Dropbox/WAXI4/gis/TESTCLIP"  # Replace with the desired output shapefile path
-        output_path = self.dlg.lineEdit_3.text()
+
+        output_path = self.mynormpath(self.dlg.lineEdit_3.text()).strip()
+
         
-        
-        overlay_path = output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp"  # Path to clip rectangle in memory
-        if(not os.path.exists(output_path)):
-            os.mkdir(output_path)
-        if(not os.path.exists(output_path+"/0. FIELD DATA")):
-            os.mkdir(output_path+"/0. FIELD DATA")
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION")):
-            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION")
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])):
-            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0])
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])):
-            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1])
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])):
-            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2])
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])):
-            os.mkdir(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3])
-            
+        overlay_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp")  # Path to clip rectangle in memory
+        if(not os.path.exists(self.mynormpath(output_path))):
+            os.mkdir(self.mynormpath(output_path))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA"))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA"))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
+            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))
             
         # Prepare the output shapefile parameters
-        output_fields = layer.fields()
-        output_geometry_type = layer.geometryType()
-        output_crs = layer.crs()
-        #print("XXX",output_fields,output_geometry_type,output_crs)
-        # Create the vector file writer instance
-        writer = QgsVectorFileWriter(overlay_path, "UTF-8", output_fields, QgsWkbTypes.Polygon, output_crs, "ESRI Shapefile")
 
-        if writer.hasError() != QgsVectorFileWriter.NoError:
+
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = "ESRI Shapefile"
+        #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+        options.fileEncoding="UTF8"
+
+        # Create the vector file writer instance
+        writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
+
+        if writer[0] != QgsVectorFileWriter.NoError:
             print("Error occurred while creating shapefile:", writer.errorMessage())
+        """
         else:
             # Write features to the shapefile
             for feature in layer.getFeatures():
                 writer.addFeature(feature)
 
             # Finish writing and close the shapefile
-            del writer
+        """
+        del writer
+        
 
-            #print("Shapefile saved successfully.")
         for layer in project.mapLayers().values():
             # Check if the layer name matches the target name
             if layer.name() in shps.index.tolist():   
                 # Get the file path of the layer
-                #print("Clipping ",layer.name())
-                input_path = layer.dataProvider().dataSourceUri()
-                output_path_2="/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/"
-                #print("saving to",output_path+output_path_2+layer.name()+".shp")
+
+                input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
+                output_path_2=self.mynormpath("/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/")
+
                 ### REDO output_path as output_dir + input_filename.shp
                 processing.run("native:clip", {   
                     'INPUT': input_path,   
-                    'OUTPUT': output_path+output_path_2+layer.name()+".shp",   
+                    'OUTPUT': self.mynormpath(output_path+output_path_2+'/'+layer.name()+".shp"),   
                     'OVERLAY': overlay_path   
                 })   
 
-        if(not os.path.exists(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
-            src_path=os.path.split(input_path)
-            src_path=src_path[0]+"/../"+dirs[4]
-            dst_path=output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/"
-            #print("src",src_path)
-            #print("dest",dst_path)
+        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))):
+            src_path=os.path.split(self.mynormpath(input_path))
+            src_path=self.mynormpath(src_path[0]+"/../"+dirs[4])
+            dst_path=self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/")
+
             shutil.copytree(src_path, dst_path)
 
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-        shutil.copyfile(proj_file_path, output_path+'/'+head_tail[1])
+        shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
 
         self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
 
     def addCsvItem(self):
-        csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+    # adds a single vaue/description pair to any csv file in the WAXI QFIELD template
+
+        csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
         csvs=pd.read_csv(csv_list,names=['name'])
         csv_file_list=[]
         for name in csvs.name:
@@ -461,7 +475,7 @@ class WAXI_QF:
                 # Check if the layer name matches the target name
                 if layer.name() == layer_name:
                     # Get the file path of the layer
-                    file_path = layer.dataProvider().dataSourceUri()
+                    file_path = self.mynormpath(layer.dataProvider().dataSourceUri())
 
                     QgsProject.instance().removeMapLayer(layer)
                     User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
@@ -484,13 +498,13 @@ class WAXI_QF:
                         self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
                     break  # Stop iterating once the layer is found
         else:
-            self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=15)
+            self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
     def select_dst_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Folder")
 
         self.dlg.lineEdit_3.setText(filename)
-    
+
     def select_main_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Main Project Folder")
 
@@ -532,7 +546,9 @@ class WAXI_QF:
             self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
             self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
             self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-            csv_list = QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv"
+
+            # create dropdown list of all csv files
+            csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
             csvs=pd.read_csv(csv_list,names=['name'])
             csv_file_list=[]
             for name in csvs.name:
@@ -542,31 +558,32 @@ class WAXI_QF:
 
         # show the dialog
         self.dlg.show()
+
         # Run the dialog event loop
         result = self.dlg.exec_()
+
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
+
             if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
                 self.addCsvItem()
 
             if(self.dlg.checkBox.isChecked()):
-                if(os.path.exists(self.dlg.lineEdit_3.text())):
+                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
                    self.clipToCanvas()
                 else:
                    self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
 
             if(self.dlg.checkBox_3.isChecked()):
-                if(os.path.exists(self.dlg.lineEdit_4.text()) and 
-                   os.path.exists(self.dlg.lineEdit_5.text()) and 
-                   os.path.exists(self.dlg.lineEdit_6.text())):
+                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
+                   os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
+                   os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
                         self.mergeProjects()
                 else:
                     self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
-                              
+
             if(self.dlg.checkBox_4.isChecked()):
-                if(os.path.exists(self.dlg.lineEdit_7.text())):
+                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
                     self.exportLayers()
                 else:
                     self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
