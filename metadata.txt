@@ -3,7 +3,7 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=QAXI_QF
+name=WAXI_QF
 qgisMinimumVersion=3.0
 description=Supoprt QField usage by WAXI Team
 version=0.1
