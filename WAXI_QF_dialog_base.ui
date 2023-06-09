@@ -477,7 +477,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Clipping Polygon (Blank to use current canvas)</string>
+    <string>Clipping Polygon</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

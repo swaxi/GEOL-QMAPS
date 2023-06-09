@@ -26,6 +26,7 @@ from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
 from qgis.core import Qgis, QgsProject, QgsVectorLayer
 import pandas as pd
+from qgis.PyQt.QtCore import QVariant
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -42,7 +43,9 @@ QgsProject,
 QgsVectorLayer,
 QgsVectorFileWriter,
 QgsApplication,
-QgsFeature
+QgsFeature,
+QgsVectorDataProvider,
+QgsField
 )
 import pandas as pd
 import os
@@ -290,23 +293,47 @@ class WAXI_QF:
             merge.to_csv(merge_path,index=False,sep=";")
         self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
+    def rmvLyr(lyrname):
+        qinst = QgsProject.instance()
+        qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
+
     def exportLayers(self):
     # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
 
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-
+        file=[]
         # merge zone data
-        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp")
-        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp")
-        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp")
-        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp")
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp"))
         output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
+        
+        """for f in file:
+            print(f)
+            layer = self.iface.addVectorLayer(f, '', 'ogr')
+            # Get layer capabilities
+            caps = layer.dataProvider().capabilities()
 
+            # Add Fields
+            if caps & QgsVectorDataProvider.AddAttributes:
+                res = layer.dataProvider().addAttributes([QgsField('DataType', QVariant.String, "string",50)])
+                layer.updateFields()
+
+            #Get indexes of LDC and Fecha fields
+            DataType_idx = layer.fields().lookupField('DataType')
+
+            # Change attribute values
+            for f in layer.getFeatures():
+                head_tail=os.path.split(f)
+                DataType = head_tail[1].replace(".shp","")
+                layer.dataProvider().changeAttributeValues({f.id(): {DataType_idx: DataType}})
+        """
         # merge shapefiles
         params = {
-        'LAYERS': [file1, file2,file3,file4],
+        'LAYERS': [file[0], file[1],file[2],file[3]],
         'OUTPUT': output
         }
 
@@ -562,6 +589,44 @@ class WAXI_QF:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def define_tips(self):
+        Value_tooltip = '<p>Value of Item to be stored in csv File selected from List Name dropdown menu.</p>'
+        Description_tooltip = '<p>Additional info for Item to be stored in csv File selected from List Name dropdown menu.</p>'
+        Clip_Polygon_tooltip = '<p>Path to clipping polygon shapefile- Leave blank if you want to use the current QGIS Canvas rectangle.</p>'
+        Clip_path_tooltip = '<p>Path to new clipped QGIS project directory.</p>'
+        Export_path_tooltip = '<p>Path to directory to store combined layers.</p>'
+        Proj_name_tooltip = '<p>Name of Project, e.g. Username & date.</p>'
+        Proj_region_tooltip = '<p>Region project applies to e.g. Sefwi Belt.</p>'
+        Merge_main_tooltip = '<p>Path to directory of global QGIS Project.</p>'
+        Merge_sub_tooltip = '<p>Path to directory of local QGIS Project.</p>'
+        Merge_output_tooltip = '<p>Path to directory of newly merged QGIS Project.</p>'
+        Csv_list_tooltip = 'Select CSV file to add item to'
+        self.dlg.lineEdit.setToolTip(Value_tooltip)
+        self.dlg.lineEdit_2.setToolTip(Description_tooltip)
+
+        self.dlg.lineEdit_8.setToolTip(Clip_Polygon_tooltip)
+        self.dlg.pushButton_6.setToolTip(Clip_Polygon_tooltip)
+
+        self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
+        self.dlg.pushButton.setToolTip(Clip_path_tooltip)
+
+        self.dlg.lineEdit_7.setToolTip(Export_path_tooltip)
+        self.dlg.pushButton_5.setToolTip(Export_path_tooltip)
+
+        self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
+        self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
+
+        self.dlg.lineEdit_4.setToolTip(Merge_main_tooltip)
+        self.dlg.pushButton_2.setToolTip(Merge_main_tooltip)
+
+        self.dlg.lineEdit_5.setToolTip(Merge_sub_tooltip)
+        self.dlg.pushButton_3.setToolTip(Merge_sub_tooltip)
+
+        self.dlg.lineEdit_6.setToolTip(Merge_output_tooltip)
+        self.dlg.pushButton_4.setToolTip(Merge_output_tooltip)
+
+        self.dlg.comboBox.setToolTip(Csv_list_tooltip)
+
     def run(self):
         """Run method that performs all the real work"""
 
@@ -585,7 +650,7 @@ class WAXI_QF:
                 csv_file_list.append(name)
             self.dlg.comboBox.addItems(csv_file_list)
 
-
+        self.define_tips()
         # show the dialog
         self.dlg.show()
 
