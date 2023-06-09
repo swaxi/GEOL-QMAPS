@@ -18,21 +18,23 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Roadmap
 1) Add users, rock types, etc to csv lists   
 
-Done, but could do it via upload of csvs or delimited data
+Done
 
 2) Spatial subset extraction to new project   
 
-Done, but what to do about GEOGRAPHY & ORTHOPHOTO directories, and qgz project file?   Maybe clip to polygon?   
+Done
 
 3) Merge projects   
 
-Done, but not sure how to handle GEOGRAPHY & ORTHOPHOTO directories, and qgz project file  
+Done, but not sure how to handle qgz project file  
 
 4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
 
-Done, not sure what to do with other unique layers, copy them over?   Should we add a provenance field?  
+Done 
 
 5) Edit the QGIS project name by providing the mission ID and the name of the country considered --> automatic edit of metadata for field data entry forms
+
+Done
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
