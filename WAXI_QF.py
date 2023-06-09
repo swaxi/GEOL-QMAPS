@@ -273,6 +273,10 @@ class WAXI_QF:
 
             processing.run("native:deletecolumn", params)        
             
+            qml_input_path = sub_layer_path.replace(".shp",".qml")
+            qml_output_path_2 = merge_layer_path.replace(".shp",".qml")
+            shutil.copyfile(qml_input_path,qml_output_path_2)
+
         # merge and de-duplicate csv files
         for file in csvs.name:
             main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
@@ -349,6 +353,13 @@ class WAXI_QF:
     def mynormpath(self,path):
         return(os.path.normpath(path).replace("\\","/"))
 
+    def updateProjectTitle(self):
+        project = QgsProject.instance()
+        new_title=self.dlg.lineEdit_9.text()+"/"+self.dlg.lineEdit_10.text()
+        project.setTitle(new_title)
+        project.write()
+        self.iface.messageBar().pushMessage("Project title updated to " + new_title, level=Qgis.Success, duration=5)
+
     def clipToCanvas(self):
     # Clips all WAXI QFIELD vector layers to current canvas and 
     # saves out layers in a new directory
@@ -384,7 +395,6 @@ class WAXI_QF:
         output_path = self.mynormpath(self.dlg.lineEdit_3.text()).strip()
 
         
-        overlay_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp")  # Path to clip rectangle in memory
         if(not os.path.exists(self.mynormpath(output_path))):
             os.mkdir(self.mynormpath(output_path))
         if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA"))):
@@ -409,21 +419,27 @@ class WAXI_QF:
         options.fileEncoding="UTF8"
 
         # Create the vector file writer instance
-        writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
-
-        if writer[0] != QgsVectorFileWriter.NoError:
-            print("Error occurred while creating shapefile:", writer.errorMessage())
-        """
+        if(os.path.exists(self.dlg.lineEdit_8.text())):
+            overlay_path=self.dlg.lineEdit_8.text()
+        elif(self.dlg.lineEdit_8.text() and not os.path.exists(self.dlg.lineEdit_8.text())):
+            self.iface.messageBar().pushMessage("Layer Failed to load clip polygon: "+self.dlg.lineEdit_8.text() , level=Qgis.Warning, duration=15)
+            return
         else:
-            # Write features to the shapefile
-            for feature in layer.getFeatures():
-                writer.addFeature(feature)
+            overlay_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp")  # Path to clip rectangle in memory
+            writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
 
-            # Finish writing and close the shapefile
-        """
-        del writer
+            if writer[0] != QgsVectorFileWriter.NoError:
+                print("Error occurred while creating shapefile:", writer.errorMessage())
+            """
+            else:
+                # Write features to the shapefile
+                for feature in layer.getFeatures():
+                    writer.addFeature(feature)
+
+                # Finish writing and close the shapefile
+            """
+            del writer
         
-
         for layer in project.mapLayers().values():
             # Check if the layer name matches the target name
             if layer.name() in shps.index.tolist():   
@@ -438,6 +454,10 @@ class WAXI_QF:
                     'OUTPUT': self.mynormpath(output_path+output_path_2+'/'+layer.name()+".shp"),   
                     'OVERLAY': overlay_path   
                 })   
+
+                qml_input_path = input_path.replace(".shp",".qml")
+                qml_output_path_2 = output_path+output_path_2+'/'+layer.name()+".shp".replace(".shp",".qml")
+                shutil.copyfile(qml_input_path,qml_output_path_2)
 
         if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))):
             src_path=os.path.split(self.mynormpath(input_path))
@@ -500,10 +520,7 @@ class WAXI_QF:
         else:
             self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
-    def resolve(name, basepath=None):
-        if not basepath:
-            basepath = os.path.dirname(os.path.realpath(__file__))
-            return os.path.join(basepath, name)
+
     
     def select_dst_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Folder")
@@ -530,6 +547,13 @@ class WAXI_QF:
 
         self.dlg.lineEdit_7.setText(filename)
 
+    def select_clip_poly(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Select Clip Polygon")
+        
+        self.dlg.lineEdit_8.setText(filename)
+
+
+
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -551,6 +575,7 @@ class WAXI_QF:
             self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
             self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
             self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
+            self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
 
             # create dropdown list of all csv files
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
@@ -592,3 +617,24 @@ class WAXI_QF:
                     self.exportLayers()
                 else:
                     self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
+
+            if(self.dlg.checkBox_5.isChecked()):
+                if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
+                    self.updateProjectTitle()
+        else:
+            self.dlg.lineEdit.setText("") 
+            self.dlg.lineEdit_2.setText("") 
+            self.dlg.lineEdit_3.setText("") 
+            self.dlg.lineEdit_4.setText("") 
+            self.dlg.lineEdit_5.setText("") 
+            self.dlg.lineEdit_6.setText("") 
+            self.dlg.lineEdit_7.setText("") 
+            self.dlg.lineEdit_8.setText("") 
+            self.dlg.lineEdit_9.setText("") 
+            self.dlg.lineEdit_10.setText("") 
+            self.dlg.checkBox.setChecked(False)
+            self.dlg.checkBox_2.setChecked(False)
+            self.dlg.checkBox_3.setChecked(False)
+            self.dlg.checkBox_4.setChecked(False)
+            self.dlg.checkBox_5.setChecked(False)
+            
