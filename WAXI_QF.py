@@ -493,9 +493,9 @@ class WAXI_QF:
 
             shutil.copytree(src_path, dst_path)
 
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
-        shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
+        #proj_file_path=project.fileName()
+        #head_tail = os.path.split(proj_file_path)
+        #shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
 
         self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
 
