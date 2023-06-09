@@ -601,6 +601,20 @@ class WAXI_QF:
         Merge_sub_tooltip = '<p>Path to directory of local QGIS Project.</p>'
         Merge_output_tooltip = '<p>Path to directory of newly merged QGIS Project.</p>'
         Csv_list_tooltip = 'Select CSV file to add item to'
+
+        Clip_tooltip='Select the checkbox below and provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project'
+        Add_item_tooltip='Select the checkbox below, chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD'
+        Export_tooltip='Select the checkbox below and provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)'
+        Update_tooltip='Select the checkbox below and provide new Name and Region info for project'
+        Merge_tooltip='Select the checkbox below and provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
+
+        self.dlg.label_4.setToolTip(Clip_tooltip)
+        self.dlg.label_5.setToolTip(Add_item_tooltip)
+        self.dlg.label_10.setToolTip(Export_tooltip)
+        self.dlg.label_15.setToolTip(Update_tooltip)
+        self.dlg.label_6.setToolTip(Merge_tooltip)
+
+
         self.dlg.lineEdit.setToolTip(Value_tooltip)
         self.dlg.lineEdit_2.setToolTip(Description_tooltip)
 
