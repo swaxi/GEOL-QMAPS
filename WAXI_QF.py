@@ -177,7 +177,7 @@ class WAXI_QF:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/WAXI_QF/icon.png'
+        icon_path = os.path.dirname(os.path.realpath(__file__))+'/icon.png'
         self.add_action(
             icon_path,
             text=self.tr(u'WAXI QF'),
@@ -201,8 +201,8 @@ class WAXI_QF:
 
         # set up directory structure and load filename lists
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
-        shp_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv")
-        csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
+        shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+        csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
         csvs=pd.read_csv(csv_list,names=['name'])
@@ -356,8 +356,8 @@ class WAXI_QF:
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
         e = self.iface.mapCanvas().extent()  
         extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
-        shp_list=self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/shp.csv")
-        csv_list=self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
+        shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+        csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
 
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
@@ -455,7 +455,7 @@ class WAXI_QF:
     def addCsvItem(self):
     # adds a single vaue/description pair to any csv file in the WAXI QFIELD template
 
-        csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
+        csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
         csvs=pd.read_csv(csv_list,names=['name'])
         csv_file_list=[]
         for name in csvs.name:
@@ -500,6 +500,11 @@ class WAXI_QF:
         else:
             self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
+    def resolve(name, basepath=None):
+        if not basepath:
+            basepath = os.path.dirname(os.path.realpath(__file__))
+            return os.path.join(basepath, name)
+    
     def select_dst_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Folder")
 
@@ -548,7 +553,7 @@ class WAXI_QF:
             self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
 
             # create dropdown list of all csv files
-            csv_list = self.mynormpath(QgsApplication.qgisSettingsDirPath()+"/python/plugins/waxi_qf/csv.csv")
+            csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
             csvs=pd.read_csv(csv_list,names=['name'])
             csv_file_list=[]
             for name in csvs.name:
