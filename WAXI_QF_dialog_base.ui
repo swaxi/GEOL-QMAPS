@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>789</width>
+    <width>802</width>
     <height>399</height>
    </rect>
   </property>
@@ -42,14 +42,17 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>80</x>
+     <x>40</x>
      <y>230</y>
-     <width>41</width>
+     <width>71</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Value</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_2">
@@ -65,14 +68,17 @@
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>50</x>
+     <x>30</x>
      <y>260</y>
-     <width>61</width>
-     <height>16</height>
+     <width>81</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Description</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="Line" name="line">
@@ -101,14 +107,17 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>0</x>
      <y>90</y>
-     <width>121</width>
+     <width>141</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Path to New Directory</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
@@ -116,7 +125,7 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>141</width>
+     <width>281</width>
      <height>16</height>
     </rect>
    </property>
@@ -134,7 +143,7 @@
     <rect>
      <x>10</x>
      <y>140</y>
-     <width>151</width>
+     <width>251</width>
      <height>16</height>
     </rect>
    </property>
@@ -191,7 +200,7 @@
     <rect>
      <x>410</x>
      <y>200</y>
-     <width>91</width>
+     <width>191</width>
      <height>16</height>
     </rect>
    </property>
@@ -227,27 +236,33 @@
   <widget class="QLabel" name="label_7">
    <property name="geometry">
     <rect>
-     <x>434</x>
+     <x>404</x>
      <y>250</y>
-     <width>71</width>
-     <height>16</height>
+     <width>101</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Main Project</string>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="label_8">
    <property name="geometry">
     <rect>
-     <x>444</x>
+     <x>404</x>
      <y>280</y>
-     <width>61</width>
-     <height>16</height>
+     <width>101</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Sub Project</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_2">
@@ -281,7 +296,7 @@
     <rect>
      <x>30</x>
      <y>160</y>
-     <width>101</width>
+     <width>151</width>
      <height>20</height>
     </rect>
    </property>
@@ -294,7 +309,7 @@
     <rect>
      <x>430</x>
      <y>220</y>
-     <width>101</width>
+     <width>181</width>
      <height>20</height>
     </rect>
    </property>
@@ -318,14 +333,17 @@
   <widget class="QLabel" name="label_9">
    <property name="geometry">
     <rect>
-     <x>424</x>
+     <x>404</x>
      <y>310</y>
-     <width>81</width>
-     <height>16</height>
+     <width>101</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Merged Project</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_6">
@@ -356,7 +374,7 @@
     <rect>
      <x>410</x>
      <y>10</y>
-     <width>201</width>
+     <width>361</width>
      <height>16</height>
     </rect>
    </property>
@@ -374,7 +392,7 @@
     <rect>
      <x>430</x>
      <y>30</y>
-     <width>91</width>
+     <width>241</width>
      <height>20</height>
     </rect>
    </property>
@@ -398,14 +416,17 @@
   <widget class="QLabel" name="label_11">
    <property name="geometry">
     <rect>
-     <x>370</x>
+     <x>300</x>
      <y>370</y>
-     <width>251</width>
+     <width>311</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
     <string>Select one or more activities, then click on OK</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_7">
@@ -421,14 +442,17 @@
   <widget class="QLabel" name="label_12">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>400</x>
      <y>60</y>
-     <width>91</width>
+     <width>121</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Export directory</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QPushButton" name="pushButton_5">
@@ -457,14 +481,17 @@
   <widget class="QLabel" name="label_13">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>50</x>
      <y>200</y>
-     <width>61</width>
+     <width>101</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>List Name</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
   <widget class="QLabel" name="label_14">
@@ -514,7 +541,7 @@
     <rect>
      <x>410</x>
      <y>110</y>
-     <width>191</width>
+     <width>331</width>
      <height>16</height>
     </rect>
    </property>
@@ -543,33 +570,39 @@
   <widget class="QLabel" name="label_16">
    <property name="geometry">
     <rect>
-     <x>440</x>
+     <x>400</x>
      <y>160</y>
-     <width>31</width>
-     <height>16</height>
+     <width>51</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Name</string>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
   </widget>
   <widget class="QLabel" name="label_17">
    <property name="geometry">
     <rect>
-     <x>610</x>
+     <x>580</x>
      <y>160</y>
-     <width>41</width>
-     <height>16</height>
+     <width>71</width>
+     <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Region</string>
    </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+   </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_9">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>460</x>
      <y>160</y>
      <width>113</width>
      <height>24</height>
