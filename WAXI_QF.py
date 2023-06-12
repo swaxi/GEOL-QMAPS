@@ -395,12 +395,12 @@ class WAXI_QF:
         e = self.iface.mapCanvas().extent()  
         extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
         shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
-        csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+        #csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
 
         shps=pd.read_csv(shp_list,names=['name','dir_code'])
         shps=shps.set_index("name")
         
-        csvs=pd.read_csv(csv_list,names=['name'])
+        #csvs=pd.read_csv(csv_list,names=['name'])
 
         geom = QgsGeometry().fromRect(extent)
 
@@ -520,14 +520,27 @@ class WAXI_QF:
             # Remove the layer from the project
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
-                if layer.name() == layer_name:
+
+                if (layer.name() == layer_name and layer_name != 'Type-Lithologies' and layer_name != 'Lithologies'):
+                    
                     # Get the file path of the layer
                     file_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-
+                    head_tail=os.path.split(file_path)
                     QgsProject.instance().removeMapLayer(layer)
+
                     User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
                     User_List.loc[str(len(User_List))] = [value,description]
                     User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
+
+                    if('lithologies' in layer_name):
+                        User_List= pd.read_csv(head_tail[0]+"/Lithologies.csv",encoding="latin_1",sep=";")
+                        User_List.loc[str(len(User_List))] = [value,value]
+                        User_List.to_csv(head_tail[0]+"/Lithologies.csv",index=False,sep=";",encoding="latin_1")
+
+                        User_List= pd.read_csv(head_tail[0]+"/Type-Lithologies.csv",encoding="latin_1",sep=";")
+                        User_List.loc[str(len(User_List))] = [layer_name.split(" ")[0],value]
+                        User_List.to_csv(head_tail[0]+"/Type-Lithologies.csv",index=False,sep=";",encoding="latin_1")
+
                     updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
                     if updated_layer.isValid():
 
@@ -662,7 +675,7 @@ class WAXI_QF:
             csv_file_list=[]
             for name in csvs.name:
                 csv_file_list.append(name)
-            self.dlg.comboBox.addItems(csv_file_list)
+            self.dlg.comboBox.addItems(csv_file_list[:-2])
 
         self.define_tips()
         # show the dialog
