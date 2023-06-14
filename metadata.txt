@@ -6,7 +6,7 @@
 name=WAXI_QF
 qgisMinimumVersion=3.0
 description=Supoprt QField usage by WAXI Team
-version=0.1.1
+version=0.1.2
 author=Mark Jessell UWA
 email=mark.jessell@uwa.edu.au
 

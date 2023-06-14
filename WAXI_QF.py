@@ -24,9 +24,10 @@
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
-from qgis.core import Qgis, QgsProject, QgsVectorLayer
+from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint
 import pandas as pd
 from qgis.PyQt.QtCore import QVariant
+import os
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -47,9 +48,12 @@ QgsFeature,
 QgsVectorDataProvider,
 QgsField
 )
-import pandas as pd
+from scipy.spatial.distance import cdist
+
+import numpy as np
 import os
 import shutil
+
 
 class WAXI_QF:
     """QGIS Plugin Implementation."""
@@ -194,13 +198,7 @@ class WAXI_QF:
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
 
-        import pandas as pd
-        import os
-        import processing
-        from qgis.core import (
-        QgsProject,
-        QgsApplication,
-        )
+
 
         # set up directory structure and load filename lists
         dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
@@ -293,8 +291,135 @@ class WAXI_QF:
             merge.to_csv(merge_path,index=False,sep=";")
         self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
+    def virtualStops(self,distance):
+        from .dbscan import Basic_DBSCAN
+        from datetime import datetime
+        # Defines psudo stop numbers based on proximity
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+
+        file=[]
+
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
+        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
+        
+        # merge two shapefiles
+        params = {
+        'LAYERS': [file[0],file[1]],
+        'OUTPUT': 'memory:'
+        }
+        print(file[0])
+        print(file[1])
+        merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+        
+        for i,f in enumerate(file):
+   
+                if(i>1):
+                    print(f)
+                    # merge two shapefiles
+                    params = {
+                    'LAYERS': [merged_layers,f],
+                    'OUTPUT': 'memory:'
+                    }
+
+                    merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+                    
+
+
+        points=[]
+        feats = merged_layers.getFeatures()
+        for i,f in enumerate(feats):
+            point=f.geometry()
+            points.append([point.asPoint().x(), point.asPoint().y()])
+        canvas = self.iface.mapCanvas()
+
+        if(canvas.mapUnits()==6): #if lat/long convert to metres, anything else is assuemd to be metres already (not a good idea)
+            distance=float(distance)/111139.0   
+        scanner = Basic_DBSCAN(eps=float(distance), minPts=1)
+        """
+        SIP_MONKEYPATCH_COMPAT_NAME 	0        Meters.
+        SIP_MONKEYPATCH_COMPAT_NAME 	1        Kilometers.
+        SIP_MONKEYPATCH_COMPAT_NAME 	2        Imperial feet.
+        SIP_MONKEYPATCH_COMPAT_NAME 	3        Nautical miles.
+        SIP_MONKEYPATCH_COMPAT_NAME 	4        Imperial yards.
+        SIP_MONKEYPATCH_COMPAT_NAME 	5        Terrestrial miles.
+        SIP_MONKEYPATCH_COMPAT_NAME 	6        Degrees, for planar geographic CRS distance measurements.
+        SIP_MONKEYPATCH_COMPAT_NAME 	7        Centimeters.
+        SIP_MONKEYPATCH_COMPAT_NAME 	8        Millimeters.
+        Inches 	9        Inches (since QGIS 3.32)
+        SIP_MONKEYPATCH_COMPAT_NAME 10        Unknown distance unit.
+        """
+        X=np.array(points)
+        X[0]=(X[0]-X[:,0].mean())/X[:,0].std()
+        X[1]=(X[1]-X[:,1].mean())/X[:,1].std()
+        #X = StandardScaler().fit_transform(X)
+
+
+        clusters = scanner.fit_predict(X)
+        #print(clusters)
+        
+
+        merged_layers.startEditing()
+        if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
+            merged_layers.dataProvider().addAttributes([QgsField("v_stop", QVariant.String)])
+            merged_layers.updateFields()
+
+        id_new_col= merged_layers.dataProvider().fieldNameIndex("v_stop")
+
+        for i,feature in enumerate(merged_layers.getFeatures()):
+            if(clusters[i]>0):
+                merged_layers.changeAttributeValue(feature.id(), id_new_col, str(clusters[i]))
+
+        merged_layers.commitChanges()
+        if not merged_layers.isValid():
+            print("Layer failed to build!")
+        else:
+            QgsProject.instance().addMapLayer(merged_layers,False)
+            options = QgsVectorFileWriter.SaveVectorOptions()
+            options.driverName = "ESRI Shapefile"
+            #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+            options.fileEncoding="UTF8"
+
+            output_path = QgsProject.instance().readPath("./")
+            virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Virtual_Stops_"+datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
+            writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
+
+            if writer[0] != QgsVectorFileWriter.NoError:
+                print("Error occurred while creating shapefile:", writer.errorMessage())
+            """
+            else:
+                # Write features to the shapefile
+                for feature in layer.getFeatures():
+                    writer.addFeature(feature)
+
+                # Finish writing and close the shapefile
+            """
+            del writer
+            self.iface.addVectorLayer(virtual_path, '', 'ogr')
+            self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
+
     def rmvLyr(lyrname):
         qinst = QgsProject.instance()
+        
         qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
 
     def exportLayers(self):
@@ -614,18 +739,21 @@ class WAXI_QF:
         Merge_sub_tooltip = '<p>Path to directory of local QGIS Project.</p>'
         Merge_output_tooltip = '<p>Path to directory of newly merged QGIS Project.</p>'
         Csv_list_tooltip = 'Select CSV file to add item to'
+        Epsilon_tooltip = 'The radius of the circle to be created around each data point to check the density (in metres)'
 
         Clip_tooltip='Select the checkbox below and provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project'
         Add_item_tooltip='Select the checkbox below, chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD'
         Export_tooltip='Select the checkbox below and provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)'
         Update_tooltip='Select the checkbox below and provide new Name and Region info for project'
         Merge_tooltip='Select the checkbox below and provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
+        Virtualstop_tooltip = 'Combine all point layers to get virtual Stop IDS'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
         self.dlg.label_10.setToolTip(Export_tooltip)
         self.dlg.label_15.setToolTip(Update_tooltip)
         self.dlg.label_6.setToolTip(Merge_tooltip)
+        self.dlg.label_18.setToolTip(Virtualstop_tooltip)
 
 
         self.dlg.lineEdit.setToolTip(Value_tooltip)
@@ -651,6 +779,9 @@ class WAXI_QF:
 
         self.dlg.lineEdit_6.setToolTip(Merge_output_tooltip)
         self.dlg.pushButton_4.setToolTip(Merge_output_tooltip)
+
+        self.dlg.lineEdit_11.setToolTip(Epsilon_tooltip)
+
 
         self.dlg.comboBox.setToolTip(Csv_list_tooltip)
 
@@ -713,6 +844,11 @@ class WAXI_QF:
             if(self.dlg.checkBox_5.isChecked()):
                 if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
                     self.updateProjectTitle()
+
+            if(self.dlg.checkBox_6.isChecked()):
+                if(self.dlg.lineEdit_11.text()):
+                    self.virtualStops(self.dlg.lineEdit_11.text())
+
         else:
             self.dlg.lineEdit.setText("") 
             self.dlg.lineEdit_2.setText("") 
@@ -724,9 +860,11 @@ class WAXI_QF:
             self.dlg.lineEdit_8.setText("") 
             self.dlg.lineEdit_9.setText("") 
             self.dlg.lineEdit_10.setText("") 
+            self.dlg.lineEdit_11.setText("") 
             self.dlg.checkBox.setChecked(False)
             self.dlg.checkBox_2.setChecked(False)
             self.dlg.checkBox_3.setChecked(False)
             self.dlg.checkBox_4.setChecked(False)
             self.dlg.checkBox_5.setChecked(False)
+            self.dlg.checkBox_6.setChecked(False)
             

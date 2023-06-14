@@ -13,28 +13,13 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 3. And/or select the Add New item to CSV file check box and select which file to add item to and define Value and it's Description
 4. And/or select select the Merge Projects check box and two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
 5. And/or select select the Export layers to common themes check box and directory so zones, structures and lithologies can be merged as 3 composite shapefiles
-6. Click on OK, new Clipped Project will be created and/or new user will be added to *User list.csv* and/or new merged project will be created
+6. And/or Update the Project name for a new field season.
+7. And/or Create single layer with Virtual Stops to cluster diferent types of observations according to locality
+8. Click on OK to perform action
 
 ## Roadmap
-1) Add users, rock types, etc to csv lists   
 
-Done
-
-2) Spatial subset extraction to new project   
-
-Done
-
-3) Merge projects   
-
-Done, but not sure how to handle qgz project file  
-
-4) Export geometries to produce single shapefiles (structures, litho, stops, zones, petrophysics)   
-
-Done 
-
-5) Edit the QGIS project name by providing the mission ID and the name of the country considered --> automatic edit of metadata for field data entry forms
-
-Done
+Done (for now)
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
