@@ -5,17 +5,17 @@
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
 
 ## Usage
-1. Select the plugin using the WAXI logo   ![waxi_icon](icon.png) 
+1. **Select the plugin using the WAXI logo**   ![waxi_icon](icon.png) 
 
  ![waxi_qf dialog](dialog.png) 
 
-2. To clip all layers to surrent Canvas, select the Clip check box and define a new directory to contain all the layers
-3. And/or select the Add New item to CSV file check box and select which file to add item to and define Value and it's Description
-4. And/or select select the Merge Projects check box and two existing project directories and a new one to store newly merged projects, with duplicates removed. An existing project must be open at the moment.
-5. And/or select select the Export layers to common themes check box and directory so zones, structures and lithologies can be merged as 3 composite shapefiles
-6. And/or Update the Project name for a new field season.
-7. And/or Create single layer with Virtual Stops to cluster diferent types of observations according to locality
-8. Click on OK to perform action
+2. **Clip to current Canvas**: Select checkbox to clip all WAXI QFIELD layers to surrent QGIS Canvas, select the Clip check box and define a new directory to contain all the layers. Optionally select a polygon shapefile to be the clipping polygon. An existing WAXI QFIELD project must be open when you select this option.
+3. **Add New item to CSV file**: Select checkbox and select which file to add item to and define Value and it's Description, and this will update the relevant csv file, so it becomes available in the WAXI QFIELD dropdown menus. An existing WAXI QFIELD project must be open when you select this option.
+4. **Merge Projects**: Select checkbox to merge two existing WAXI QFIELD projects by selecting two existing project directories and a new one to store newly merged projects. Duplicate rows in each layer will be deleted. An existing WAXI QFIELD project must be open when you select this option.
+5. **Export layers to common themes**: Select checkbox to and define directory to export all point, polygon and polyline files are each combined to single shapefiles for zones, structures and lithologies. An existing WAXI QFIELD project must be open when you select this option.
+6. **Update the Project name**: Select checkbox to update the project name and field region for a new field season.
+7. **Create Virtual Stops**: Define clustering to cluster all diferent types of points observations according to locality, using DBSCAN algorithm. An existing WAXI QFIELD project must be open when you select this option. This can be very slow for large datasets, so prbably best appleid to clipped data for a region of interest.
+8. **Click on OK** to perform any or all of the above actions.
 
 ## Roadmap
 
