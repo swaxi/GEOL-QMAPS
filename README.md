@@ -19,7 +19,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 
 ## Roadmap
 
-Done (for now)
+Add centroids of polygon and line features when creating virtual stop layer.
    
 ## Credits    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
