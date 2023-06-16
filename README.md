@@ -7,7 +7,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Usage
 1. **Select the plugin using the WAXI logo**   ![waxi_icon](icon.png)   
 
-**An existing WAXI QFIELD project must be open when you run this plugin.**
+**An existing WAXI QFIELD project must be open when you run this plugin, otherwise the Dialog will not display.**
 
  ![waxi_qf dialog](dialog.png) 
 
