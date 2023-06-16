@@ -15,7 +15,8 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 5. **Export layers to common themes**: Select checkbox and define directory to export all point, polygon and polyline which are combined to three  shapefiles for zones, structures and lithologies. An existing WAXI QFIELD project must be open when you select this option.
 6. **Update the Project name**: Select checkbox to update the project name and field region for a new field campaign.
 7. **Create Virtual Stops**: Select checkbox and define clustering distance to add a cluster code to all diferent types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called *Virtual_Stops_datestamp*. An existing WAXI QFIELD project must be open when you select this option. This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.
-8. **Click on OK** to perform any or all of the above actions.
+8. **Toggle Auto-Increment of Stop numbers**: Select checkbox and toggle Stop Number autoincrementing behaviour when a new stop is defined. An existing WAXI QFIELD project must be open when you select this option. 
+9. **Click on OK** to perform any or all of the above actions.
 
 ## Roadmap
 

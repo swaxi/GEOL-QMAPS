@@ -717,7 +717,22 @@ class WAXI_QF:
         
         self.dlg.lineEdit_8.setText(filename)
 
+    def toggleAutoInc(self):
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
+        os.remove(current_file_name)
 
+        no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+        auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
+        if(self.dlg.radioButton.isChecked()):
+            shutil.copy(auto_filename,current_file_name)
+            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned ON", level=Qgis.Success, duration=15)
+
+        else:
+            shutil.copy(no_auto_filename,current_file_name)
+            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned OFF", level=Qgis.Success, duration=15)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -740,6 +755,8 @@ class WAXI_QF:
         Merge_output_tooltip = '<p>Path to directory of newly merged QGIS Project.</p>'
         Csv_list_tooltip = 'Select CSV file to add item to'
         Epsilon_tooltip = 'The radius of the circle to be created around each data point to check the density (in metres)'
+        Auto_on = 'Turn on autoincrementing of Stop Number behaviour when a new Stop is added'
+        Auto_off = 'Turn off autoincrementing of Stop Number behaviour when a new Stop is added'
 
         Clip_tooltip='Select the checkbox below and provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project'
         Add_item_tooltip='Select the checkbox below, chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD'
@@ -747,6 +764,7 @@ class WAXI_QF:
         Update_tooltip='Select the checkbox below and provide new Name and Region info for project'
         Merge_tooltip='Select the checkbox below and provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
         Virtualstop_tooltip = 'Combine all point layers to get virtual Stop IDS'
+        Autoincrement_tooltip= 'Toggles autoincrementing of Stop Number behaviour when a new Stop is added'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
@@ -754,6 +772,10 @@ class WAXI_QF:
         self.dlg.label_15.setToolTip(Update_tooltip)
         self.dlg.label_6.setToolTip(Merge_tooltip)
         self.dlg.label_18.setToolTip(Virtualstop_tooltip)
+        self.dlg.label_19.setToolTip(Autoincrement_tooltip)
+
+        self.dlg.radioButton.setToolTip(Auto_on)
+        self.dlg.radioButton_2.setToolTip(Auto_off)
 
 
         self.dlg.lineEdit.setToolTip(Value_tooltip)
@@ -808,6 +830,21 @@ class WAXI_QF:
                 csv_file_list.append(name)
             self.dlg.comboBox.addItems(csv_file_list[:-2])
 
+            #check to see which qml is loaded for Stops_PT
+            project = QgsProject.instance()
+            proj_file_path=project.fileName()
+            head_tail = os.path.split(proj_file_path)
+            current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
+            no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+
+            file_stats_current = os.stat(current_file_name)
+            file_stats_no_auto = os.stat(no_auto_filename)
+            if(file_stats_current.st_size == file_stats_no_auto.st_size):
+                self.dlg.radioButton_2.setChecked(True)
+            else:
+                self.dlg.radioButton.setChecked(True)
+
+
         self.define_tips()
         # show the dialog
         self.dlg.show()
@@ -848,6 +885,9 @@ class WAXI_QF:
             if(self.dlg.checkBox_6.isChecked()):
                 if(self.dlg.lineEdit_11.text()):
                     self.virtualStops(self.dlg.lineEdit_11.text())
+
+            if(self.dlg.checkBox_7.isChecked()):
+                self.toggleAutoInc()
 
         else:
             self.dlg.lineEdit.setText("") 
