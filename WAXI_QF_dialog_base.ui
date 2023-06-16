@@ -680,7 +680,7 @@
    <property name="geometry">
     <rect>
      <x>220</x>
-     <y>330</y>
+     <y>350</y>
      <width>113</width>
      <height>24</height>
     </rect>
@@ -690,7 +690,7 @@
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>330</y>
+     <y>350</y>
      <width>51</width>
      <height>20</height>
     </rect>
@@ -749,7 +749,7 @@
   <widget class="QRadioButton" name="radioButton_2">
    <property name="geometry">
     <rect>
-     <x>510</x>
+     <x>520</x>
      <y>400</y>
      <width>91</width>
      <height>22</height>
@@ -764,7 +764,7 @@
     <rect>
      <x>450</x>
      <y>380</y>
-     <width>131</width>
+     <width>221</width>
      <height>22</height>
     </rect>
    </property>
