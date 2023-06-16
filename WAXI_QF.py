@@ -812,6 +812,13 @@ class WAXI_QF:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+
+        current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
+
+
         if self.first_start == True:
             self.first_start = False
             self.dlg = WAXI_QFDialog()
@@ -831,19 +838,20 @@ class WAXI_QF:
             self.dlg.comboBox.addItems(csv_file_list[:-2])
 
             #check to see which qml is loaded for Stops_PT
-            project = QgsProject.instance()
-            proj_file_path=project.fileName()
-            head_tail = os.path.split(proj_file_path)
-            current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
             no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
 
-            file_stats_current = os.stat(current_file_name)
-            file_stats_no_auto = os.stat(no_auto_filename)
-            if(file_stats_current.st_size == file_stats_no_auto.st_size):
-                self.dlg.radioButton_2.setChecked(True)
-            else:
-                self.dlg.radioButton.setChecked(True)
+            if(os.path.exists(current_file_name)):
+                file_stats_current = os.stat(current_file_name)
+                file_stats_no_auto = os.stat(no_auto_filename)
+                if(file_stats_current.st_size == file_stats_no_auto.st_size):
+                    self.dlg.radioButton_2.setChecked(True)
+                else:
+                    self.dlg.radioButton.setChecked(True)
 
+
+        if(not os.path.exists(current_file_name)):
+            self.iface.messageBar().pushMessage("ERROR: A WAXI QFIELD Project Should be Loaded before using this plugin"+self.dlg.lineEdit_3.text(), level=Qgis.Critical, duration=45)
+            
 
         self.define_tips()
         # show the dialog
