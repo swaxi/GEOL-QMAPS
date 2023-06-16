@@ -764,7 +764,7 @@ class WAXI_QF:
         Update_tooltip='Select the checkbox below and provide new Name and Region info for project'
         Merge_tooltip='Select the checkbox below and provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
         Virtualstop_tooltip = 'Combine all point layers to get virtual Stop IDS'
-        Autoincrement_tooltip= 'Toggles autoincrementing of Stop Number behaviour when a new Stop is added'
+        Autoincrement_tooltip= 'Select the checkbox below and toggle autoincrementing of Stop Number behaviour when a new Stop is added'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
