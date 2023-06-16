@@ -23,7 +23,7 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QFileDialog
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog
 from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint
 import pandas as pd
 from qgis.PyQt.QtCore import QVariant
@@ -807,6 +807,7 @@ class WAXI_QF:
 
         self.dlg.comboBox.setToolTip(Csv_list_tooltip)
 
+
     def run(self):
         """Run method that performs all the real work"""
 
@@ -818,101 +819,103 @@ class WAXI_QF:
 
         current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
 
-
-        if self.first_start == True:
-            self.first_start = False
-            self.dlg = WAXI_QFDialog()
-            self.dlg.pushButton.clicked.connect(self.select_dst_directory)
-            self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
-            self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
-            self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
-            self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-            self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
-
-            # create dropdown list of all csv files
-            csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-            csvs=pd.read_csv(csv_list,names=['name'])
-            csv_file_list=[]
-            for name in csvs.name:
-                csv_file_list.append(name)
-            self.dlg.comboBox.addItems(csv_file_list[:-2])
-
-            #check to see which qml is loaded for Stops_PT
-            no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
-
-            if(os.path.exists(current_file_name)):
-                file_stats_current = os.stat(current_file_name)
-                file_stats_no_auto = os.stat(no_auto_filename)
-                if(file_stats_current.st_size == file_stats_no_auto.st_size):
-                    self.dlg.radioButton_2.setChecked(True)
-                else:
-                    self.dlg.radioButton.setChecked(True)
-
-
         if(not os.path.exists(current_file_name)):
-            self.iface.messageBar().pushMessage("ERROR: A WAXI QFIELD Project Should be Loaded before using this plugin"+self.dlg.lineEdit_3.text(), level=Qgis.Critical, duration=45)
-            
-
-        self.define_tips()
-        # show the dialog
-        self.dlg.show()
-
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-
-        # See if OK was pressed
-        if result:
-
-            if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
-                self.addCsvItem()
-
-            if(self.dlg.checkBox.isChecked()):
-                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
-                   self.clipToCanvas()
-                else:
-                   self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
-
-            if(self.dlg.checkBox_3.isChecked()):
-                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
-                   os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
-                   os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
-                        self.mergeProjects()
-                else:
-                    self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
-
-            if(self.dlg.checkBox_4.isChecked()):
-                if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
-                    self.exportLayers()
-                else:
-                    self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
-
-            if(self.dlg.checkBox_5.isChecked()):
-                if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
-                    self.updateProjectTitle()
-
-            if(self.dlg.checkBox_6.isChecked()):
-                if(self.dlg.lineEdit_11.text()):
-                    self.virtualStops(self.dlg.lineEdit_11.text())
-
-            if(self.dlg.checkBox_7.isChecked()):
-                self.toggleAutoInc()
-
+            self.iface.messageBar().pushMessage("ERROR: A WAXI QFIELD Project Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
         else:
-            self.dlg.lineEdit.setText("") 
-            self.dlg.lineEdit_2.setText("") 
-            self.dlg.lineEdit_3.setText("") 
-            self.dlg.lineEdit_4.setText("") 
-            self.dlg.lineEdit_5.setText("") 
-            self.dlg.lineEdit_6.setText("") 
-            self.dlg.lineEdit_7.setText("") 
-            self.dlg.lineEdit_8.setText("") 
-            self.dlg.lineEdit_9.setText("") 
-            self.dlg.lineEdit_10.setText("") 
-            self.dlg.lineEdit_11.setText("") 
-            self.dlg.checkBox.setChecked(False)
-            self.dlg.checkBox_2.setChecked(False)
-            self.dlg.checkBox_3.setChecked(False)
-            self.dlg.checkBox_4.setChecked(False)
-            self.dlg.checkBox_5.setChecked(False)
-            self.dlg.checkBox_6.setChecked(False)
+
+            if self.first_start == True:
+                self.first_start = False
+                self.dlg = WAXI_QFDialog()
+                self.dlg.pushButton.clicked.connect(self.select_dst_directory)
+                self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
+                self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
+                self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
+                self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
+                self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
+
+                # create dropdown list of all csv files
+                csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+                csvs=pd.read_csv(csv_list,names=['name'])
+                csv_file_list=[]
+                for name in csvs.name:
+                    csv_file_list.append(name)
+                self.dlg.comboBox.addItems(csv_file_list[:-2])
+
+                #check to see which qml is loaded for Stops_PT
+                no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+
+                if(os.path.exists(current_file_name)):
+                    file_stats_current = os.stat(current_file_name)
+                    file_stats_no_auto = os.stat(no_auto_filename)
+                    if(file_stats_current.st_size == file_stats_no_auto.st_size):
+                        self.dlg.radioButton_2.setChecked(True)
+                    else:
+                        self.dlg.radioButton.setChecked(True)
+
+
+
+                self.define_tips()
+                # show the dialog
+                self.dlg.show()
+
+
+
+            # Run the dialog event loop
+            result = self.dlg.exec_()
+
+            # See if OK was pressed
+            if result:
+
+                if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
+                    self.addCsvItem()
+
+                if(self.dlg.checkBox.isChecked()):
+                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
+                        self.clipToCanvas()
+                    else:
+                        self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
+
+                if(self.dlg.checkBox_3.isChecked()):
+                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
+                    os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
+                    os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
+                            self.mergeProjects()
+                    else:
+                        self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
+
+                if(self.dlg.checkBox_4.isChecked()):
+                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
+                        self.exportLayers()
+                    else:
+                        self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
+
+                if(self.dlg.checkBox_5.isChecked()):
+                    if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
+                        self.updateProjectTitle()
+
+                if(self.dlg.checkBox_6.isChecked()):
+                    if(self.dlg.lineEdit_11.text()):
+                        self.virtualStops(self.dlg.lineEdit_11.text())
+
+                if(self.dlg.checkBox_7.isChecked()):
+                    self.toggleAutoInc()
+
+            else:
+                self.dlg.lineEdit.setText("") 
+                self.dlg.lineEdit_2.setText("") 
+                self.dlg.lineEdit_3.setText("") 
+                self.dlg.lineEdit_4.setText("") 
+                self.dlg.lineEdit_5.setText("") 
+                self.dlg.lineEdit_6.setText("") 
+                self.dlg.lineEdit_7.setText("") 
+                self.dlg.lineEdit_8.setText("") 
+                self.dlg.lineEdit_9.setText("") 
+                self.dlg.lineEdit_10.setText("") 
+                self.dlg.lineEdit_11.setText("") 
+                self.dlg.checkBox.setChecked(False)
+                self.dlg.checkBox_2.setChecked(False)
+                self.dlg.checkBox_3.setChecked(False)
+                self.dlg.checkBox_4.setChecked(False)
+                self.dlg.checkBox_5.setChecked(False)
+                self.dlg.checkBox_6.setChecked(False)
             
