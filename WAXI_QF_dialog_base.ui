@@ -772,6 +772,22 @@
     <string>Toggle behaviour</string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_21">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>440</y>
+     <width>31</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap>//wsl$/Ubuntu-20.04/home/mark/WAXI_QF/waxi_qf/icon.png</pixmap>
+   </property>
+  </widget>
  </widget>
  <tabstops>
   <tabstop>lineEdit</tabstop>
