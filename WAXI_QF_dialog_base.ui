@@ -689,14 +689,14 @@
   <widget class="QLabel" name="label_20">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>20</x>
      <y>350</y>
-     <width>51</width>
+     <width>191</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
-    <string>Dist (m)</string>
+    <string>Min. Neighbour Dist. (m)</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
