@@ -610,6 +610,16 @@ class WAXI_QF:
                 qml_input_path = input_path.replace(".shp",".qml")
                 qml_output_path_2 = output_path+output_path_2+'/'+layer.name()+".shp".replace(".shp",".qml")
                 shutil.copyfile(qml_input_path,qml_output_path_2)
+        
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
+        qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS//Stops_PT_autoinc.qml'
+        shutil.copyfile(qml_input_path,qml_output_path_2)
+        qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+        qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml'
+        shutil.copyfile(qml_input_path,qml_output_path_2)
 
         if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))):
             src_path=os.path.split(self.mynormpath(input_path))
