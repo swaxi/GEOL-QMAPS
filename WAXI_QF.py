@@ -743,6 +743,11 @@ class WAXI_QF:
         else:
             shutil.copy(no_auto_filename,current_file_name)
             self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned OFF", level=Qgis.Success, duration=15)
+        
+        layer = project.mapLayersByName("Stops_PT")
+        layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
+        layer.triggerRepaint()
+
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
