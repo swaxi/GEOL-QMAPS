@@ -18,7 +18,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 6. **Export layers to common themes**: Select checkbox and define directory to export all point, polygon and polyline which are combined to three  shapefiles for zones, structures and lithologies. 
 7. **Update the Project name**: Select checkbox to update the project name and field region for a new field campaign.
 8. **Toggle Auto-Increment of Stop numbers**: Select checkbox and toggle Stop Number autoincrementing behaviour when a new stop is defined. 
-9. **Stereonet Control**: Select Stereonet checkbox to ccontrol Stereonet plugin display.   
+9. **Stereonet Control**: Select Stereonet checkbox to ccontrol WAXI fork of Stereonet plugin display (https://github.com/swaxi/qgis-stereonet) .   
 10. **Click on OK** to perform any or all of the above actions.
 
 ## Roadmap
