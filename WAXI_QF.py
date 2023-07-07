@@ -368,54 +368,57 @@ class WAXI_QF:
         Inches 	9        Inches (since QGIS 3.32)
         SIP_MONKEYPATCH_COMPAT_NAME 10        Unknown distance unit.
         """
-        X=np.array(points)
-        X[0]=(X[0]-X[:,0].mean())/X[:,0].std()
-        X[1]=(X[1]-X[:,1].mean())/X[:,1].std()
-        #X = StandardScaler().fit_transform(X)
+        if(len(points)>0):
+            X=np.array(points)
+            X[0]=(X[0]-X[:,0].mean())/X[:,0].std()
+            X[1]=(X[1]-X[:,1].mean())/X[:,1].std()
+            #X = StandardScaler().fit_transform(X)
 
 
-        clusters = scanner.fit_predict(X)
-        #print(clusters)
-        
+            clusters = scanner.fit_predict(X)
+            #print(clusters)
+            
 
-        merged_layers.startEditing()
-        if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
-            merged_layers.dataProvider().addAttributes([QgsField("v_stop", QVariant.String)])
-            merged_layers.updateFields()
+            merged_layers.startEditing()
+            if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
+                merged_layers.dataProvider().addAttributes([QgsField("v_stop", QVariant.String)])
+                merged_layers.updateFields()
 
-        id_new_col= merged_layers.dataProvider().fieldNameIndex("v_stop")
+            id_new_col= merged_layers.dataProvider().fieldNameIndex("v_stop")
 
-        for i,feature in enumerate(merged_layers.getFeatures()):
-            if(clusters[i]>0):
-                merged_layers.changeAttributeValue(feature.id(), id_new_col, str(clusters[i]))
+            for i,feature in enumerate(merged_layers.getFeatures()):
+                if(clusters[i]>0):
+                    merged_layers.changeAttributeValue(feature.id(), id_new_col, str(clusters[i]))
 
-        merged_layers.commitChanges()
-        if not merged_layers.isValid():
-            print("Layer failed to build!")
-        else:
-            QgsProject.instance().addMapLayer(merged_layers,False)
-            options = QgsVectorFileWriter.SaveVectorOptions()
-            options.driverName = "ESRI Shapefile"
-            #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-            options.fileEncoding="UTF8"
-
-            output_path = QgsProject.instance().readPath("./")
-            virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Virtual_Stops_"+datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
-            writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
-
-            if writer[0] != QgsVectorFileWriter.NoError:
-                print("Error occurred while creating shapefile:", writer.errorMessage())
-            """
+            merged_layers.commitChanges()
+            if not merged_layers.isValid():
+                print("Layer failed to build!")
             else:
-                # Write features to the shapefile
-                for feature in layer.getFeatures():
-                    writer.addFeature(feature)
+                QgsProject.instance().addMapLayer(merged_layers,False)
+                options = QgsVectorFileWriter.SaveVectorOptions()
+                options.driverName = "ESRI Shapefile"
+                #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+                options.fileEncoding="UTF8"
 
-                # Finish writing and close the shapefile
-            """
-            del writer
-            self.iface.addVectorLayer(virtual_path, '', 'ogr')
-            self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
+                output_path = QgsProject.instance().readPath("./")
+                virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Virtual_Stops_"+datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
+                writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
+
+                if writer[0] != QgsVectorFileWriter.NoError:
+                    print("Error occurred while creating shapefile:", writer.errorMessage())
+                """
+                else:
+                    # Write features to the shapefile
+                    for feature in layer.getFeatures():
+                        writer.addFeature(feature)
+
+                    # Finish writing and close the shapefile
+                """
+                del writer
+                self.iface.addVectorLayer(virtual_path, '', 'ogr')
+                self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
+        else:
+            self.iface.messageBar().pushMessage("No points found", level=Qgis.Warning, duration=45)
 
     def rmvLyr(lyrname):
         qinst = QgsProject.instance()
@@ -701,6 +704,11 @@ class WAXI_QF:
         filename = QFileDialog.getExistingDirectory(None, "Select Folder")
 
         self.dlg.lineEdit_3.setText(filename)
+    
+    def select_directory(self,widget,prompt):
+        filename = QFileDialog.getExistingDirectory(None, prompt)
+
+        widget.setText(filename)
 
     def select_main_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Main Project Folder")
@@ -727,6 +735,7 @@ class WAXI_QF:
         
         self.dlg.lineEdit_8.setText(filename)
 
+
     def toggleAutoInc(self):
         project = QgsProject.instance()
         proj_file_path=project.fileName()
@@ -747,7 +756,21 @@ class WAXI_QF:
         layer = project.mapLayersByName('Stops_PT')[0]
         layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
         layer.triggerRepaint()
+        
+    def set_gtCircles(self):
+        
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
 
+        gtCircles_flag_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/gtCircles_flag.txt"
+
+        if(self.dlg.gtCircles_checkBox.isChecked()):
+            f = open(gtCircles_flag_path, "a+")
+            f.close()
+        else:
+            if(os.path.exists(gtCircles_flag_path)):
+                os.remove(gtCircles_flag_path)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -781,6 +804,8 @@ class WAXI_QF:
         Virtualstop_tooltip = 'Combine all point layers to get virtual Stop IDS'
         Autoincrement_tooltip= 'Select the checkbox below and toggle autoincrementing of Stop Number behaviour when a new Stop is added'
 
+        gtCircles_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
+
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
         self.dlg.label_10.setToolTip(Export_tooltip)
@@ -788,6 +813,7 @@ class WAXI_QF:
         self.dlg.label_6.setToolTip(Merge_tooltip)
         self.dlg.label_18.setToolTip(Virtualstop_tooltip)
         self.dlg.label_19.setToolTip(Autoincrement_tooltip)
+        self.dlg.label_22.setToolTip(gtCircles_tooltip)
 
         self.dlg.radioButton.setToolTip(Auto_on)
         self.dlg.radioButton_2.setToolTip(Auto_off)
@@ -820,7 +846,9 @@ class WAXI_QF:
         self.dlg.lineEdit_11.setToolTip(Epsilon_tooltip)
 
 
-        self.dlg.comboBox.setToolTip(Csv_list_tooltip)
+        self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
+        self.dlg.stereonet_checkBox.setToolTip(gtCircles_tooltip)
+
 
 
     def run(self):
@@ -867,6 +895,10 @@ class WAXI_QF:
                     else:
                         self.dlg.radioButton.setChecked(True)
 
+                gtCircles_flag_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/gtCircles_flag.txt"
+
+                if(os.path.exists(gtCircles_flag_path)):
+                    self.dlg.gtCircles_checkBox.setChecked(True)
 
 
                 self.define_tips()
@@ -881,16 +913,16 @@ class WAXI_QF:
             # See if OK was pressed
             if result:
 
-                if(self.dlg.lineEdit.text() and self.dlg.checkBox_2.isChecked()):
+                if(self.dlg.lineEdit.text() and self.dlg.csv_checkBox.isChecked()):
                     self.addCsvItem()
 
-                if(self.dlg.checkBox.isChecked()):
-                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
+                if(self.dlg.clip_checkBox.isChecked()):
+                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit.text()))):
                         self.clipToCanvas()
                     else:
                         self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
 
-                if(self.dlg.checkBox_3.isChecked()):
+                if(self.dlg.merge_checkBox.isChecked()):
                     if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
                     os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
                     os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
@@ -898,23 +930,25 @@ class WAXI_QF:
                     else:
                         self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
 
-                if(self.dlg.checkBox_4.isChecked()):
+                if(self.dlg.export_checkBox.isChecked()):
                     if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
                         self.exportLayers()
                     else:
                         self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
 
-                if(self.dlg.checkBox_5.isChecked()):
+                if(self.dlg.projName_checkBox.isChecked()):
                     if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
                         self.updateProjectTitle()
 
-                if(self.dlg.checkBox_6.isChecked()):
+                if(self.dlg.virtual_checkBox.isChecked()):
                     if(self.dlg.lineEdit_11.text()):
                         self.virtualStops(self.dlg.lineEdit_11.text())
 
-                if(self.dlg.checkBox_7.isChecked()):
+                if(self.dlg.autoinc_checkBox.isChecked()):
                     self.toggleAutoInc()
 
+                if(self.dlg.stereonet_checkBox.isChecked()):
+                    self.set_gtCircles()
             else:
                 self.dlg.lineEdit.setText("") 
                 self.dlg.lineEdit_2.setText("") 
@@ -927,10 +961,13 @@ class WAXI_QF:
                 self.dlg.lineEdit_9.setText("") 
                 self.dlg.lineEdit_10.setText("") 
                 self.dlg.lineEdit_11.setText("") 
-                self.dlg.checkBox.setChecked(False)
-                self.dlg.checkBox_2.setChecked(False)
-                self.dlg.checkBox_3.setChecked(False)
-                self.dlg.checkBox_4.setChecked(False)
-                self.dlg.checkBox_5.setChecked(False)
-                self.dlg.checkBox_6.setChecked(False)
+                self.dlg.clip_checkBox.setChecked(False)
+                self.dlg.autoinc_checkBox.setChecked(False)
+                self.dlg.clip_checkBox.setChecked(False)
+                self.dlg.csv_checkBox.setChecked(False)
+                self.dlg.export_checkBox.setChecked(False)
+                self.dlg.merge_checkBox.setChecked(False)
+                self.dlg.projName_checkBox.setChecked(False)
+                self.dlg.virtual_checkBox.setChecked(False)
+                self.dlg.stereonet_checkBox.setChecked(False)
             
