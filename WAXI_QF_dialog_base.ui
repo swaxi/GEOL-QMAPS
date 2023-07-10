@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>832</width>
-    <height>570</height>
+    <height>540</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>650</x>
-     <y>530</y>
+     <y>500</y>
      <width>161</width>
      <height>32</height>
     </rect>
@@ -404,7 +404,7 @@
    <property name="geometry">
     <rect>
      <x>40</x>
-     <y>510</y>
+     <y>480</y>
      <width>751</width>
      <height>20</height>
     </rect>
@@ -417,7 +417,7 @@
    <property name="geometry">
     <rect>
      <x>310</x>
-     <y>540</y>
+     <y>500</y>
      <width>311</width>
      <height>16</height>
     </rect>
@@ -776,7 +776,7 @@
    <property name="geometry">
     <rect>
      <x>30</x>
-     <y>530</y>
+     <y>500</y>
      <width>31</width>
      <height>31</height>
     </rect>
@@ -861,14 +861,27 @@
   <widget class="QCheckBox" name="kinematics_checkBox">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>480</y>
+     <x>240</x>
+     <y>440</y>
      <width>231</width>
      <height>20</height>
     </rect>
    </property>
    <property name="text">
     <string>Kinematics</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="linPlanes_checkBox">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>460</y>
+     <width>181</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Lineation Planes</string>
    </property>
   </widget>
  </widget>

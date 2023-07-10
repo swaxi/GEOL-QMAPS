@@ -762,10 +762,13 @@ class WAXI_QF:
         
         #if(os.path.exists(stereoConfigPath)):
         #    os.remove(stereoConfigPath)
-        stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),'showContours':self.dlg.contours_checkBox.isChecked(),'showKinematics':self.dlg.kinematics_checkBox.isChecked()}
+        stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),
+                      'showContours':self.dlg.contours_checkBox.isChecked(),
+                      'showKinematics':self.dlg.kinematics_checkBox.isChecked(),
+                      'linPlanes':self.dlg.linPlanes_checkBox.isChecked()}
 
         with open(stereoConfigPath, "w") as outfile:
-            json.dump(stereoConfig, outfile)
+            json.dump(stereoConfig, outfile, indent=4)
 
 
     def unload(self):
@@ -801,8 +804,10 @@ class WAXI_QF:
         Autoincrement_tooltip= 'Select the checkbox below and toggle autoincrementing of Stop Number behaviour when a new Stop is added'
 
         gtCircles_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
-        contours_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
-        kinematics_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
+        contours_tooltip= 'Select Checkbox to add Contour Display for Stereonet Plugin'
+        kinematics_tooltip= 'Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin'
+        linPlanes_tooltip= 'Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin'
+        stereonet_tooltip= 'Select Checkbox to control Display behaviour for Stereonet Plugin'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
@@ -847,7 +852,8 @@ class WAXI_QF:
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
         self.dlg.contours_checkBox.setToolTip(contours_tooltip)
         self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
-        self.dlg.stereonet_checkBox.setToolTip(gtCircles_tooltip)
+        self.dlg.stereonet_checkBox.setToolTip(stereonet_tooltip)
+        self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
 
 
 
@@ -897,7 +903,7 @@ class WAXI_QF:
 
                 stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True}
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True}
                 if(os.path.exists(stereoConfigPath)):
                     with open(stereoConfigPath,"r") as json_file:
                         stereoConfig=json.load(json_file)
@@ -905,6 +911,7 @@ class WAXI_QF:
                 self.dlg.gtCircles_checkBox.setChecked(stereoConfig['showGtCircles'])
                 self.dlg.contours_checkBox.setChecked(stereoConfig['showContours'])
                 self.dlg.kinematics_checkBox.setChecked(stereoConfig['showKinematics'])
+                self.dlg.linPlanes_checkBox.setChecked(stereoConfig['linPlanes'])
 
 
                 self.define_tips()
@@ -955,7 +962,7 @@ class WAXI_QF:
                 
                 stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True}
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True}
                 if(os.path.exists(stereoConfigPath)):
                     with open(stereoConfigPath,"r") as json_file:
                         stereoConfig=json.load(json_file)
