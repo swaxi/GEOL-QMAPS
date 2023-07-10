@@ -28,6 +28,7 @@ from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint
 import pandas as pd
 from qgis.PyQt.QtCore import QVariant
 import os
+import json
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -757,20 +758,15 @@ class WAXI_QF:
         layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
         layer.triggerRepaint()
         
-    def set_gtCircles(self):
+    def set_stereoConfig(self,stereoConfig,stereoConfigPath):
         
-        project = QgsProject.instance()
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
+        #if(os.path.exists(stereoConfigPath)):
+        #    os.remove(stereoConfigPath)
+        stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),'showContours':self.dlg.contours_checkBox.isChecked(),'showKinematics':self.dlg.kinematics_checkBox.isChecked()}
 
-        gtCircles_flag_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/gtCircles_flag.txt"
+        with open(stereoConfigPath, "w") as outfile:
+            json.dump(stereoConfig, outfile)
 
-        if(self.dlg.gtCircles_checkBox.isChecked()):
-            f = open(gtCircles_flag_path, "a+")
-            f.close()
-        else:
-            if(os.path.exists(gtCircles_flag_path)):
-                os.remove(gtCircles_flag_path)
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -805,6 +801,8 @@ class WAXI_QF:
         Autoincrement_tooltip= 'Select the checkbox below and toggle autoincrementing of Stop Number behaviour when a new Stop is added'
 
         gtCircles_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
+        contours_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
+        kinematics_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
         self.dlg.label_5.setToolTip(Add_item_tooltip)
@@ -847,6 +845,8 @@ class WAXI_QF:
 
 
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
+        self.dlg.contours_checkBox.setToolTip(contours_tooltip)
+        self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
         self.dlg.stereonet_checkBox.setToolTip(gtCircles_tooltip)
 
 
@@ -895,10 +895,16 @@ class WAXI_QF:
                     else:
                         self.dlg.radioButton.setChecked(True)
 
-                gtCircles_flag_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/gtCircles_flag.txt"
+                stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
-                if(os.path.exists(gtCircles_flag_path)):
-                    self.dlg.gtCircles_checkBox.setChecked(True)
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True}
+                if(os.path.exists(stereoConfigPath)):
+                    with open(stereoConfigPath,"r") as json_file:
+                        stereoConfig=json.load(json_file)
+                
+                self.dlg.gtCircles_checkBox.setChecked(stereoConfig['showGtCircles'])
+                self.dlg.contours_checkBox.setChecked(stereoConfig['showContours'])
+                self.dlg.kinematics_checkBox.setChecked(stereoConfig['showKinematics'])
 
 
                 self.define_tips()
@@ -946,9 +952,16 @@ class WAXI_QF:
 
                 if(self.dlg.autoinc_checkBox.isChecked()):
                     self.toggleAutoInc()
+                
+                stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
+
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True}
+                if(os.path.exists(stereoConfigPath)):
+                    with open(stereoConfigPath,"r") as json_file:
+                        stereoConfig=json.load(json_file)
 
                 if(self.dlg.stereonet_checkBox.isChecked()):
-                    self.set_gtCircles()
+                    self.set_stereoConfig(stereoConfig,stereoConfigPath)
             else:
                 self.dlg.lineEdit.setText("") 
                 self.dlg.lineEdit_2.setText("") 
