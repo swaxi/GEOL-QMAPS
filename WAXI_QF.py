@@ -765,7 +765,8 @@ class WAXI_QF:
         stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),
                       'showContours':self.dlg.contours_checkBox.isChecked(),
                       'showKinematics':self.dlg.kinematics_checkBox.isChecked(),
-                      'linPlanes':self.dlg.linPlanes_checkBox.isChecked()}
+                      'linPlanes':self.dlg.linPlanes_checkBox.isChecked(),
+                      'roseDiagram':self.dlg.rose_checkBox.isChecked()}
 
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
@@ -807,6 +808,7 @@ class WAXI_QF:
         contours_tooltip= 'Select Checkbox to add Contour Display for Stereonet Plugin'
         kinematics_tooltip= 'Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin'
         linPlanes_tooltip= 'Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin'
+        rose_tooltip= 'Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin'
         stereonet_tooltip= 'Select Checkbox to control Display behaviour for Stereonet Plugin'
 
         self.dlg.label_4.setToolTip(Clip_tooltip)
@@ -854,6 +856,7 @@ class WAXI_QF:
         self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
         self.dlg.stereonet_checkBox.setToolTip(stereonet_tooltip)
         self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
+        self.dlg.rose_checkBox.setToolTip(rose_tooltip)
 
 
 
@@ -903,7 +906,7 @@ class WAXI_QF:
 
                 stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True}
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
                 if(os.path.exists(stereoConfigPath)):
                     with open(stereoConfigPath,"r") as json_file:
                         stereoConfig=json.load(json_file)
@@ -912,6 +915,7 @@ class WAXI_QF:
                 self.dlg.contours_checkBox.setChecked(stereoConfig['showContours'])
                 self.dlg.kinematics_checkBox.setChecked(stereoConfig['showKinematics'])
                 self.dlg.linPlanes_checkBox.setChecked(stereoConfig['linPlanes'])
+                self.dlg.rose_checkBox.setChecked(stereoConfig['roseDiagram'])
 
 
                 self.define_tips()
@@ -962,7 +966,7 @@ class WAXI_QF:
                 
                 stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True}
+                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
                 if(os.path.exists(stereoConfigPath)):
                     with open(stereoConfigPath,"r") as json_file:
                         stereoConfig=json.load(json_file)
