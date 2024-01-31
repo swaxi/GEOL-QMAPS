@@ -21,17 +21,27 @@
  *                                                                         *
  ***************************************************************************/
 """
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog
-from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint
-import pandas as pd
-from qgis.PyQt.QtCore import QVariant
+
+
+
+from qgis.gui import QgsMessageBar
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, pyqtSignal, QUrl
+from qgis.PyQt.QtGui import QIcon, QColor, QDesktopServices
+from qgis.PyQt import QtWidgets 
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget, QVBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox
+from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint, QgsRectangle, QgsGeometry, QgsField, QgsFeature, QgsExpression, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsApplication
+from qgis.PyQt.QtCore import QVariant, QUrl
 import os
-import json
+
+import subprocess
+import sys
+from qgis.utils import plugins, iface
+from qgis.utils import qgsfunction
+
 
 # Initialize Qt resources from file resources.py
 from .resources import *
+
 # Import the code for the dialog
 from .WAXI_QF_dialog import WAXI_QFDialog
 import os.path
@@ -51,10 +61,34 @@ QgsField
 )
 from scipy.spatial.distance import cdist
 
+
 import numpy as np
 import os
 import shutil
+import json
 
+# Libraries for manipulating Excel files 
+from pandas import *
+
+
+# Library for list copies
+from copy import copy 
+
+# Library for interactive graphics 
+import plotly.express as px
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
+
+# Library for check the input file nature
+from pathlib import Path
+
+
+# Importation des bibliothèques situées dans le dossier du plugin 
+plugin_directory = os.path.dirname(__file__)
+biblio_python_directory = os.path.join(plugin_directory, 'biblio_Python')
+sys.path.append(biblio_python_directory)
 
 class WAXI_QF:
     """QGIS Plugin Implementation."""
@@ -91,6 +125,46 @@ class WAXI_QF:
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
+        
+
+
+
+
+        ## Intallation des bibliothèques Python
+        def install_library(library_name):
+            try:
+                subprocess.call(["python", "-m", "pip", "install", library_name])
+                print(f"Successfully installed {library_name}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error installing {library_name}: {e}")
+
+
+        
+        # Bibliothèque Xlswriter
+        try:
+            import xlsxwriter
+            
+        except:
+            self.install_library("xlsxwriter")
+        
+        
+        # Bibliothèque Openpyxl
+        try:
+            import openpyxl
+
+        except:
+            self.install_library("openpyxl")
+
+
+        # Bibliothèque FuzzyWuzzy
+        try:
+            import fuzzywuzzy
+
+        except:
+            self.install_library("fuzzywuzzy")
+
+        
+        
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -184,7 +258,7 @@ class WAXI_QF:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+    
         icon_path = os.path.dirname(os.path.realpath(__file__))+'/icon.png'
         self.add_action(
             icon_path,
@@ -195,216 +269,227 @@ class WAXI_QF:
         # will be set False in run()
         self.first_start = True
 
+
+
+
+    ###############################################################################
+    ####################         Page 1 : WAXI_project           ##################
+    ###############################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ###############################################################################
+    ##################       Page 2 : Project_parameters          #################
+    ###############################################################################
+
+
+    ### Update project name ###
+
+    def updateProjectTitle(self):
+        if(self.dlg.lineEdit_9.text() and  self.dlg.lineEdit_10.text()):
+            project = QgsProject.instance()
+            new_title =  self.dlg.lineEdit_9.text()+"/"+  self.dlg.lineEdit_10.text()
+            project.setTitle(new_title)
+            project.write()
+            self.iface.messageBar().pushMessage("Project title updated to " + new_title, level=Qgis.Success, duration=45)
+
+
+
+    ### Merge Projects ###
+
     def mergeProjects(self):
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
-
-
-
-        # set up directory structure and load filename lists
-        dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
-        shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
-        csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-        shps=pd.read_csv(shp_list,names=['name','dir_code'])
-        shps=shps.set_index("name")
-        csvs=pd.read_csv(csv_list,names=['name'])
-
-        main_project_path = self.dlg.lineEdit_4.text()
-        sub_project_path = self.dlg.lineEdit_5.text()
-        merge_project_path = self.dlg.lineEdit_6.text()
-
-        if(not os.path.exists(self.mynormpath(merge_project_path))):
-            os.mkdir(self.mynormpath(merge_project_path))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA"))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA"))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
-        if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))        
-        if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
-            os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))
-
-        project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use coty stored in plugin?
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
-        shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(merge_project_path+'/'+head_tail[1]))
-        for layer in shps.index.to_list():
-
-            main_layer_path = self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
-            sub_layer_path = self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
-            merge_layer_path = self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
-            
-            # merge two shapefiles
-            params = {
-            'LAYERS': [main_layer_path, sub_layer_path],
-            'OUTPUT': 'memory:'
-            }
-
-            merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-            
-            # extract geometries of merged file
-            params = { 
-            'CALC_METHOD' : 0, 
-            'INPUT' :  merged_layers, 
-            'OUTPUT' : 'memory:' 
-            }
-
-            added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
-
-            # remove duplicate rows
-            params = { 
-            'FIELDS' : ['Date','User','xcoord','ycoord'], 
-            'INPUT' : added_geom, 
-            'OUTPUT' : 'memory:' 
-            }
-
-            removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
-
-            # remove generated coordinate columns
-            params = {
-            'INPUT':removed_dups,
-            'COLUMN':['xcoord','ycoord'],
-            'OUTPUT':merge_layer_path
-            }
-
-            processing.run("native:deletecolumn", params)        
-            
-            qml_input_path = sub_layer_path.replace(".shp",".qml")
-            qml_output_path_2 = merge_layer_path.replace(".shp",".qml")
-            shutil.copyfile(qml_input_path,qml_output_path_2)
-
-        # merge and de-duplicate csv files
-        for file in csvs.name:
-            main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-            sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-            merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-
-            main=pd.read_csv(main_path,sep=";",encoding="latin_1")
-            sub=pd.read_csv(sub_path,sep=";",encoding="latin_1")
-            merge=pd.concat([main,sub])
-            merge=merge.drop_duplicates()
-            merge.to_csv(merge_path,index=False,sep=";")
-        self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
-
-    def virtualStops(self,distance):
-        from .dbscan import Basic_DBSCAN
-        from datetime import datetime
-        # Defines psudo stop numbers based on proximity
-        project = QgsProject.instance()
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        file=[]
-
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
         
-        # merge two shapefiles
-        params = {
-        'LAYERS': [file[0],file[1]],
-        'OUTPUT': 'memory:'
-        }
-        print(file[0])
-        print(file[1])
-        merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-        
-        for i,f in enumerate(file):
-   
-                if(i>1):
-                    print(f)
-                    # merge two shapefiles
-                    params = {
-                    'LAYERS': [merged_layers,f],
-                    'OUTPUT': 'memory:'
-                    }
-
-                    merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-                    
-
-
-        points=[]
-        feats = merged_layers.getFeatures()
-        for i,f in enumerate(feats):
-            point=f.geometry()
-            points.append([point.asPoint().x(), point.asPoint().y()])
-        canvas = self.iface.mapCanvas()
-
-        if(canvas.mapUnits()==6): #if lat/long convert to metres, anything else is assuemd to be metres already (not a good idea)
-            distance=float(distance)/111139.0   
-        scanner = Basic_DBSCAN(eps=float(distance), minPts=1)
-        """
-        SIP_MONKEYPATCH_COMPAT_NAME 	0        Meters.
-        SIP_MONKEYPATCH_COMPAT_NAME 	1        Kilometers.
-        SIP_MONKEYPATCH_COMPAT_NAME 	2        Imperial feet.
-        SIP_MONKEYPATCH_COMPAT_NAME 	3        Nautical miles.
-        SIP_MONKEYPATCH_COMPAT_NAME 	4        Imperial yards.
-        SIP_MONKEYPATCH_COMPAT_NAME 	5        Terrestrial miles.
-        SIP_MONKEYPATCH_COMPAT_NAME 	6        Degrees, for planar geographic CRS distance measurements.
-        SIP_MONKEYPATCH_COMPAT_NAME 	7        Centimeters.
-        SIP_MONKEYPATCH_COMPAT_NAME 	8        Millimeters.
-        Inches 	9        Inches (since QGIS 3.32)
-        SIP_MONKEYPATCH_COMPAT_NAME 10        Unknown distance unit.
-        """
-        if(len(points)>0):
-            X=np.array(points)
-            X[0]=(X[0]-X[:,0].mean())/X[:,0].std()
-            X[1]=(X[1]-X[:,1].mean())/X[:,1].std()
-            #X = StandardScaler().fit_transform(X)
-
-
-            clusters = scanner.fit_predict(X)
-            #print(clusters)
+        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
+            os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
+            os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
             
+            
+            # set up directory structure and load filename lists
+            dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
+            shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+            csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+            shps=read_csv(shp_list,names=['name','dir_code'])
+            shps=shps.set_index("name")
+            csvs=read_csv(csv_list,names=['name'])
+    
+            main_project_path =  self.dlg.lineEdit_4.text()
+            sub_project_path =  self.dlg.lineEdit_5.text()
+            merge_project_path =  self.dlg.lineEdit_6.text()
+    
+            if(not os.path.exists(self.mynormpath(merge_project_path))):
+                os.mkdir(self.mynormpath(merge_project_path))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA"))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA"))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION"))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
+            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))        
+            if(not os.path.exists(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4])):
+                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))
+    
+            project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use coty stored in plugin?
+            proj_file_path=project.fileName()
+            head_tail = os.path.split(proj_file_path)
+            shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(merge_project_path+'/'+head_tail[1]))
+            for layer in shps.index.to_list():
+    
+                main_layer_path = self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+                sub_layer_path = self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+                merge_layer_path = self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+                
+                # merge two shapefiles
+                params = {
+                'LAYERS': [main_layer_path, sub_layer_path],
+                'OUTPUT': 'memory:'
+                }
+    
+                merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+                
+                # extract geometries of merged file
+                params = { 
+                'CALC_METHOD' : 0, 
+                'INPUT' :  merged_layers, 
+                'OUTPUT' : 'memory:' 
+                }
+    
+                added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
+    
+                # remove duplicate rows
+                params = { 
+                'FIELDS' : ['Date','User','xcoord','ycoord'], 
+                'INPUT' : added_geom, 
+                'OUTPUT' : 'memory:' 
+                }
+    
+                removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
+    
+                # remove generated coordinate columns
+                params = {
+                'INPUT':removed_dups,
+                'COLUMN':['xcoord','ycoord'],
+                'OUTPUT':merge_layer_path
+                }
+    
+                processing.run("native:deletecolumn", params)        
+                
+                qml_input_path = sub_layer_path.replace(".shp",".qml")
+                qml_output_path_2 = merge_layer_path.replace(".shp",".qml")
+                shutil.copyfile(qml_input_path,qml_output_path_2)
+    
+            # merge and de-duplicate csv files
+            for file in csvs.name:
+                main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
+                sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
+                merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
+    
+                main=read_csv(main_path,sep=";",encoding="latin_1")
+                sub=read_csv(sub_path,sep=";",encoding="latin_1")
+                merge=concat([main,sub])
+                merge=merge.drop_duplicates()
+                merge.to_csv(merge_path,index=False,sep=";")
+            self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
-            merged_layers.startEditing()
-            if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
-                merged_layers.dataProvider().addAttributes([QgsField("v_stop", QVariant.String)])
-                merged_layers.updateFields()
 
-            id_new_col= merged_layers.dataProvider().fieldNameIndex("v_stop")
+        else:
+            self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
 
-            for i,feature in enumerate(merged_layers.getFeatures()):
-                if(clusters[i]>0):
-                    merged_layers.changeAttributeValue(feature.id(), id_new_col, str(clusters[i]))
 
-            merged_layers.commitChanges()
-            if not merged_layers.isValid():
-                print("Layer failed to build!")
+
+
+    ### Clip to Canvas ###
+     
+    def clipToCanvas(self):
+    # Clips all WAXI QFIELD vector layers to current canvas and 
+    # saves out layers in a new directory
+        
+        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
+
+            dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
+            e = self.iface.mapCanvas().extent()  
+            extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
+            shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+            #csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+    
+            shps=read_csv(shp_list,names=['name','dir_code'])
+            shps=shps.set_index("name")
+            
+            #csvs=read_csv(csv_list,names=['name'])
+    
+            geom = QgsGeometry().fromRect(extent)
+    
+            ftr = QgsFeature()
+            ftr.setGeometry(geom)
+    
+            #Define your Coordinate Reference System here
+            project = QgsProject.instance()
+            crs = project.crs()
+    
+            layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
+    
+            with edit(layer):
+                layer.addFeature(ftr)
+    
+    
+            # Specify the output file path for the shapefile 
+    
+            output_path = self.mynormpath(self.dlg.lineEdit_3.text()).strip()
+    
+            
+            if(not os.path.exists(self.mynormpath(output_path))):
+                os.mkdir(self.mynormpath(output_path))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA"))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA"))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
+                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))
+                
+            # Prepare the output shapefile parameters
+    
+    
+            options = QgsVectorFileWriter.SaveVectorOptions()
+            options.driverName = "ESRI Shapefile"
+            #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+            options.fileEncoding="UTF8"
+    
+            # Create the vector file writer instance
+            if(os.path.exists(self.dlg.lineEdit_8.text())):
+                overlay_path = self.dlg.lineEdit_8.text()
+            elif( self.dlg.lineEdit_8.text() and not os.path.exists( self.dlg.lineEdit_8.text())):
+                self.iface.messageBar().pushMessage("Layer Failed to load clip polygon: "+ self.dlg.lineEdit_8.text() , level=Qgis.Warning, duration=15)
+                return
             else:
-                QgsProject.instance().addMapLayer(merged_layers,False)
-                options = QgsVectorFileWriter.SaveVectorOptions()
-                options.driverName = "ESRI Shapefile"
-                #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-                options.fileEncoding="UTF8"
-
-                output_path = QgsProject.instance().readPath("./")
-                virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Virtual_Stops_"+datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
-                writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
-
+                overlay_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp")  # Path to clip rectangle in memory
+                writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
+    
                 if writer[0] != QgsVectorFileWriter.NoError:
                     print("Error occurred while creating shapefile:", writer.errorMessage())
                 """
@@ -412,293 +497,2149 @@ class WAXI_QF:
                     # Write features to the shapefile
                     for feature in layer.getFeatures():
                         writer.addFeature(feature)
-
+    
                     # Finish writing and close the shapefile
                 """
                 del writer
-                self.iface.addVectorLayer(virtual_path, '', 'ogr')
-                self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
+            
+            for layer in project.mapLayers().values():
+                # Check if the layer name matches the target name
+                if layer.name() in shps.index.tolist():   
+                    # Get the file path of the layer
+    
+                    input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
+                    output_path_2=self.mynormpath("/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/")
+    
+                    ### REDO output_path as output_dir + input_filename.shp
+                    processing.run("native:clip", {   
+                        'INPUT': input_path,   
+                        'OUTPUT': self.mynormpath(output_path+output_path_2+'/'+layer.name()+".shp"),   
+                        'OVERLAY': overlay_path   
+                    })   
+    
+                    qml_input_path = input_path.replace(".shp",".qml")
+                    qml_output_path_2 = output_path+output_path_2+'/'+layer.name()+".shp".replace(".shp",".qml")
+                    shutil.copyfile(qml_input_path,qml_output_path_2)
+            
+            project = QgsProject.instance()
+            proj_file_path=project.fileName()
+            head_tail = os.path.split(proj_file_path)
+            qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
+            qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS//Stops_PT_autoinc.qml'
+            shutil.copyfile(qml_input_path,qml_output_path_2)
+            qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+            qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml'
+            shutil.copyfile(qml_input_path,qml_output_path_2)
+    
+            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))):
+                src_path=os.path.split(self.mynormpath(input_path))
+                src_path=self.mynormpath(src_path[0]+"/../"+dirs[4])
+                dst_path=self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/")
+    
+                shutil.copytree(src_path, dst_path)
+    
+            #proj_file_path=project.fileName()
+            #head_tail = os.path.split(proj_file_path)
+            #shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
+    
+            self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
+
+
         else:
-            self.iface.messageBar().pushMessage("No points found", level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage("Directory not found: "+ self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
+
+
+    ### Réinitialiser la fenêtre 
+     
+    def resetWindowState1(self):
+        self.dlg.lineEdit_9.clear()
+        self.dlg.lineEdit_10.clear()
+        self.dlg.lineEdit_4.clear()
+        self.dlg.lineEdit_5.clear()
+        self.dlg.lineEdit_6.clear()
+        self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_8.clear()
+        
+        
+
+
+    ###############################################################################
+    ####################         Page 3 : Import data            ##################
+    ###############################################################################
+
+    """
+    Author: Eliott Betend
+    For : WAXI Project (Stage 4) - CET 
+    Condition : version de QGIS > 3.22
+    """
+    
+    ###############################################################################
+    ################# Step 0 : Check the input file nature ########################
+    ###############################################################################
+    
+    def test_input_file_nature(chemin):
+        chemin = Path(chemin)
+        
+        if chemin.exists():
+            
+            # Récupération de l'extension du fichier pour connaitre sa nature
+            extension = chemin.suffix.lower()
+    
+            # Test la nature du fichier en fonction de son extension
+            
+            if extension == ".shp" or extension == ".gpkg":
+                return("Fichier Shapefile ou Geopackage")
+                
+            else:
+                return("Fichier non compatible")
+        else:
+            return("Le fichier n'existe pas !")
+
+
+    
+    ###############################################################################
+    ######## Step 1 : Check layer coordinates + Create geometry column ############
+    ###############################################################################
+        
+    def convert_coordinates_WGS84(self, couche) :
+        
+        # Sélection de toutes les entités de la couche
+        couche.selectAll()
+    
+        # Création d'une nouvelle colonne 'Geometry' dans la table attributaire de la couche
+        couche.startEditing()
+        couche.addAttribute(QgsField("Geometry", QVariant.String))
+        
+        # Recuperation du CRS (Coordinate Reference System)
+        crs = couche.crs()
+        
+        # Conversion des coordonnées en WGS84
+        for feature in couche.selectedFeatures():
+            geometrie = feature.geometry()
+    
+            transformation = QgsCoordinateTransform(crs, QgsProject.instance().crs(), QgsProject.instance())
+            geometrie.transform(transformation)
+    
+            feature["Geometry"] = geometrie.asWkt()
+            couche.updateFeature(feature)
+    
+        # Enregistrement des modifications
+        couche.commitChanges()
+        couche.removeSelection()
+    
+        # Rafraîchissage de la vue dans QGIS
+        QgsProject.instance().reloadAllLayers()
+    
+    
+    
+    
+    ###############################################################################
+    # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs ##
+    ###############################################################################
+    
+   
+    def export_layer_fill_Table1 (self,couche):
+        
+        from openpyxl import Workbook
+        from fuzzywuzzy import fuzz
+
+        ## Two files used : 
+            
+        # File 1: INPUT file
+        
+        # Ajout des noms des champs comme noms de colonnes à la feuille Excel
+        noms_des_champs = [field.name() for field in couche.fields()]
+        
+        data_list = []
+        
+        for feature in couche.getFeatures():
+            ligne = {field.name(): feature[field.name()] if feature[field.name()] is not None else "" for field in couche.fields()}
+            data_list.append(ligne)
+        
+        # Création du DataFrame à partir de la liste de dictionnaires
+        input_file = DataFrame(data_list, columns=noms_des_champs)
+        input_file = input_file.astype(str)
+        
+
+        # File 2: WAXI project columns (Récuperation de l'emplacement du fichier Excel dans le dossier du projet WAXI QGIS) 
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        
+        column_reference = read_excel(emplacement_files_WAXI_columns)
+        
+        # Exctration of column names in file 1 
+        list_column_input = input_file.columns.tolist()
+        
+        
+        # Exctration of column names in file 2
+        list_column_reference = column_reference.columns.tolist()
+    
+    
+        ## Creation of column pairs (input,reference) : 
+        
+        # Create an empty list of column name pairs (input,reference) :
+        list_couples_column=[]
+        list_score=[]
+        for k in range (len(list_column_input)):
+            list_couples_column.append([list_column_input[k],'no value'])
+        
+        # Pair creation based on similarity score 
+        for elt1 in range (len(list_column_input)):
+            
+            # Initialize similarity score and new name 
+            best_column = 'NULL'
+            score = 0
+            
+            for column in list_column_reference:
+                
+                sum_score=0
+                
+                # 1st part of score: comparison with column name        
+                sum_score += fuzz.token_set_ratio(list_column_input[elt1],column)*3
+                
+                # 2nd part of the score: comparison with keywords associated with the column name       
+                contenu_column=column_reference[column]
+                for elt2 in contenu_column : 
+                    sum_score += fuzz.token_set_ratio(list_column_input[elt1],elt2)
+         
+                # Si les 2 noms de colonnes ne commencent pas par la même lettre : malus de -100 sur le score 
+                #if list_column_input[elt1][0] != column[0]:
+                    #sum_score = sum_score-100
+         
+                if sum_score>score and sum_score>570 :
+                    score=sum_score
+                    best_column=column
+                
+            # Si correspondance de colonne trouvée
+            if best_column != 'NULL':         
+                # Add new column name to pair      
+                list_couples_column[elt1][1] = best_column
+                
+            # Si PAS de correspondance trouvée
+            else :
+                list_couples_column[elt1][1] = 'NULL'
+            
+            # Add final score to list_score 
+            list_score.append(score)
+            
+        
+        ## Modification 1 : columns assigned to the same output column : 
+            
+        length2 = len(list_couples_column)
+        list_couples_column_trie2=list_couples_column
+        
+        # We go through all the elements of list_couples_column :  
+        for place1 in range (length2-1):
+            
+            test = list_couples_column[place1][1]
+            
+            # We compare the chosen element with all the other elements in the list to see if it is duplicated: 
+            for place2 in range (length2-1):
+                
+                # We check that we're not taking the same element  :
+                if place1 != place2:
+                    
+                    # On ne trie pas les colonnes qui n'ont pas de correspondance
+                    if test != 'NULL':
+        
+                        # If the chosen element has the same name as another element, we compare their similarity scores: 
+                        if test == list_couples_column[place2][1]:
+                            if list_score[place1]>list_score[place2] :
+                               list_couples_column_trie2[place2][1] = 'NULL'
+                            else : 
+                               list_couples_column_trie2[place1][1] = 'NULL'
+ 
+        
+ 
+    
+        
+        ###    Remplissage 1 : COLUMNS NAME ## input = list_couples_column_trie2     ### 
+
+        # Nombre de colonnes 2 (old + new)
+        col_count1 = 2
+          
+        # Réglage du nombre de colonnes dans le QTableWidget
+        self.dlg.tableWidget1.setColumnCount(col_count1 + 1)
+        
+        # En-têtes de colonnes dans le QTableWidget
+        column_names1 = ["OLD Name", 'NEW Name', 'Check']
+        self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
+          
+        # Remplissage du QTableWidget avec les couples de la list_couples_column_trie2
+        
+        # Initialisation du nombre de ligne du QTableWidget à 1
+        current_row_count = 1
+
+        for k, (old, new) in enumerate(list_couples_column_trie2): 
+                      
+            # Ajout d'une nouvelle ligne
+            if old != 'Geometry' :
+                
+                self.dlg.tableWidget1.setRowCount(current_row_count)
+                
+                # Remplissage des 2 colonnes
+                self.dlg.tableWidget1.setItem(k, 0, QTableWidgetItem(str(old)))
+                self.dlg.tableWidget1.setItem(k, 1, QTableWidgetItem(str(new)))
+                
+                # Interdire l'édition des 2 premières colonnes
+                item1 = self.dlg.tableWidget1.item(k, 0)
+                item2 = self.dlg.tableWidget1.item(k, 1)
+                item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+                item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+      
+        
+                # Ajout d'une colonne avec 2 boutons "Supprimer","Modifier" pour chaque ligne
+                
+                # Création un widget contenant les 2 boutons
+                button_widget = QWidget(self.dlg)
+                
+                # Ajout d'un bouton "Modifier"
+                btn_modifier = QPushButton("Edit", button_widget)
+                btn_modifier.clicked.connect(lambda state, row=k: self.button_edit1(row))
+                
+                # Ajout d'un bouton "Supprimer"          
+                btn_supprimer = QPushButton("Delete", button_widget)
+                btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete1(row))
+                
+                # Ajout des 2 boutons au widget
+                layout = QVBoxLayout(button_widget)
+                layout.addWidget(btn_modifier)
+                layout.addWidget(btn_supprimer)
+                button_widget.setLayout(layout)
+            
+                self.dlg.tableWidget1.setCellWidget(k, 2, button_widget)
+                
+                # Taille des cellules 
+                
+                self.dlg.tableWidget1.setRowHeight(k, 80) 
+            
+                self.dlg.tableWidget1.setColumnWidth(0, 180) 
+                self.dlg.tableWidget1.setColumnWidth(1, 180) 
+                self.dlg.tableWidget1.setColumnWidth(2, 200) 
+               
+                
+                # Changement de ligne 
+                current_row_count += 1
+            
+        # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
+        self.row_edit_status = [False] * len(list_couples_column_trie2)
+        self.table1States = []
+        self.table1States.append(self.getTableState1())
+        
+        return input_file
+ 
+             
+    # Récupération de l'état de toutes les cellules du tableWidget1
+    def getTableState1(self):
+        
+        state = []
+        for row in range(self.dlg.tableWidget1.rowCount()):
+            for col in range(2):
+                item = self.dlg.tableWidget1.item(row, col)
+                if item is not None:
+                    state.append({'text': item.text()})
+                
+        return state
+
+    
+
+    # Suppression de la ligne  
+    def button_delete1(self, row):
+        
+        # Sauvegarde de l'état précédent du tableau
+        self.table1States.append(self.getTableState1())
+        
+        self.dlg.tableWidget1.setItem(row, 0, QTableWidgetItem("-"))
+        self.dlg.tableWidget1.setItem(row, 1, QTableWidgetItem("-"))
+        
+        combo_box_item = self.dlg.tableWidget1.cellWidget(row, 1)
+        
+        if isinstance(combo_box_item, QComboBox):
+            combo_box_item.hide()
+            combo_box_item.setCurrentText('-')
+            self.dlg.tableWidget1.setCellWidget(row, 1, combo_box_item)
+        
+        # Interdire l'édition de ces cellules
+        item1 = self.dlg.tableWidget1.item(row, 0)
+        item2 = self.dlg.tableWidget1.item(row, 1)
+        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        
+        self.dlg.tableWidget1.repaint()          
+    
+    
+    # Modification de la ligne si le nom de la colonne n'a pas matché
+    def button_edit1(self, row):
+        
+        # Récuperation de l'emplacement du fichier Excel avec le nom de toute les colonnes (que l'on coupe pour avoir le bon chemin du projet QGIS)
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        
+        column_reference = read_excel(emplacement_files_WAXI_columns)
+        list_column_reference = column_reference.columns.tolist()
+        
+        # CAS 1 : Si la ligne est déjà supprimée
+        if self.dlg.tableWidget1.item(row, 0).text() == "-" and self.dlg.tableWidget1.item(row, 1).text() == "-":
+            return
+           
+        
+        # CAS 2 : Si le bouton est cliqué pour la 1er fois 
+        if not self.row_edit_status[row]:
+            
+            # Sauvegarde de l'état précédent du tableau
+            self.table1States.append(self.getTableState1())
+            
+            current_text = self.dlg.tableWidget1.item(row, 1).text()
+              
+            combo_box = QComboBox()
+            combo_box.addItems(list_column_reference)
+            self.dlg.tableWidget1.setCellWidget(row, 1, combo_box)
+            combo_box.setCurrentText(current_text)
+            
+           
+            item = self.dlg.tableWidget1.item(row, 1)
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setBackground(QColor("lightgray"))
+            self.row_edit_status[row] = True
+            
+       
+        # CAS 3 : Si le bouton est cliqué pour la 2e fois  
+        else:
+            combo_box = self.dlg.tableWidget1.cellWidget(row, 1)
+            selected_text = combo_box.currentText()
+            self.dlg.tableWidget1.removeCellWidget(row, 1)
+            self.dlg.tableWidget1.item(row, 1).setText(selected_text)
+            item = self.dlg.tableWidget1.item(row, 1)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setBackground(QColor("white"))
+            self.row_edit_status[row] = False
+                
+        self.dlg.tableWidget1.repaint()
+    
+    
+   
+
+    # Retour en arrière 
+    def Go_Back_table1(self):
+        
+        if self.table1States:
+            # Récupération de l'état précédent du tableau
+            previousState = self.table1States.pop()
+            for i, cell in enumerate(previousState):
+                row, col = divmod(i, 2)
+                item = self.dlg.tableWidget1.item(row, col)
+                item.setText(cell['text'])
+                     
+        else:
+            self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
+
+    
+
+    # Récupération du contenu du QTableWidget 1 : COLUMNS NAMES CHECK  ## 
+    def recup_contenu_1(self): 
+        
+        list_columns_check_OK = []
+        
+        # Récupération du contenu des cellules du QTableWidget
+        for row in range(self.dlg.tableWidget1.rowCount()):
+            old = self.dlg.tableWidget1.item(row, 0).text()
+            
+            if old != '-': 
+                # Test si une cellule contient une QComboBox
+                if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
+                    new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
+                else:
+                    new = self.dlg.tableWidget1.item(row, 1).text()
+        
+                if new != 'NULL' :
+                    list_columns_check_OK.append([old, new])
+        
+        list_columns_check_OK.append(['Geometry','Geometry'])
+        
+        return list_columns_check_OK 
+    
+    
+    
+    
+    
+        
+    ###############################################################################
+    # Step 4 : Création du DataFrame trié et vérifié selon les colonnes reconnues #
+    ###############################################################################   
+     
+    def DataFrame_columns_check (self, input_file, list_columns_check, name_input_file): 
+        
+        # Trie de la list_columns_check pour enlever les pairs non reconnues (NULL):
+        list_columns_check2 = []
+        list_new=[]
+        for k in range (len(list_columns_check)):
+            if list_columns_check[k][1] not in list_new :
+                if list_columns_check[k][1] !='NULL' :
+                    list_columns_check2.append(list_columns_check[k])
+                    list_new = list_columns_check[k][1]
+            else : 
+                self.iface.messageBar().pushMessage("Two or more of your old columns have been assigned to the same new column name, this is not possible !", level=Qgis.Warning, duration=45) 
+                
+        # Creation of a DataFrame = OUTPUT file 
+        
+        fichier_output = DataFrame()
+        list_columns_check3=[]
+        
+        # Add all the values
+        for k in range(len(list_columns_check2)):
+            nom_colonne_input = list_columns_check2[k][0]
+            nom_colonne_output = list_columns_check2[k][1]
+            
+            fichier_output[nom_colonne_output] = input_file[nom_colonne_input]
+            list_columns_check3.append(nom_colonne_output)
+            
+        
+        ####################
+        # Add a column to specify Geographic Coordinates Reference System
+        fichier_output['CRS']= 'WSG84_EPSG:4326'
+        list_columns_check3.append('CRS')
+        
+        
+        # Add a column to specify INPUT file name  
+        fichier_output['Source'] = name_input_file.split('.')[0] 
+        list_columns_check3.append('Source')
+    
+        return fichier_output, list_columns_check3
+    
+    
+    
+    
+    ###############################################################################
+    ###########    Step 5 : Fill Table2 with Lithologies pairs     ################
+    ###############################################################################  
+    
+    
+    def fill_Table2 (self, fichier_output):
+        
+        from openpyxl import Workbook
+        from fuzzywuzzy import fuzz
+        
+        # List of input lithologies 
+        list_lithology_input = fichier_output['Litho'].tolist()
+
+        # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        
+        # Reference list of lithologies
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference = read_csv(emplacement_99_CSV_files +'Lithologies.csv', sep=';')
+            list_lithology_reference = list(fichier_reference['Valeur'])
+        
+        else:
+            self.iface.messageBar().pushMessage("Layer not found: "+ emplacement_99_CSV_files, level=Qgis.Warning, duration=45) 
+   
+    
+        # Empty list of lithology name pairs (input value, reference value)
+        list_couple=[]
+        for k in range (0,len(list_lithology_input)):
+            list_couple.append([list_lithology_input[k],'NULL'])
+        
+        ## Identification: criterion score > 7O : 
+            
+        score_limit1 = 70
+        list_litho_unknow=[]
+        
+        for k in range (0,len(list_lithology_input)) : 
+            
+            # Initialize similarity score and new name 
+            score=0
+            new_rock_name = list_lithology_reference[0]
+            
+            
+            ## Condition 1 : prefixe leuco, micro et meta à supprimer devant les noms
+            
+            if list_lithology_input[k].startswith("Micro"):
+                # on supprime le préfixe 'micro-'
+                list_lithology_input[k] =  list_lithology_input[k][5:]
+         
+            
+            if list_lithology_input[k][0] == "L" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "u" and list_lithology_input[k][3] == "c" and list_lithology_input[k][4] == "o" : 
+                # on supprime le préfixe 'leuco-'
+                list_lithology_input[k] =  list_lithology_input[k][5:]
+            
+            
+            if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
+                # on supprime le préfixe 'meta-'
+                list_lithology_input[k] =  list_lithology_input[k][4:]
+            
+            
+            if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "é" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
+                # on supprime le préfixe 'méta'
+                list_lithology_input[k] =  list_lithology_input[k][4:]
+               
+                
+             ## Condition 2 : mots souvent utilisés "pegmatite" ou "granitoid" les remplacer par "granite"
+            if list_lithology_input[k] == "pegmatite" or list_lithology_input[k] == "granitoid" :
+                list_lithology_input[k] = "granite"
+        
+        
+            for rock_reference in list_lithology_reference : 
+                new_score = fuzz.token_set_ratio(list_lithology_input[k], rock_reference)
+                
+                # Si les 2 mots ne commencent pas par la même lettre : malus de -15 sur le score 
+                if list_lithology_input[k][0] != rock_reference [0]:
+                    new_score  = new_score-15
+               
+                if new_score>score :  
+                    score = new_score
+                    new_rock_name = rock_reference
+           
+            if score >= score_limit1 :
+                list_couple[k][1] = new_rock_name
+            
+            else :
+                list_litho_unknow.append(list_lithology_input[k])
+                list_couple[k][1] = 'Unknown'
+        
+        
+        # Création d'une liste de vérification des lithologies pour l'utilisateur 
+        
+        list_old = []
+        list_new = []
+        list_couple_unique=[]
+        list_old_unique = []
+        for m in range (len(list_couple)):
+            list_old.append(list_couple[m][0])
+            list_new.append(list_couple[m][1])
+        
+        for m in range (len(list_couple)):
+            if list_old[m] not in list_old_unique: 
+                list_old_unique.append(list_old[m])
+                list_couple_unique.append([list_old[m],list_new[m]])
+                
+      
+            
+      
+                
+        ###    Remplissage 2 : LITHOLOGIES NAME ## input = list_couple     ### 
+    
+        # Nombre de colonnes 2 (old + new)
+        col_count2 = 2
+          
+        # Réglage du nombre de colonnes dans le QTableWidget
+        self.dlg.tableWidget2.setColumnCount(col_count2 + 1)
+        
+        # En-têtes de colonnes dans le QTableWidget
+        column_names2 = ["OLD Name", 'NEW Name', 'Check']
+        self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
+          
+        # Remplissage du QTableWidget 2 avec les couples de la list_couple
+        
+        # Initialisation du nombre de ligne du QTableWidget à 1
+        current_row_count = 1
+         
+        for k, (old, new) in enumerate(list_couple_unique): 
+                      
+            # Ajout d'une nouvelle ligne
+            self.dlg.tableWidget2.setRowCount(current_row_count)
+            
+            # Remplissage des 2 colonnes
+            self.dlg.tableWidget2.setItem(k, 0, QTableWidgetItem(str(old)))
+            self.dlg.tableWidget2.setItem(k, 1, QTableWidgetItem(str(new)))
+            
+            # Interdire l'édition des 2 premières colonnes
+            item1 = self.dlg.tableWidget2.item(k, 0)
+            item2 = self.dlg.tableWidget2.item(k, 1)
+            item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+            item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+  
+    
+            # Ajout d'une colonne avec 2 boutons "Supprimer","Modifier" pour chaque ligne
+    
+            # Création un widget contenant les 2 boutons         
+            button_widget = QWidget(self.dlg)
+            
+            # Ajout d'un bouton "Modifier"
+            btn_modifier = QPushButton("Edit", button_widget)
+            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit2(row))
+                
+            # Ajout d'un bouton "Supprimer"          
+            btn_supprimer = QPushButton("Delete", button_widget)
+            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete2(row))
+                         
+            # Ajout des 2 boutons au widget
+            layout = QVBoxLayout(button_widget)
+            layout.addWidget(btn_modifier)
+            layout.addWidget(btn_supprimer)
+            button_widget.setLayout(layout)
+    
+            self.dlg.tableWidget2.setCellWidget(k, 2, button_widget)
+             
+            
+            # Taille des cellules 
+            
+            self.dlg.tableWidget2.setRowHeight(k, 80) 
+        
+            self.dlg.tableWidget2.setColumnWidth(0, 180) 
+            self.dlg.tableWidget2.setColumnWidth(1, 180) 
+            self.dlg.tableWidget2.setColumnWidth(2, 200) 
+           
+            
+            # Changement de ligne 
+            current_row_count += 1
+            
+        # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
+        self.row_edit_status = [False] * len(list_couple_unique)
+        self.table2States = []
+        self.table2States.append(self.getTableState2())
+    
+        return list_litho_unknow
+ 
+       
+
+        
+    # Récupération de l'état de toutes les cellules du tableWidget1
+    def getTableState2(self):
+        
+        state2 = []
+        for row in range(self.dlg.tableWidget2.rowCount()):
+            for col in range(2):
+                item = self.dlg.tableWidget2.item(row, col)
+                state2.append({'text': item.text()})
+                
+        return state2
+
+    
+
+
+    # Suppression de la ligne
+    def button_delete2(self, row):
+        
+        # Sauvegarde de l'état précédent du tableau
+        self.table2States.append(self.getTableState2())
+        
+        self.dlg.tableWidget2.setItem(row, 0, QTableWidgetItem("-"))
+        self.dlg.tableWidget2.setItem(row, 1, QTableWidgetItem("-"))
+        
+        combo_box_item = self.dlg.tableWidget2.cellWidget(row, 1)
+        
+        if isinstance(combo_box_item, QComboBox):
+            combo_box_item.hide()
+            combo_box_item.setCurrentText('-')
+            self.dlg.tableWidget2.setCellWidget(row, 1, combo_box_item)
+        
+        # Interdire l'édition de ces cellules
+        item1 = self.dlg.tableWidget2.item(row, 0)
+        item2 = self.dlg.tableWidget2.item(row, 1)
+        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        
+        self.dlg.tableWidget2.repaint()
+
+     
+
+    # Modification de la ligne si la lithologie est classée comme Unknown
+    def button_edit2(self, row):
+        
+        # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        
+        # Reference list of lithologies for Unknown lithologies
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference = read_csv(emplacement_99_CSV_files +'Lithologies.csv', sep=';')
+            list_lithology_reference = list(fichier_reference['Valeur'])
+        
+        else:
+            self.iface.messageBar().pushMessage("Layer not found: "+ emplacement_99_CSV_files, level=Qgis.Warning, duration=45) 
+        
+        
+        # CAS 1 : Si la ligne est déjà supprimée
+        if self.dlg.tableWidget2.item(row, 0).text() == "-" and self.dlg.tableWidget2.item(row, 1).text() == "-":
+            return
+           
+        
+        # CAS 2 : Si le bouton est cliqué pour la 1er fois 
+        if not self.row_edit_status[row]:
+            
+            # Sauvegarde de l'état précédent du tableau
+            self.table2States.append(self.getTableState2())
+            
+            current_text = self.dlg.tableWidget2.item(row, 1).text()
+              
+            combo_box = QComboBox()
+            combo_box.addItems(list_lithology_reference)
+            self.dlg.tableWidget2.setCellWidget(row, 1, combo_box)
+            combo_box.setCurrentText(current_text)
+            
+          
+            item = self.dlg.tableWidget2.item(row, 1)
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setBackground(QColor("lightgray"))
+            self.row_edit_status[row] = True
+            
+        
+        
+      
+    
+        # CAS 3 : Si le bouton est cliqué pour la 2e fois  
+        else:
+            combo_box = self.dlg.tableWidget2.cellWidget(row, 1)
+            selected_text = combo_box.currentText()
+            self.dlg.tableWidget2.removeCellWidget(row, 1)
+            self.dlg.tableWidget2.item(row, 1).setText(selected_text)
+            item = self.dlg.tableWidget2.item(row, 1)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setBackground(QColor("white"))
+            self.row_edit_status[row] = False
+                
+        self.dlg.tableWidget2.repaint()
+    
+    
+    # Retour en arrière 
+    def Go_Back_table2(self):
+        
+        if self.table2States:
+            # Récupération de l'état précédent du tableau
+            previousState = self.table2States.pop()
+            for i, cell in enumerate(previousState):
+                row, col = divmod(i, 2)
+                item = self.dlg.tableWidget2.item(row, col)
+                item.setText(cell['text'])
+                     
+        else:
+            self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
+
+  
+
+    ## Récupération du contenu du QTableWidget 2 : LITHOLOGIES NAMES CHECK  ## 
+    
+    def recup_contenu_2(self): 
+        
+        list_lithologies_unique_check_OK = []
+        
+        # Récupération du contenu des cellules du QTableWidget
+        for row in range(self.dlg.tableWidget2.rowCount()):
+            old = self.dlg.tableWidget2.item(row, 0).text()
+            
+            if old != '-': 
+                # Test si une cellule contient une QComboBox
+                if isinstance(self.dlg.tableWidget2.cellWidget(row, 1), QComboBox):
+                    new = self.dlg.tableWidget2.cellWidget(row, 1).currentText()
+                else:
+                    new = self.dlg.tableWidget2.item(row, 1).text()
+        
+                list_lithologies_unique_check_OK.append([old, new])
+        
+        
+        return list_lithologies_unique_check_OK
+        
+    
+    
+    
+    
+    ###############################################################################
+    ###        Step 7 : Lithologies sorting in differents Excel sheets          ###
+    ###############################################################################     
+      
+ 
+    def lithologies_sorting (self,fichier_output, list_columns_check3, list_lithologies_unique_check_OK, list_litho_unknow, name_input_file):  
+        
+        from openpyxl import Workbook
+        from fuzzywuzzy import fuzz
+        
+        # Ajout des lithologies au ficher Excel 
+        
+        list_old = []
+        for k in range (len(list_lithologies_unique_check_OK)):
+            list_old.append(list_lithologies_unique_check_OK[k][0])
+            
+        
+        fichier_output = fichier_output[fichier_output['Litho'].isin(list_old)]
+        fichier_output = fichier_output.reset_index(drop=True)
+        
+        # On parcourt la colonne contenant les anciennes litho dans le fichier_output
+        for m in range (1,len(fichier_output['Litho'])):
+
+            # On parcourt la liste des couples (old, new) unique et vérifiée par l'utilisateur
+            for k in range (len(list_lithologies_unique_check_OK)):
+   
+                if fichier_output['Litho'].iloc[m] == list_lithologies_unique_check_OK[k][0]:
+                    fichier_output['Litho'].iloc[m] = list_lithologies_unique_check_OK[k][1]
+
+     
+        ### Sorting lithologies ### 
+        
+        # Lists of reference rocks from the WAXI4 QGIS project 
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        
+        
+        litho_local = list((read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
+        litho_supergene = list((read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
+        litho_sedimentary = list((read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';'))['Valeur'])
+        litho_volcanoclastic = list((read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';'))['Valeur'])
+        litho_igneous_extrusive = list((read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';'))['Valeur'])
+        litho_igneous_intrusive = list((read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';'))['Valeur'])
+        litho_metamorphic = list((read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';'))['Valeur'])
+        
+        
+        ### Creation du Workbook de sortie ###
+        
+        fichier_output_lithology = Workbook()
+        project = QgsProject.instance()
+        
+        worksheets_lithology = ["Local lithologies_PT","Supergene lithologies_PT", "Sedimentary lithologies_PT",
+                                "Volcanoclastic lithologies_PT","Igneous extrusive lithologies_PT", "Igneous intrusive lithologies_PT",
+                                "Metamorphic lithologies_PT"]
+        
+        for k in range (len(worksheets_lithology)):
+
+            # Récupération de la couche de référence dans QGIS
+            layer = project.mapLayersByName(worksheets_lithology[k])[0]
+    
+            # Récupération des noms des champs de la table attributaire de cette couche 
+            header = [str(field.name()) for field in layer.fields()]
+        
+            # Création du worksheet 
+            name_worksheet1 = worksheets_lithology[k] +'_'+ name_input_file
+            litho_output = fichier_output_lithology.create_sheet(name_worksheet1.split('.')[0]) 
+            litho_output.append(header)
+    
+        # Ajout du Worksheet UNKNOWN
+                                                  
+        litho_unknown_output =  fichier_output_lithology.create_sheet(("Unknown lithologies_PT_" + name_input_file).split('.')[0])
+        header_unknown = list_columns_check3 
+        litho_unknown_output.append(header_unknown)   
+        
+        count_unknown_litho = 0 
+     
+        
+        for k in range(0,len(fichier_output['Litho'])):
+            
+            r = fichier_output['Litho'][k]
+            
+            # Si litho_local : 
+            if r in litho_local and r != 'Unknown' :
+                
+                header_local=[col[0].value for col in fichier_output_lithology[("Local lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = []
+                
+                for col_reference in (header_local):
+                    if col_reference not in list_columns_check3 :
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+                
+                fichier_output_lithology[("Local lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+                                
+                
+            # Si litho_supergene : 
+            elif r in litho_supergene and r != 'Unknown' :
+                
+                header_supergene=[col[0].value for col in fichier_output_lithology[("Supergene lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = []
+          
+                for col_reference in (header_supergene):
+                    if col_reference not in list_columns_check3 : 
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+    
+                fichier_output_lithology[("Supergene lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+                
+                
+            # Si litho_sedimentary : 
+            elif r in litho_sedimentary and r != 'Unknown' :
+                
+                header_sedimentary=[col[0].value for col in fichier_output_lithology[("Sedimentary lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = []
+        
+                for col_reference in (header_sedimentary):
+                     if col_reference not in list_columns_check3 : 
+                         ligne.append('')
+                     else:
+                         ligne.append(fichier_output[col_reference][k])
+                
+                fichier_output_lithology[("Sedimentary lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+            
+            
+        
+            # Si litho_volcanoclastic : 
+            elif r in litho_volcanoclastic and r != 'Unknown' :
+                
+                header_volcanoclastic=[col[0].value for col in fichier_output_lithology[("Volcanoclastic lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = [] 
+        
+                for col_reference in (header_volcanoclastic):
+                    if col_reference not in list_columns_check3 :
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+                
+                fichier_output_lithology[("Volcanoclastic lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+                    
+                
+            # Si litho_volcanic : 
+            elif r in litho_igneous_extrusive and r != 'Unknown' :
+                
+                header_volcanic=[col[0].value for col in fichier_output_lithology[("Igneous extrusive lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = [] 
+        
+                for col_reference in (header_volcanic):
+                    if col_reference not in list_columns_check3 :
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+                
+                fichier_output_lithology[("Igneous extrusive lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+    
+                
+            # Si litho_plutonic : 
+            elif r in litho_igneous_intrusive and r != 'Unknown' :
+                
+                header_plutonic=[col[0].value for col in fichier_output_lithology[("Igneous intrusive lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = []
+        
+                for col_reference in (header_plutonic):
+                    if col_reference not in list_columns_check3 :
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+                
+                fichier_output_lithology[("Igneous intrusive lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+    
+    
+            # Si litho_metamorphic : 
+            elif r in litho_metamorphic and r != 'Unknown' :
+               
+                header_metamorphic =[col[0].value for col in fichier_output_lithology[("Metamorphic lithologies_PT_"+ name_input_file).split('.')[0]].iter_cols(min_row=1, max_row=1)]
+                ligne = []     
+                
+                for col_reference in (header_metamorphic):
+                    if col_reference not in list_columns_check3 :
+                        ligne.append('')
+                    else:
+                        ligne.append(fichier_output[col_reference][k])
+                        
+                fichier_output_lithology[("Metamorphic lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
+                     
+                
+            # Si litho unknown : 
+            else :
+                if r == 'Unknown' :
+                    # Récupération de la ligne correspondant à la roche
+                    ligne = []     
+                    for col in list_columns_check3 :
+                        if col !="Litho": 
+                            ligne.append(fichier_output[col][k])
+                        
+                        else : 
+                            ligne.append(list_litho_unknow[count_unknown_litho])
+            
+                    litho_unknown_output.append(ligne)
+                    count_unknown_litho +=1
+                
+                # Cas très très particulier où la lithologie a une score acceptable mais n'est dans aucune liste 
+                else :
+                    ligne = []     
+                    for col in list_columns_check3 :     
+                        ligne.append(fichier_output[col][k])
+                    
+                    litho_unknown_output.append(ligne)
+        
+        return fichier_output_lithology
+    
+     
+    
+    ###############################################################################
+    ###########    Step 8 : Fill Table3 with Structure pairs       ################
+    ###############################################################################  
+    
+    
+    def fill_Table3 (self, fichier_output):
+        
+        from openpyxl import Workbook
+        from fuzzywuzzy import fuzz
+        
+        # List of input structures
+        list_structure_input = fichier_output['Structure_type'].tolist()
+        
+        # Récuperation de l'emplacement du fichier Excel 
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        
+        Dataframe = read_excel(emplacement_files_WAXI_columns)
+        list_structure_reference = Dataframe.columns.tolist()
+        
+        
+        # Empty list of structure name pairs (input value, reference value)
+        list_couple2=[]
+        for k in range (0,len(list_structure_input)):
+            list_couple2.append([list_structure_input[k],'NULL'])
+        
+        
+        # Modification de la colonne Structure_type pour qu'elle soit conforme
+        for k in range(0,len(list_structure_input)):
+            
+            type_structure = list_structure_input[k]
+            
+            score = 0
+            structure = 'NULL'
+                
+            # On parcourt toutes les cases du fichier Excel pour déterminer le type de structures
+            for index, row in Dataframe.iloc[1:].iterrows():
+                for colonne, valeur in row.items():
+                    
+                    new_score = fuzz.token_set_ratio(type_structure, valeur)
+                    
+                    if new_score > score : 
+                        score = new_score
+                        structure = colonne
+                        
+            if score > 50 : 
+                list_couple2[k][1] =  structure     
+            else :
+                if 'vein' in type_structure or 'veins' in type_structure : 
+                    list_couple2[k][1] = 'Veins_PT'
+                else :     
+                    list_couple2[k][1] = 'NULL' 
+                
+
+        
+      
+        # Création d'une liste de vérification des structures pour l'utilisateur 
+        
+        list_old2 = []
+        list_new2 = []
+        list_couple_unique2=[]
+        list_old_unique2 = []
+        for m in range (len(list_couple2)):
+            list_old2.append(list_couple2[m][0])
+            list_new2.append(list_couple2[m][1])
+        
+        for m in range (len(list_couple2)):
+            if list_old2[m] not in list_old_unique2: 
+                list_old_unique2.append(list_old2[m])
+                list_couple_unique2.append([list_old2[m],list_new2[m]])
+  
+                
+  
+        ###    Remplissage 3 : STRCUTURE NAME ## input = list_couple2     ### 
+    
+        # Nombre de colonnes 2 (old + new)
+        col_count3 = 2
+          
+        # Réglage du nombre de colonnes dans le QTableWidget
+        self.dlg.tableWidget3.setColumnCount(col_count3 + 1)
+        
+        # En-têtes de colonnes dans le QTableWidget
+        column_names3 = ["OLD Name", 'NEW Name', 'Check']
+        self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
+          
+        # Remplissage du QTableWidget 3 avec les couples de la list_couple2
+        
+        # Initialisation du nombre de ligne du QTableWidget à 1
+        current_row_count = 1
+         
+        for k, (old, new) in enumerate(list_couple_unique2): 
+                      
+            # Ajout d'une nouvelle ligne
+            self.dlg.tableWidget3.setRowCount(current_row_count)
+            
+            # Remplissage des 2 colonnes
+            self.dlg.tableWidget3.setItem(k, 0, QTableWidgetItem(str(old)))
+            self.dlg.tableWidget3.setItem(k, 1, QTableWidgetItem(str(new)))
+            
+            # Interdire l'édition des 2 premières colonnes
+            item1 = self.dlg.tableWidget3.item(k, 0)
+            item2 = self.dlg.tableWidget3.item(k, 1)
+            item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+            item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+  
+    
+            # Ajout d'une colonne avec 2 boutons "Supprimer","Modifier" pour chaque ligne
+    
+            # Création un widget contenant les 2 boutons         
+            button_widget = QWidget(self.dlg)
+            
+            # Ajout d'un bouton "Modifier"
+            btn_modifier = QPushButton("Edit", button_widget)
+            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit3(row))
+                
+            # Ajout d'un bouton "Supprimer"          
+            btn_supprimer = QPushButton("Delete", button_widget)
+            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete3(row))
+                         
+            # Ajout des 2 boutons au widget
+            layout = QVBoxLayout(button_widget)
+            layout.addWidget(btn_modifier)
+            layout.addWidget(btn_supprimer)
+            button_widget.setLayout(layout)
+    
+            self.dlg.tableWidget3.setCellWidget(k, 2, button_widget)
+             
+            
+            # Taille des cellules 
+            
+            self.dlg.tableWidget3.setRowHeight(k, 80) 
+        
+            self.dlg.tableWidget3.setColumnWidth(0, 180) 
+            self.dlg.tableWidget3.setColumnWidth(1, 180) 
+            self.dlg.tableWidget3.setColumnWidth(2, 200) 
+           
+            
+            # Changement de ligne 
+            current_row_count += 1
+            
+        # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
+        self.row_edit_status = [False] * len(list_couple_unique2)
+        self.table3States = []
+        self.table3States.append(self.getTableState3())
+
+ 
+        
+    # Récupération de l'état de toutes les cellules du tableWidget3
+    def getTableState3(self):
+        
+        state3 = []
+        for row in range(self.dlg.tableWidget3.rowCount()):
+            for col in range(2):
+                item = self.dlg.tableWidget3.item(row, col)
+                state3.append({'text': item.text()})
+                
+        return state3
+
+    
+
+
+    # Suppression de la ligne
+    def button_delete3(self, row):
+        
+        # Sauvegarde de l'état précédent du tableau
+        self.table3States.append(self.getTableState3())
+        
+        self.dlg.tableWidget3.setItem(row, 0, QTableWidgetItem("-"))
+        self.dlg.tableWidget3.setItem(row, 1, QTableWidgetItem("-"))
+        
+        combo_box_item = self.dlg.tableWidget3.cellWidget(row, 1)
+        
+        if isinstance(combo_box_item, QComboBox):
+            combo_box_item.hide()
+            combo_box_item.setCurrentText('-')
+            self.dlg.tableWidget3.setCellWidget(row, 1, combo_box_item)
+        
+        # Interdire l'édition de ces cellules
+        item1 = self.dlg.tableWidget3.item(row, 0)
+        item2 = self.dlg.tableWidget3.item(row, 1)
+        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        
+        self.dlg.tableWidget3.repaint()
+
+     
+
+    # Modification de la ligne si la lithologie est classée comme Unknown
+    def button_edit3(self, row):
+        
+        # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        
+        Dataframe = read_excel(emplacement_files_WAXI_columns)
+        list_structure_reference = Dataframe.columns.tolist()
+        
+        # CAS 1 : Si la ligne est déjà supprimée
+        if self.dlg.tableWidget3.item(row, 0).text() == "-" and self.dlg.tableWidget3.item(row, 1).text() == "-":
+            return
+           
+        
+        # CAS 2 : Si le bouton est cliqué pour la 1er fois 
+        if not self.row_edit_status[row]:
+            
+            # Sauvegarde de l'état précédent du tableau
+            self.table3States.append(self.getTableState3())
+            
+            current_text = self.dlg.tableWidget3.item(row, 1).text()
+              
+            combo_box = QComboBox()
+            combo_box.addItems( list_structure_reference)
+            self.dlg.tableWidget3.setCellWidget(row, 1, combo_box)
+            combo_box.setCurrentText(current_text)
+            
+          
+            item = self.dlg.tableWidget3.item(row, 1)
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setBackground(QColor("lightgray"))
+            self.row_edit_status[row] = True
+            
+        
+        
+      
+    
+        # CAS 3 : Si le bouton est cliqué pour la 2e fois  
+        else:
+            combo_box = self.dlg.tableWidget3.cellWidget(row, 1)
+            selected_text = combo_box.currentText()
+            self.dlg.tableWidget3.removeCellWidget(row, 1)
+            self.dlg.tableWidget3.item(row, 1).setText(selected_text)
+            item = self.dlg.tableWidget3.item(row, 1)
+            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setBackground(QColor("white"))
+            self.row_edit_status[row] = False
+                
+        self.dlg.tableWidget3.repaint()
+    
+    
+    # Retour en arrière 
+    def Go_Back_table3(self):
+        
+        if self.table3States:
+            # Récupération de l'état précédent du tableau
+            previousState = self.table3States.pop()
+            for i, cell in enumerate(previousState):
+                row, col = divmod(i, 2)
+                item = self.dlg.tableWidget3.item(row, col)
+                item.setText(cell['text'])
+                     
+        else:
+            self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
+
+  
+
+    ## Récupération du contenu du QTableWidget 2 : LITHOLOGIES NAMES CHECK  ## 
+    
+    def recup_contenu_3(self): 
+        
+        list_structure_unique_check_OK = []
+        
+        # Récupération du contenu des cellules du QTableWidget
+        for row in range(self.dlg.tableWidget3.rowCount()):
+            old = self.dlg.tableWidget3.item(row, 0).text()
+            
+            if old != '-' and old != 'NULL' :
+                # Test si une cellule contient une QComboBox
+                if isinstance(self.dlg.tableWidget3.cellWidget(row, 1), QComboBox):
+                    new = self.dlg.tableWidget3.cellWidget(row, 1).currentText()
+                else:
+                    new = self.dlg.tableWidget3.item(row, 1).text()
+        
+                list_structure_unique_check_OK.append([old, new])
+        
+        
+        return list_structure_unique_check_OK
+  
+  
+  
+  
+    ###############################################################################
+    ######         Step 9 : Structure sorting in differents Excel sheets     ######
+    ###############################################################################   
+    
+    
+    def structure_sorting (self, name_layer_to_import, fichier_output, list_columns_check3, list_structure_unique_check_OK):
+        
+        from openpyxl import Workbook
+   
+        ### 1. Création du Workbook de sortie 
+        
+        fichier_output_structures = Workbook()
+        project = QgsProject.instance()
+        
+        worksheets_structure = ['Lineations_PT','Fold axes_PT','Bedding-Lava flow-S0_PT','Foliation-cleavage_PT',
+                                'Shear zones and faults_PT','Fold and crenulation axial planes_PT','Fractures_PT',
+                                'Veins_PT','Dikes-Sills_PT','Planar structures_LN','Fractured zones_PG','Brecciated zones_PG',
+                                'Cataclastic zones_PG']
+        
+        for worksheet in worksheets_structure:
+            
+            # Récupération de la couche de référence dans QGI
+            layer = project.mapLayersByName(worksheet)[0]
+    
+            # Récupération des noms des champs de la table attributaire de cette couche 
+            header = [str(field.name()) for field in layer.fields()]
+        
+            # Création du worksheet 
+            name_worksheet2 = worksheet +'_'+ name_layer_to_import
+            structure_output = fichier_output_structures.create_sheet(name_worksheet2.split('.')[0]) 
+            structure_output.append(header)
+            
+
+
+
+        ### 2. Rangement des colonnes dans les différents worksheet 
+        
+        # On parcourt la colonne contenant les anciennes structures dans le fichier_output
+        for m in range (0,len(fichier_output['Structure_type'])):
+
+            # On parcourt la liste des couples (old, new) unique et vérifiée par l'utilisateur
+            for k in range (len(list_structure_unique_check_OK)):
+   
+                if fichier_output['Structure_type'].iloc[m] == list_structure_unique_check_OK[k][0] :
+                    if list_structure_unique_check_OK[k][1] != 'NULL' : 
+                        fichier_output['Structure_type'].iloc[m] = (list_structure_unique_check_OK[k][1]+ '_' + name_layer_to_import).split('.')[0]  
+                        break  # Une fois que la correspondance est trouvée, on sort de la boucle interne
+                    else : 
+                        fichier_output['Structure_type'].iloc[m] = 'NULL'
+                        
+
+            else:
+                fichier_output['Structure_type'].iloc[m] = 'NULL'
+                    
+        fichier_output['Structure_type'] = fichier_output['Structure_type'].fillna('NULL')  
+        
+
+        # Rangement des lignes en fonction de leur valeur de Structure_type
+        for k in range(0,len(fichier_output['Structure_type'])): 
+            
+            type_structure2 = fichier_output['Structure_type'][k]
+            
+            
+            if type_structure2 != 'NULL':
+                
+                for sheet in fichier_output_structures.sheetnames :
+                    if sheet != 'Sheet': 
+                        # Ajout de la ligne au worksheet
+                        if type_structure2 == sheet :
+                            
+                            header_reference = [col[0].value for col in fichier_output_structures[sheet].iter_cols(min_row=1, max_row=1)]
+                            ligne = []
+                            for col_reference in (header_reference) :
+                                if col_reference not in list_columns_check3 :
+                                    ligne.append ('')
+                                else : 
+                                    ligne.append(fichier_output[col_reference][k]) 
+                                    
+                            fichier_output_structures[sheet].append(ligne)
+         
+        return fichier_output_structures
+  
+  
+  
+  
+  
+
+    ###############################################################################
+    ##   Step 9 : Import the 2 fichier_output (lithology + structure) into QGIS  ##
+    ###############################################################################
+    
+    def import_Excel_create_QGISfile (self, file_lithology, file_structure):
+    
+        from openpyxl import Workbook, load_workbook
+        
+        workbooks = [file_lithology, file_structure]
+        
+        for workbook in workbooks : 
+            
+            # On parcourt toutes les feuilles du classeur Excel 
+            for sheet_name in workbook.sheetnames:
+                
+                if sheet_name != 'Sheet':
+                    sheet = workbook[sheet_name]
+            
+                    # Récupérer les noms des colonnes
+                    headers = [cell.value for cell in sheet[1]]
+        
+                    # Récupérer l'index de la colonne de géométrie
+                    geometry_column_index = headers.index('Geometry') 
+            
+                    # Création de la couche vectorielle
+                    layer_name = sheet_name 
+                    layer = QgsVectorLayer("Point?crs=epsg:4326", layer_name, "memory")
+                    
+                    # Vérification si la couche n'est pas déjà créée dans QGIS
+                    if not QgsProject.instance().mapLayersByName(layer_name):
+            
+                        ## Ajout du nom des champs
+                        layer_fields = []
+                        for header in headers:
+                            field = QgsField(header, QVariant.String)
+                            layer_fields.append(field)
+                
+                        layer.dataProvider().addAttributes(layer_fields)
+                        layer.updateFields()
+                
+                
+                        ## Ajout du contenu des champs
+                        for row in sheet.iter_rows(min_row=2, values_only=True):
+                            
+                            # Création d'un élément de la couche
+                            feature = QgsFeature(layer.fields())
+                            geometry_wkt = row[geometry_column_index]
+                            feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
+            
+                            # Ajout des autres attributs
+                            for i, value in enumerate(row):
+                                feature.setAttribute(i, str(value))
+            
+                            layer.dataProvider().addFeature(feature)
+                
+                        # Ajouter la couche au projet QGIS
+                        QgsProject.instance().addMapLayer(layer)
+    
+  
+  
+    ###############################################################################
+    ######             5 METHODES globales de la page Import_data          ########
+    ###############################################################################
+
+        
+    def method_import_data (self):
+
+        # Récupération du chemin d'accès du fichier à traiter dans l'ordinateur (entré en input par l'utilisateur)
+        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_13.text()))):
+            
+            path_layer_to_import =  self.dlg.lineEdit_13.text()
+        
+            # Récupération du nom du fichier 
+            segments = path_layer_to_import.split("/")
+            name_layer_to_import = segments[-1]
+
+            # Charger la couche dans QGIS 
+            couche = QgsVectorLayer(path_layer_to_import, name_layer_to_import, "ogr")
+       
+            if couche.isValid():
+                pass
+            
+            else:
+                # Sinon message d'erreur si la couche sélectionnée ne peut pas être importée
+                self.iface.messageBar().pushMessage("Erreur", "Impossible de charger la couche sélectionnée !", level=Qgis.Critical)
+
+            # Step 1 : Check layer coordinates + Create the Geometry column
+            self.convert_coordinates_WGS84(couche)
+
+            # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs
+            fichier_input =  self.export_layer_fill_Table1 (couche)
+            
+            self.iface.messageBar().pushMessage("Selected File loaded ","OK", level=Qgis.Success, duration=45)   
+            
+            return fichier_input, name_layer_to_import
+
+            
+        else:
+            self.iface.messageBar().pushMessage("Directory not found: " + self.dlg.lineEdit_13.text(), level=Qgis.Warning, duration=45)   
+         
+        
+        
+    def method_columns_check_OK (self, fichier_input, name_layer_to_import):
+        
+        # Step 3 : Récupération des données du QTableWidget1
+        list_columns_check = self.recup_contenu_1()
+            
+        # Test si la colonne 'Geometry' est bien présente # 
+        list_new_columns_check = []
+        for k in range (len(list_columns_check)):
+            list_new_columns_check.append(list_columns_check[k][1])
+        
+        # Step 4 : création du Dataframe avec les colonnes triées et vérifiées
+        fichier_output, list_columns_check3 = self.DataFrame_columns_check (fichier_input, list_columns_check,  name_layer_to_import)
+         
+        list_litho_unknow = []
+        if 'Litho' in list_new_columns_check  :
+            # Step 5 LITHO : Fill Table2 with Lithologies pairs 
+            list_litho_unknow = self.fill_Table2(fichier_output)
+        
+        if 'Structure_type' in list_new_columns_check  :
+            # Step 6 STRUCTURE : Fill Table3 with Structure pairs
+            self.fill_Table3(fichier_output)
+            
+    
+        self.iface.messageBar().pushMessage("Column check ","OK", level=Qgis.Success, duration=45)
+    
+        return fichier_output, list_columns_check3, list_litho_unknow, list_new_columns_check
+        
+    
+            
+     
+        
+     
+    def method_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3, list_litho_unknow):
+        
+        # Step 7 : Récupération des données du QTableWidget2
+        list_lithologies_unique_check_OK = self.recup_contenu_2()
+        
+        # Step 8 : Rangement des lithologies dans différentes feuilles d'un fichier Excel
+        fichier_output_lithology = self.lithologies_sorting(fichier_output, list_columns_check3, list_lithologies_unique_check_OK, list_litho_unknow, name_layer_to_import)
+     
+        self.iface.messageBar().pushMessage("Lithologies check ","OK", level=Qgis.Success, duration=45)
+        
+        return fichier_output_lithology
+
+
+
+    def method_structures_check_OK (self, name_layer_to_import, fichier_output, list_columns_check3):
+         
+        # Step 9 : Récupération des données du QTableWidget3
+        list_structure_unique_check_OK = self.recup_contenu_3()
+        
+       
+        # Step 10 : rangement des structures
+        fichier_output_structures = self.structure_sorting(name_layer_to_import, fichier_output, list_columns_check3, list_structure_unique_check_OK)
+        
+        self.iface.messageBar().pushMessage("Structures check ","OK", level=Qgis.Success, duration=45)
+        
+        return fichier_output_structures
+         
+    
+    
+
+    def method_import_data_as_layers (self, fichier_output_lithology, fichier_output_structures):
+       
+        # Step 7 : Import the Excel file into QGIS and create different QGIS files 
+        self.import_Excel_create_QGISfile (fichier_output_lithology, fichier_output_structures)
+        self.iface.messageBar().pushMessage("Data imported in the QGIS project ","OK", level=Qgis.Success, duration=45)
+
+    
+    
+    def method_resetWindowState2(self):
+        
+        # Aspect de l'interface : ré-initialisation de tous les Widgets de la page 
+        self.dlg.lineEdit_13.clear()
+        self.dlg.tableWidget1.setRowCount(0)
+        self.dlg.tableWidget2.setRowCount(0)
+        self.dlg.tableWidget3.setRowCount(0)
+        
+    
+    
+    
+    
+    ###############################################################################
+    ######                 5 CLICKS de la page Import_data                 ########
+    ###############################################################################
+    
+
+    def click_import_data (self): 
+        
+        # Récupère les paramètres 
+        fichier_input = 0
+        name_layer_to_import = 0
+        fichier_input, name_layer_to_import = self.method_import_data ()
+        
+        # Connecte correctement le bouton Columns check OK
+        self.dlg.pushButton_9.clicked.connect(lambda: self.click_columns_check_OK(fichier_input, name_layer_to_import))
+        self.iface.messageBar().pushMessage("BOUTON 1 CLIQUE ","OK", level=Qgis.Success, duration=45)
+    
+    
+    
+    def click_columns_check_OK (self, fichier_input, name_layer_to_import): 
+        
+        # Récupère les paramètres 
+        fichier_output = DataFrame()
+        list_columns_check3 = []
+        list_litho_unknow = []
+        
+        fichier_output, list_columns_check3, list_litho_unknow, list_new_columns_check = self.method_columns_check_OK(fichier_input, name_layer_to_import)
+        
+        # Connecte correctement le bouton Lithologies check OK 
+        if 'Litho' in list_new_columns_check  :
+            self.dlg.pushButton_10.clicked.connect(lambda: self.click_lithologies_check_OK(fichier_input, name_layer_to_import, fichier_output,  list_columns_check3, list_litho_unknow, list_new_columns_check)) 
+            self.iface.messageBar().pushMessage("BOUTON 2 CLIQUE ","OK", level=Qgis.Success, duration=45)
+        
+        else : 
+            self.iface.messageBar().pushMessage("No Lithology column detected !", level=Qgis.Warning, duration=45)
+            
+    
+    
+    def click_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output,  list_columns_check3, list_litho_unknow, list_new_columns_check): 
+        
+        # Récupère les paramètres 
+        from openpyxl import Workbook
+        fichier_output_lithology = Workbook()
+        
+        fichier_output_lithology = self.method_lithologies_check_OK(fichier_input, name_layer_to_import,fichier_output, list_columns_check3, list_litho_unknow)
+        
+        # Connecte correctement le bouton Structure check OK
+        if 'Structure_type' in list_new_columns_check  :
+            self.dlg.pushButton_26.clicked.connect(lambda: self.click_structure_check_OK(fichier_input, fichier_output_lithology,name_layer_to_import, fichier_output, list_columns_check3)) 
+            self.iface.messageBar().pushMessage("BOUTON 3 CLIQUE ","OK", level=Qgis.Success, duration=45)
+        
+        else : 
+            self.iface.messageBar().pushMessage("No Structure_type column detected !", level=Qgis.Warning, duration=45)
+        
+        
+        
+    def click_structure_check_OK (self,fichier_input, fichier_output_lithology, name_layer_to_import, fichier_output, list_columns_check3)  : 
+        
+        fichier_output_structures  = self.method_structures_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
+        
+        
+        # Connecte correctement le bouton Generate_Output_QGIS_layer 
+        self.dlg.pushButton_14.clicked.connect(lambda: self.click_Generate_Output_QGIS_layer(fichier_input, name_layer_to_import, fichier_output_lithology, fichier_output_structures))
+        self.iface.messageBar().pushMessage("BOUTON 4 CLIQUE ","OK", level=Qgis.Success, duration=45)
+    
+    
+    
+    def click_Generate_Output_QGIS_layer (self, fichier_input, name_layer_to_import, fichier_output_lithology, fichier_output_structures):
+        self.method_import_data_as_layers(fichier_output_lithology, fichier_output_structures)
+       
+        
+       
+    def click_Reset_This_Window (self):
+        self.method_resetWindowState2()
+    
+        
+  
+    
+  
+    
+  
+       
+    ###############################################################################
+    ####################         Page 4 : Export data            ##################
+    ###############################################################################
+    
+    def exportData(self):
+    # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
+    
+        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
+    
+            project = QgsProject.instance()
+            proj_file_path = project.fileName()
+            head_tail = os.path.split(proj_file_path)
+            file=[]
+            # merge zone data
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp"))
+            output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
+            
+            """for f in file:
+                print(f)
+                layer = self.iface.addVectorLayer(f, '', 'ogr')
+                # Get layer capabilities
+                caps = layer.dataProvider().capabilities()
+    
+                # Add Fields
+                if caps & QgsVectorDataProvider.AddAttributes:
+                    res = layer.dataProvider().addAttributes([QgsField('DataType', QVariant.String, "string",50)])
+                    layer.updateFields()
+    
+                #Get indexes of LDC and Fecha fields
+                DataType_idx = layer.fields().lookupField('DataType')
+    
+                # Change attribute values
+                for f in layer.getFeatures():
+                    head_tail=os.path.split(f)
+                    DataType = head_tail[1].replace(".shp","")
+                    layer.dataProvider().changeAttributeValues({f.id(): {DataType_idx: DataType}})
+            """
+            # merge shapefiles
+            params = {
+            'LAYERS': [file[0], file[1],file[2],file[3]],
+            'OUTPUT': output
+            }
+    
+            processing.run("native:mergevectorlayers", params )
+    
+            # merge lithology data
+            file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp")
+            file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp")
+            file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp")
+            file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp")
+            file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp")
+            file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp")
+            output=self.mynormpath(tab_Export_data.lineEdit_7.text()+"/litho_data.shp")
+    
+            # merge shapefiles
+            params = {
+            'LAYERS': [file1, file2,file3,file4,file5,file6],
+            'OUTPUT': output
+            }
+    
+            processing.run("native:mergevectorlayers", params )
+    
+            # merge lithology data
+            file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp")
+            file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp")
+            file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp")
+            file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp")
+            file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp")
+            file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp")
+            file7=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp")
+            file8=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp")
+            file9=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp")
+            output=self.mynormpath(self.dlg.lineEdit_7.text()+"/structure_data.shp")
+    
+            # merge shapefiles
+            params = {
+            'LAYERS': [file1, file2,file3,file4,file5,file6,file7,file8,file9],
+            'OUTPUT': output
+            }
+    
+            processing.run("native:mergevectorlayers", params )
+            self.iface.messageBar().pushMessage("Layers merged, saved in directory" +  self.dlg.lineEdit_7.text(), level=Qgis.Success, duration=5)
+    
+    
+    
+        else:
+            self.iface.messageBar().pushMessage("Directory not found: "+ self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
+    
+
+    
+    def mynormpath(self,path):
+        return(os.path.normpath(path).replace("\\","/"))
+    
+      
+    ### Réinitialiser la fenêtre 
+    
+    def resetWindowState3(self):
+        self.dlg.lineEdit_7.clear()
+    
+    
+    
+    
+    ###############################################################################
+    ####################              Page 5 : Stop              ##################
+    ###############################################################################
+
+    ### Virtual Stops ###     
+    
+    def virtualStops(self):
+        distance = self.dlg.lineEdit_11.text()
+        from .dbscan import Basic_DBSCAN
+        from datetime import datetime
+        
+        if(self.dlg.lineEdit_11.text()):
+            # Defines pseudo stop numbers based on proximity
+            project = QgsProject.instance()
+            proj_file_path=project.fileName()
+            head_tail = os.path.split(proj_file_path)
+    
+            file=[]
+    
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp"))
+            
+            # Merge two shapefiles
+            params = {
+            'LAYERS': [file[0],file[1]],
+            'OUTPUT': 'memory:'
+            }
+            print(file[0])
+            print(file[1])
+            merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+            
+            for i,f in enumerate(file):
+       
+                    if(i>1):
+                        print(f)
+                        # merge two shapefiles
+                        params = {
+                        'LAYERS': [merged_layers,f],
+                        'OUTPUT': 'memory:'
+                        }
+    
+                        merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+                        
+    
+    
+            points=[]
+            feats = merged_layers.getFeatures()
+            for i,f in enumerate(feats):
+                point=f.geometry()
+                points.append([point.asPoint().x(), point.asPoint().y()])
+            canvas = self.iface.mapCanvas()
+    
+            if(canvas.mapUnits()==6): #if lat/long convert to metres, anything else is assuemd to be metres already (not a good idea)
+                distance=float(distance)/111139.0   
+            scanner = Basic_DBSCAN(eps=float(distance), minPts=1)
+            """
+            SIP_MONKEYPATCH_COMPAT_NAME 	0        Meters.
+            SIP_MONKEYPATCH_COMPAT_NAME 	1        Kilometers.
+            SIP_MONKEYPATCH_COMPAT_NAME 	2        Imperial feet.
+            SIP_MONKEYPATCH_COMPAT_NAME 	3        Nautical miles.
+            SIP_MONKEYPATCH_COMPAT_NAME 	4        Imperial yards.
+            SIP_MONKEYPATCH_COMPAT_NAME 	5        Terrestrial miles.
+            SIP_MONKEYPATCH_COMPAT_NAME 	6        Degrees, for planar geographic CRS distance measurements.
+            SIP_MONKEYPATCH_COMPAT_NAME 	7        Centimeters.
+            SIP_MONKEYPATCH_COMPAT_NAME 	8        Millimeters.
+            Inches 	9        Inches (since QGIS 3.32)
+            SIP_MONKEYPATCH_COMPAT_NAME 10        Unknown distance unit.
+            """
+            if(len(points)>0):
+                X=np.array(points)
+                X[0]=(X[0]-X[:,0].mean())/X[:,0].std()
+                X[1]=(X[1]-X[:,1].mean())/X[:,1].std()
+                #X = StandardScaler().fit_transform(X)
+    
+    
+                clusters = scanner.fit_predict(X)
+                #print(clusters)
+                
+    
+                merged_layers.startEditing()
+                if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
+                    merged_layers.dataProvider().addAttributes([QgsField("v_stop", QVariant.String)])
+                    merged_layers.updateFields()
+    
+                id_new_col= merged_layers.dataProvider().fieldNameIndex("v_stop")
+    
+                for i,feature in enumerate(merged_layers.getFeatures()):
+                    if(clusters[i]>0):
+                        merged_layers.changeAttributeValue(feature.id(), id_new_col, str(clusters[i]))
+    
+                merged_layers.commitChanges()
+                if not merged_layers.isValid():
+                    print("Layer failed to build!")
+                else:
+                    QgsProject.instance().addMapLayer(merged_layers,False)
+                    options = QgsVectorFileWriter.SaveVectorOptions()
+                    options.driverName = "ESRI Shapefile"
+                    #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
+                    options.fileEncoding="UTF8"
+    
+                    output_path = QgsProject.instance().readPath("./")
+                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Virtual_Stops_"+datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
+                    writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
+    
+                    if writer[0] != QgsVectorFileWriter.NoError:
+                        print("Error occurred while creating shapefile:", writer.errorMessage())
+                    """
+                    else:
+                        # Write features to the shapefile
+                        for feature in layer.getFeatures():
+                            writer.addFeature(feature)
+    
+                        # Finish writing and close the shapefile
+                    """
+                    del writer
+                    self.iface.addVectorLayer(virtual_path, '', 'ogr')
+                    self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
+            else:
+                self.iface.messageBar().pushMessage("No points found", level=Qgis.Warning, duration=45)
+
 
     def rmvLyr(lyrname):
         qinst = QgsProject.instance()
         
         qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
 
-    def exportLayers(self):
-    # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
+  
 
-        project = QgsProject.instance()
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
-        file=[]
-        # merge zone data
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractured zones_PG.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Brecciated zones_PG.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Cataclastic zones_PG.shp"))
-        file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Alteration zones_PG.shp"))
-        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
-        
-        """for f in file:
-            print(f)
-            layer = self.iface.addVectorLayer(f, '', 'ogr')
-            # Get layer capabilities
-            caps = layer.dataProvider().capabilities()
 
-            # Add Fields
-            if caps & QgsVectorDataProvider.AddAttributes:
-                res = layer.dataProvider().addAttributes([QgsField('DataType', QVariant.String, "string",50)])
-                layer.updateFields()
-
-            #Get indexes of LDC and Fecha fields
-            DataType_idx = layer.fields().lookupField('DataType')
-
-            # Change attribute values
-            for f in layer.getFeatures():
-                head_tail=os.path.split(f)
-                DataType = head_tail[1].replace(".shp","")
-                layer.dataProvider().changeAttributeValues({f.id(): {DataType_idx: DataType}})
-        """
-        # merge shapefiles
-        params = {
-        'LAYERS': [file[0], file[1],file[2],file[3]],
-        'OUTPUT': output
-        }
-
-        processing.run("native:mergevectorlayers", params )
-
-        # merge lithology data
-        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Metamorphic lithologies_PT.shp")
-        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Plutonic lithologies_PT.shp")
-        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Sedimentary lithologies_PT.shp")
-        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Supergene lithologies_PT.shp")
-        file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanic lithologies_PT.shp")
-        file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/2. LITHOLOGY/Volcanoclastic lithologies_PT.shp")
-        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/litho_data.shp")
-
-        # merge shapefiles
-        params = {
-        'LAYERS': [file1, file2,file3,file4,file5,file6],
-        'OUTPUT': output
-        }
-
-        processing.run("native:mergevectorlayers", params )
-
-        # merge lithology data
-        file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Bedding_PT.shp")
-        file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Dikes-Sills_PT.shp")
-        file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold and crenulation axial planes_PT.shp")
-        file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fold axes_PT.shp")
-        file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Foliation-cleavage_PT.shp")
-        file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Fractures_PT.shp")
-        file7=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Lineations_PT.shp")
-        file8=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Shear zones and faults_PT.shp")
-        file9=self.mynormpath(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/1. STRUCTURES/Veins_PT.shp")
-        output=self.mynormpath(self.dlg.lineEdit_7.text()+"/structure_data.shp")
-
-        # merge shapefiles
-        params = {
-        'LAYERS': [file1, file2,file3,file4,file5,file6,file7,file8,file9],
-        'OUTPUT': output
-        }
-
-        processing.run("native:mergevectorlayers", params )
-        self.iface.messageBar().pushMessage("Layers merged, saved in directory" + self.dlg.lineEdit_7.text(), level=Qgis.Success, duration=5)
+    ### Toggle AutoIncrements of stop number ### 
     
-    def mynormpath(self,path):
-        return(os.path.normpath(path).replace("\\","/"))
-
-    def updateProjectTitle(self):
-        project = QgsProject.instance()
-        new_title=self.dlg.lineEdit_9.text()+"/"+self.dlg.lineEdit_10.text()
-        project.setTitle(new_title)
-        project.write()
-        self.iface.messageBar().pushMessage("Project title updated to " + new_title, level=Qgis.Success, duration=5)
-
-    def clipToCanvas(self):
-    # Clips all WAXI QFIELD vector layers to current canvas and 
-    # saves out layers in a new directory
-
-        dirs=["0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","1. STRUCTURES","2. LITHOLOGY","3. GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
-        e = self.iface.mapCanvas().extent()  
-        extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
-        shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
-        #csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-
-        shps=pd.read_csv(shp_list,names=['name','dir_code'])
-        shps=shps.set_index("name")
-        
-        #csvs=pd.read_csv(csv_list,names=['name'])
-
-        geom = QgsGeometry().fromRect(extent)
-
-        ftr = QgsFeature()
-        ftr.setGeometry(geom)
-
-        #Define your Coordinate Reference System here
-        project = QgsProject.instance()
-        crs = project.crs()
-
-        layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
-
-        with edit(layer):
-            layer.addFeature(ftr)
-
-
-        # Specify the output file path for the shapefile 
-
-        output_path = self.mynormpath(self.dlg.lineEdit_3.text()).strip()
-
-        
-        if(not os.path.exists(self.mynormpath(output_path))):
-            os.mkdir(self.mynormpath(output_path))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA"))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA"))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION"))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[0]))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[1]))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[2]))
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))):
-            os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[3]))
-            
-        # Prepare the output shapefile parameters
-
-
-        options = QgsVectorFileWriter.SaveVectorOptions()
-        options.driverName = "ESRI Shapefile"
-        #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-        options.fileEncoding="UTF8"
-
-        # Create the vector file writer instance
-        if(os.path.exists(self.dlg.lineEdit_8.text())):
-            overlay_path=self.dlg.lineEdit_8.text()
-        elif(self.dlg.lineEdit_8.text() and not os.path.exists(self.dlg.lineEdit_8.text())):
-            self.iface.messageBar().pushMessage("Layer Failed to load clip polygon: "+self.dlg.lineEdit_8.text() , level=Qgis.Warning, duration=15)
-            return
-        else:
-            overlay_path = self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/cliprect.shp")  # Path to clip rectangle in memory
-            writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
-
-            if writer[0] != QgsVectorFileWriter.NoError:
-                print("Error occurred while creating shapefile:", writer.errorMessage())
-            """
-            else:
-                # Write features to the shapefile
-                for feature in layer.getFeatures():
-                    writer.addFeature(feature)
-
-                # Finish writing and close the shapefile
-            """
-            del writer
-        
-        for layer in project.mapLayers().values():
-            # Check if the layer name matches the target name
-            if layer.name() in shps.index.tolist():   
-                # Get the file path of the layer
-
-                input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-                output_path_2=self.mynormpath("/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer.name()].dir_code)]+"/")
-
-                ### REDO output_path as output_dir + input_filename.shp
-                processing.run("native:clip", {   
-                    'INPUT': input_path,   
-                    'OUTPUT': self.mynormpath(output_path+output_path_2+'/'+layer.name()+".shp"),   
-                    'OVERLAY': overlay_path   
-                })   
-
-                qml_input_path = input_path.replace(".shp",".qml")
-                qml_output_path_2 = output_path+output_path_2+'/'+layer.name()+".shp".replace(".shp",".qml")
-                shutil.copyfile(qml_input_path,qml_output_path_2)
-        
+    def toggleAutoInc(self):
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-        qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
-        qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS//Stops_PT_autoinc.qml'
-        shutil.copyfile(qml_input_path,qml_output_path_2)
-        qml_input_path = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
-        qml_output_path_2 = output_path+'/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml'
-        shutil.copyfile(qml_input_path,qml_output_path_2)
+        current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
+        os.remove(current_file_name)
 
-        if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]))):
-            src_path=os.path.split(self.mynormpath(input_path))
-            src_path=self.mynormpath(src_path[0]+"/../"+dirs[4])
-            dst_path=self.mynormpath(output_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+"/")
+        no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+        auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
+        if( self.dlg.radioButtonOn.isChecked()):
+            shutil.copy(auto_filename,current_file_name)
+            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned ON", level=Qgis.Success, duration=15)
 
-            shutil.copytree(src_path, dst_path)
+        else:
+            shutil.copy(no_auto_filename,current_file_name)
+            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned OFF", level=Qgis.Success, duration=15)
+        
+        layer = project.mapLayersByName('Stops_PT')[0]
+        layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
+        layer.triggerRepaint()
+        
+    
+    ### Réinitialiser la fenêtre 
+    
+    def resetWindowState4(self):
+        self.dlg.lineEdit_11.clear()
 
-        #proj_file_path=project.fileName()
-        #head_tail = os.path.split(proj_file_path)
-        #shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
 
-        self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
 
+    ###############################################################################
+    ####################            Page 6 : Stereo              ##################
+    ###############################################################################
+
+
+    def set_stereoConfig(self):
+        
+        chemin_projet_WAXI = QgsProject.instance().fileName()
+        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
+        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
+        print(chemin_projet_WAXI_debut)
+        stereoConfigPath = os.path.join(chemin_projet_WAXI_debut,"0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json")
+        stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
+        
+        if(os.path.exists(stereoConfigPath)):
+            with open(stereoConfigPath,"r") as json_file:
+                stereoConfig=json.load(json_file)
+        
+        #if(os.path.exists(stereoConfigPath)):
+            #os.remove(stereoConfigPath)
+            
+        stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),
+                      'showContours':self.dlg.contours_checkBox.isChecked(),
+                      'showKinematics':self.dlg.kinematics_checkBox.isChecked(),
+                      'linPlanes':self.dlg.linPlanes_checkBox.isChecked(),
+                      'roseDiagram':self.dlg.rose_checkBox.isChecked()}
+
+        with open(stereoConfigPath, "w") as outfile:
+            json.dump(stereoConfig, outfile, indent=4)
+                
+               
+    
+    ###############################################################################
+    ####################              Page 7 : CSV               ##################
+    ###############################################################################  
+        
     def addCsvItem(self):
     # adds a single vaue/description pair to any csv file in the WAXI QFIELD template
+    
+        if(self.dlg.lineEdit.text() and self.dlg.lineEdit_2.text()):
 
-        csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-        csvs=pd.read_csv(csv_list,names=['name'])
-        csv_file_list=[]
-        for name in csvs.name:
-            csv_file_list.append(name)
-
-        value = self.dlg.lineEdit.text()
-        description = self.dlg.lineEdit_2.text()
-        layer_name=csv_file_list[self.dlg.comboBox.currentIndex()]
-        project = QgsProject.instance()
-
-        layer = project.mapLayersByName(layer_name)
-        group = QgsProject.instance().layerTreeRoot()
-
-        if len(layer) > 0:
-            # Remove the layer from the project
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-
-                if (layer.name() == layer_name and layer_name != 'Type-Lithologies' and layer_name != 'Lithologies'):
+            csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+            csvs=read_csv(csv_list,names=['name'])
+            csv_file_list=[]
+            for name in csvs.name:
+                csv_file_list.append(name)
+    
+            value = self.dlg.lineEdit.text()
+            description = self.dlg.lineEdit_2.text()
+            layer_name=csv_file_list[self.dlg.comboBox.currentIndex()]
+            project = QgsProject.instance()
+    
+            layer = project.mapLayersByName(layer_name)
+            group = QgsProject.instance().layerTreeRoot()
+    
+            if len(layer) > 0:
+                
+                # Remove the layer from the project
+                for layer in project.mapLayers().values():
                     
-                    # Get the file path of the layer
-                    file_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-                    head_tail=os.path.split(file_path)
-                    QgsProject.instance().removeMapLayer(layer)
-
-                    User_List= pd.read_csv(file_path,encoding="latin_1",sep=";")
-                    User_List.loc[str(len(User_List))] = [value,description]
-                    User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
-
-                    if('lithologies' in layer_name):
-                        User_List= pd.read_csv(head_tail[0]+"/Lithologies.csv",encoding="latin_1",sep=";")
-                        User_List.loc[str(len(User_List))] = [value,value]
-                        User_List.to_csv(head_tail[0]+"/Lithologies.csv",index=False,sep=";",encoding="latin_1")
-
-                        User_List= pd.read_csv(head_tail[0]+"/Type-Lithologies.csv",encoding="latin_1",sep=";")
-                        User_List.loc[str(len(User_List))] = [layer_name.split(" ")[0],value]
-                        User_List.to_csv(head_tail[0]+"/Type-Lithologies.csv",index=False,sep=";",encoding="latin_1")
-
-                    updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
-                    if updated_layer.isValid():
-
-                        # Add the updated layer to the project
-                        QgsProject.instance().addMapLayer(updated_layer,False)
-                        group = QgsProject.instance().layerTreeRoot().findGroup("CSV FILES")
+                    # Check if the layer name matches the target name
+                    if (layer.name() == layer_name and layer_name != 'Type-Lithologies' and layer_name != 'Lithologies'):
                         
-                        if group:
+                        # Get the file path of the layer
+                        file_path = self.mynormpath(layer.dataProvider().dataSourceUri())
+                        head_tail=os.path.split(file_path)
+                        QgsProject.instance().removeMapLayer(layer)
+    
+                        User_List= read_csv(file_path,encoding="latin_1",sep=";")
+                        User_List.loc[str(len(User_List))] = [value,description]
+                        User_List.to_csv(file_path,index=False,sep=";",encoding="latin_1")
+    
+                        if('lithologies' in layer_name):
+                            User_List= read_csv(head_tail[0]+"/Lithologies.csv",encoding="latin_1",sep=";")
+                            User_List.loc[str(len(User_List))] = [value,value]
+                            User_List.to_csv(head_tail[0]+"/Lithologies.csv",index=False,sep=";",encoding="latin_1")
+    
+                            User_List= read_csv(head_tail[0]+"/Type-Lithologies.csv",encoding="latin_1",sep=";")
+                            User_List.loc[str(len(User_List))] = [layer_name.split(" ")[0],value]
+                            User_List.to_csv(head_tail[0]+"/Type-Lithologies.csv",index=False,sep=";",encoding="latin_1")
+    
+                        updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
+                        if updated_layer.isValid():
+    
+                            # Add the updated layer to the project
+                            QgsProject.instance().addMapLayer(updated_layer,False)
+                            group = QgsProject.instance().layerTreeRoot().findGroup("CSV FILES")
+                            
+                            if group:
+    
+                                # Add the layer to the new group
+                                group.addLayer(updated_layer)
+                                self.iface.messageBar().pushMessage("Item "+value+" "+description+" added to "+layer_name, level=Qgis.Success, duration=15)
+    
+                        else:
+                            self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
+                        break  # Stop iterating once the layer is found
+            else:
+                self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
-                            # Add the layer to the new group
-                            group.addLayer(updated_layer)
-                            self.iface.messageBar().pushMessage("Item "+value+" "+description+" added to "+layer_name, level=Qgis.Success, duration=15)
+    
+    ### Réinitialiser la fenêtre 
+    
+    def resetWindowState5(self):
+        self.dlg.lineEdit.clear()
+        self.dlg.lineEdit_2.clear()
+        
 
-                    else:
-                        self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
-                    break  # Stop iterating once the layer is found
-        else:
-            self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
+    
+    
+    
+    ###############################################################################
+    ###    Step BONUS : Merge the created files with the category in QGIS       ###
+    ###############################################################################
+        
+    def merge_file_WAXI (self, nom_source, nom_cible):
+        
+        couche1 = QgsProject.instance().mapLayersByName(nom_source)[0]
+        couche2 = QgsProject.instance().mapLayersByName(nom_cible)[0]
+    
+        # Boucle sur les entités de la première couche
+        entites_a_supprimer = []
+        for entite1 in couche1.getFeatures():
+            # Créer une nouvelle entité pour la deuxième couche
+            nouvelle_entite = QgsFeature()
+    
+            # Copier la géométrie
+            nouvelle_entite.setGeometry(entite1.geometry())
+    
+            # Copier les attributs
+            nouvelle_entite.setAttributes(entite1.attributes())
+    
+            # Ajouter l'entité à la deuxième couche
+            couche2.dataProvider().addFeatures([nouvelle_entite])
+    
+            # Ajouter l'ID de l'entité à la liste des entités à supprimer
+            entites_a_supprimer.append(entite1.id())
+    
+        # Supprimer les entités de la première couche
+        couche1.dataProvider().deleteFeatures(entites_a_supprimer)
+    
+        # Rafraîchir la deuxième couche
+        couche2.triggerRepaint()
+    
+        # Supprimer la première couche
+        QgsProject.instance().removeMapLayer(couche1.id())
+    
+   
+    
+   
+    
+   
+    
+   
+    
+   
+    
+    
 
+    ###############################################################################
+    #########   Connecter les Pushbuttons au contenu des LineEdits    #############
+    ############################################################################### 
+      
 
     
     def select_dst_directory(self):
@@ -725,53 +2666,24 @@ class WAXI_QF:
         filename = QFileDialog.getExistingDirectory(None, "Select Destination Merged Folder")
 
         self.dlg.lineEdit_6.setText(filename)
-
+        
+    def select_file_to_import(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Select Import layer")
+        
+        self.dlg.lineEdit_13.setText(filename)
+        
     def select_export_directory(self):
         filename = QFileDialog.getExistingDirectory(None, "Select Export Folder")
-
+    
         self.dlg.lineEdit_7.setText(filename)
-
+        
+  
     def select_clip_poly(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Clip Polygon")
         
         self.dlg.lineEdit_8.setText(filename)
 
-
-    def toggleAutoInc(self):
-        project = QgsProject.instance()
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
-        current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
-        os.remove(current_file_name)
-
-        no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_autoinc.qml"
-        if(self.dlg.radioButton.isChecked()):
-            shutil.copy(auto_filename,current_file_name)
-            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned ON", level=Qgis.Success, duration=15)
-
-        else:
-            shutil.copy(no_auto_filename,current_file_name)
-            self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned OFF", level=Qgis.Success, duration=15)
-        
-        layer = project.mapLayersByName('Stops_PT')[0]
-        layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
-        layer.triggerRepaint()
-        
-    def set_stereoConfig(self,stereoConfig,stereoConfigPath):
-        
-        #if(os.path.exists(stereoConfigPath)):
-        #    os.remove(stereoConfigPath)
-        stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),
-                      'showContours':self.dlg.contours_checkBox.isChecked(),
-                      'showKinematics':self.dlg.kinematics_checkBox.isChecked(),
-                      'linPlanes':self.dlg.linPlanes_checkBox.isChecked(),
-                      'roseDiagram':self.dlg.rose_checkBox.isChecked()}
-
-        with open(stereoConfigPath, "w") as outfile:
-            json.dump(stereoConfig, outfile, indent=4)
-
-
+  
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -780,6 +2692,15 @@ class WAXI_QF:
                 action)
             self.iface.removeToolBarIcon(action)
 
+
+
+
+
+    ###############################################################################
+    ########       Definition des tooltips  (juste informatif)         ############
+    ###############################################################################
+
+    
     def define_tips(self):
         Value_tooltip = '<p>Value of Item to be stored in csv File selected from List Name dropdown menu.</p>'
         Description_tooltip = '<p>Additional info for Item to be stored in csv File selected from List Name dropdown menu.</p>'
@@ -811,19 +2732,60 @@ class WAXI_QF:
         rose_tooltip= 'Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin'
         stereonet_tooltip= 'Select Checkbox to control Display behaviour for Stereonet Plugin'
 
-        self.dlg.label_4.setToolTip(Clip_tooltip)
-        self.dlg.label_5.setToolTip(Add_item_tooltip)
-        self.dlg.label_10.setToolTip(Export_tooltip)
-        self.dlg.label_15.setToolTip(Update_tooltip)
-        self.dlg.label_6.setToolTip(Merge_tooltip)
-        self.dlg.label_18.setToolTip(Virtualstop_tooltip)
-        self.dlg.label_19.setToolTip(Autoincrement_tooltip)
-        self.dlg.label_22.setToolTip(gtCircles_tooltip)
+        # Titres
+        self.dlg.lineEdit_34.setToolTip(Clip_tooltip)
+        self.dlg.lineEdit_39.setToolTip(Add_item_tooltip)
+        self.dlg.lineEdit_35.setToolTip(Export_tooltip)
+        self.dlg.lineEdit_32.setToolTip(Update_tooltip)
+        self.dlg.lineEdit_33.setToolTip(Merge_tooltip)
+        self.dlg.lineEdit_36.setToolTip(Virtualstop_tooltip)
+        self.dlg.lineEdit_37.setToolTip(Autoincrement_tooltip)
+        self.dlg.lineEdit_38.setToolTip(gtCircles_tooltip)
+        
+        
+        # Project Parameters 
+        self.dlg.projName_pushButton.setToolTip("Update project name")
+        self.dlg.merge_pushButton.setToolTip("Merge projects")
+        self.dlg.clip_pushButton.setToolTip("Clip to current canvas")
+        self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
+        self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
 
-        self.dlg.radioButton.setToolTip(Auto_on)
-        self.dlg.radioButton_2.setToolTip(Auto_off)
+        
+        
+        
+        # Import Data 
+        self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
+        self.dlg.pushButton_8.setToolTip("Process the file you want to load")
+        
+        
+        self.dlg.pushButton_11.setToolTip("Go Back")
+        self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
+        
+        self.dlg.pushButton_12.setToolTip("Go Back")
+        self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
+        
+        self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
+        self.dlg.pushButton_13.setToolTip("Reset this window")
+        
+        self.dlg.pushButton_19.setToolTip("Reset this window")
+        self.dlg.pushButton_22.setToolTip("Reset this window")
+        self.dlg.pushButton_20.setToolTip("Reset this window")
+        self.dlg.pushButton_21.setToolTip("Reset this window")
+        
+        # Help 
+        
+        self.dlg.pushButton_15.setToolTip("Click here to access to WAXI website")
+        self.dlg.pushButton_17.setToolTip("Click here to access to AMIRA website")
+        self.dlg.pushButton_16.setToolTip("Click here to access to CET website")
+        self.dlg.pushButton_18.setToolTip("Click here to access to the WAXI Zenodo page")
+        self.dlg.pushButton_28.setToolTip("Click here to see the WAXI Facebook Page")
+      
+        
+        # RadioButtons
+        self.dlg.radioButtonOn.setToolTip(Auto_on)
+        self.dlg.radioButtonOff.setToolTip(Auto_off)
 
-
+        # LineEdit
         self.dlg.lineEdit.setToolTip(Value_tooltip)
         self.dlg.lineEdit_2.setToolTip(Description_tooltip)
 
@@ -835,9 +2797,6 @@ class WAXI_QF:
 
         self.dlg.lineEdit_7.setToolTip(Export_path_tooltip)
         self.dlg.pushButton_5.setToolTip(Export_path_tooltip)
-
-        self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
-        self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
 
         self.dlg.lineEdit_4.setToolTip(Merge_main_tooltip)
         self.dlg.pushButton_2.setToolTip(Merge_main_tooltip)
@@ -854,10 +2813,15 @@ class WAXI_QF:
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
         self.dlg.contours_checkBox.setToolTip(contours_tooltip)
         self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
-        self.dlg.stereonet_checkBox.setToolTip(stereonet_tooltip)
         self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
         self.dlg.rose_checkBox.setToolTip(rose_tooltip)
 
+
+
+
+    ###############################################################################
+    ####################                   RUN                   ##################
+    ############################################################################### 
 
 
     def run(self):
@@ -865,45 +2829,93 @@ class WAXI_QF:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
+        
+        
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-
+        
+        
         current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
 
         if(not os.path.exists(current_file_name)):
-            self.iface.messageBar().pushMessage("ERROR: A WAXI QFIELD Project Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+            self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+        
         else:
-
+            
             if self.first_start == True:
                 self.first_start = False
-                self.dlg = WAXI_QFDialog()
-                self.dlg.pushButton.clicked.connect(self.select_dst_directory)
-                self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
-                self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
-                self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
-                self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-                self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
-
-                # create dropdown list of all csv files
-                csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-                csvs=pd.read_csv(csv_list,names=['name'])
-                csv_file_list=[]
-                for name in csvs.name:
-                    csv_file_list.append(name)
-                self.dlg.comboBox.addItems(csv_file_list[:-2])
-
-                #check to see which qml is loaded for Stops_PT
-                no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
-
-                if(os.path.exists(current_file_name)):
-                    file_stats_current = os.stat(current_file_name)
-                    file_stats_no_auto = os.stat(no_auto_filename)
-                    if(file_stats_current.st_size == file_stats_no_auto.st_size):
-                        self.dlg.radioButton_2.setChecked(True)
-                    else:
-                        self.dlg.radioButton.setChecked(True)
-
+                
+                 
+                ### Accès à la fenêtre principale : QDialog
+                self.dlg = WAXI_QFDialog()   
+                self.dlg.setFixedSize(1131, 600)
+                
+                ### LineEdit en lecture seule, pas modidifiable par l'utilisateur 
+                
+                self.dlg.lineEdit_14.setReadOnly(True)
+                self.dlg.lineEdit_22.setReadOnly(True)
+                self.dlg.plainTextEdit_2.setReadOnly(True)
+                self.dlg.lineEdit_23.setReadOnly(True)
+                self.dlg.plainTextEdit_3.setReadOnly(True)
+                self.dlg.plainTextEdit_7.setReadOnly(True)
+                self.dlg.plainTextEdit_8.setReadOnly(True)
+                self.dlg.plainTextEdit_9.setReadOnly(True)
+                self.dlg.plainTextEdit_10.setReadOnly(True)
+                self.dlg.plainTextEdit_11.setReadOnly(True)
+                self.dlg.plainTextEdit_12.setReadOnly(True)
+                
+                self.dlg.lineEdit_24.setReadOnly(True)
+                self.dlg.lineEdit_28.setReadOnly(True)
+                self.dlg.lineEdit_30.setReadOnly(True)
+                self.dlg.lineEdit_31.setReadOnly(True)
+                
+                self.dlg.lineEdit_21.setReadOnly(True)
+                self.dlg.lineEdit_32.setReadOnly(True)
+                self.dlg.lineEdit_33.setReadOnly(True)
+                self.dlg.lineEdit_34.setReadOnly(True)
+                
+                self.dlg.lineEdit_12.setReadOnly(True)
+                self.dlg.lineEdit_15.setReadOnly(True)
+                self.dlg.lineEdit_18.setReadOnly(True)
+                self.dlg.plainTextEdit.setReadOnly(True)
+                self.dlg.plainTextEdit_16.setReadOnly(True)
+                
+                self.dlg.lineEdit_25.setReadOnly(True)
+                self.dlg.lineEdit_35.setReadOnly(True)
+                
+                self.dlg.lineEdit_26.setReadOnly(True)
+                self.dlg.lineEdit_36.setReadOnly(True)
+                self.dlg.lineEdit_37.setReadOnly(True)
+                
+                self.dlg.lineEdit_27.setReadOnly(True)
+                self.dlg.lineEdit_38.setReadOnly(True)
+                
+                self.dlg.lineEdit_29.setReadOnly(True)
+                self.dlg.lineEdit_39.setReadOnly(True)
+                
+                self.dlg.lineEdit_16.setReadOnly(True)
+                self.dlg.lineEdit_17.setReadOnly(True)
+                self.dlg.plainTextEdit_4.setReadOnly(True)
+                self.dlg.plainTextEdit_5.setReadOnly(True)
+                self.dlg.plainTextEdit_13.setReadOnly(True)
+                self.dlg.plainTextEdit_14.setReadOnly(True)
+                self.dlg.plainTextEdit_15.setReadOnly(True)
+                self.dlg.lineEdit_40.setReadOnly(True)
+                self.dlg.lineEdit_41.setReadOnly(True)
+                self.dlg.lineEdit_42.setReadOnly(True)
+                self.dlg.lineEdit_43.setReadOnly(True)
+                self.dlg.lineEdit_19.setReadOnly(True)
+                self.dlg.lineEdit_20.setReadOnly(True)
+                self.dlg.plainTextEdit_6.setReadOnly(True)
+                self.dlg.lineEdit_45.setReadOnly(True)
+                self.dlg.lineEdit_44.setReadOnly(True)
+                self.dlg.plainTextEdit_18.setReadOnly(True)
+                
+                self.dlg.plainTextEdit_19.setReadOnly(True)
+                self.dlg.plainTextEdit_20.setReadOnly(True)
+                self.dlg.plainTextEdit_21.setReadOnly(True)
+                
                 stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
 
                 stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
@@ -916,82 +2928,127 @@ class WAXI_QF:
                 self.dlg.kinematics_checkBox.setChecked(stereoConfig['showKinematics'])
                 self.dlg.linPlanes_checkBox.setChecked(stereoConfig['linPlanes'])
                 self.dlg.rose_checkBox.setChecked(stereoConfig['roseDiagram'])
+                
+                
+            
+                
+            
+            
+                ### Connection des PushButtons ### 
+                
+                
+            
+                # Partie project_parameters
+                self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
+                self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
+                self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
+                self.dlg.pushButton_19.clicked.connect(self.resetWindowState1)
+               
+                # Partie Import_data (le premier bouton connecte tous les autres boutons avec les bons paramètres en entrée au fur et à mesure de l'éxécution du programme)
+              
+                self.dlg.pushButton_8.clicked.connect(self.click_import_data)  
+                self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
+                self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
+                self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
+                self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
+   
+                
+                # Partie Export_data
+                self.dlg.export_pushButton.clicked.connect(self.exportData)
+                self.dlg.pushButton_22.clicked.connect(self.resetWindowState3)
+                
+                
+                # Partie Stop 
+                self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
+                self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
+                self.dlg.pushButton_20.clicked.connect(self.resetWindowState4)
+    
+    
+                # Partie Stereo             
+                self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
+                
+                
+                # Partie CSV
+                self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
+                self.dlg.pushButton_21.clicked.connect(self.resetWindowState5)
+            
+            
+            
+            
+            
+                # Partie HELP 
+                
+                # Connection au site WAXI : https://waxi4.org/
+                self.dlg.pushButton_15.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
+                
+                # Connection au site AMIRA : https://amira.global/
+                self.dlg.pushButton_17.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://amira.global/")))
+                
+                # Connection au site CET : https://www.cet.edu.au/
+                self.dlg.pushButton_16.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/")))
+            
+                # Connection à la page Zenodo : https://zenodo.org/records/10147786
+                self.dlg.pushButton_18.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://zenodo.org/records/10147786")))
+            
+                # Connection à la page Facebook : https://www.facebook.com/waxi03/about
+                self.dlg.pushButton_28.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.facebook.com/waxi03/about")))
+            
+                # Connection des articles du WAXI : 
+                self.dlg.pushButton_23.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/journal-articles/")))
+                self.dlg.pushButton_24.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/theses/")))
+          
+             
+                    
+                    
+                    
+            
+                # PushButton qui permettent de chercher des fichiers dans l'ordi
+                self.dlg.pushButton.clicked.connect(self.select_dst_directory)
+                self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
+                self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
+                self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
+                self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
+                self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
+                self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
+            
+            
+            
+                ### Combox for create dropdown list of all csv files
+                csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+                csvs=read_csv(csv_list,names=['name'])
+                csv_file_list=[]
+                for name in csvs.name:
+                    csv_file_list.append(name)
+                self.dlg.comboBox.addItems(csv_file_list[:-2])
+
+
+                ### RadioButton for check to see which qml is loaded for Stops_PT 
+                no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
+
+                if(os.path.exists(current_file_name)):
+                    file_stats_current = os.stat(current_file_name)
+                    file_stats_no_auto = os.stat(no_auto_filename)
+                    if(file_stats_current.st_size == file_stats_no_auto.st_size):
+                        self.dlg.radioButtonOff.setChecked(True)
+                    else:
+                        self.dlg.radioButtonOn.setChecked(True)
 
 
                 self.define_tips()
-                # show the dialog
-                self.dlg.show()
-
-
-
-            # Run the dialog event loop
-            result = self.dlg.exec_()
-
-            # See if OK was pressed
-            if result:
-
-                if(self.dlg.lineEdit.text() and self.dlg.csv_checkBox.isChecked()):
-                    self.addCsvItem()
-
-                if(self.dlg.clip_checkBox.isChecked()):
-                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit.text()))):
-                        self.clipToCanvas()
-                    else:
-                        self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
-
-                if(self.dlg.merge_checkBox.isChecked()):
-                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
-                    os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
-                    os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
-                            self.mergeProjects()
-                    else:
-                        self.iface.messageBar().pushMessage("Directory not found", level=Qgis.Warning, duration=45)  
-
-                if(self.dlg.export_checkBox.isChecked()):
-                    if(os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text()))):
-                        self.exportLayers()
-                    else:
-                        self.iface.messageBar().pushMessage("Directory not found: "+self.dlg.lineEdit_7.text(), level=Qgis.Warning, duration=45)
-
-                if(self.dlg.projName_checkBox.isChecked()):
-                    if(self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text()):
-                        self.updateProjectTitle()
-
-                if(self.dlg.virtual_checkBox.isChecked()):
-                    if(self.dlg.lineEdit_11.text()):
-                        self.virtualStops(self.dlg.lineEdit_11.text())
-
-                if(self.dlg.autoinc_checkBox.isChecked()):
-                    self.toggleAutoInc()
                 
-                stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
-
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
-                if(os.path.exists(stereoConfigPath)):
-                    with open(stereoConfigPath,"r") as json_file:
-                        stereoConfig=json.load(json_file)
-
-                if(self.dlg.stereonet_checkBox.isChecked()):
-                    self.set_stereoConfig(stereoConfig,stereoConfigPath)
-            else:
-                self.dlg.lineEdit.setText("") 
-                self.dlg.lineEdit_2.setText("") 
-                self.dlg.lineEdit_3.setText("") 
-                self.dlg.lineEdit_4.setText("") 
-                self.dlg.lineEdit_5.setText("") 
-                self.dlg.lineEdit_6.setText("") 
-                self.dlg.lineEdit_7.setText("") 
-                self.dlg.lineEdit_8.setText("") 
-                self.dlg.lineEdit_9.setText("") 
-                self.dlg.lineEdit_10.setText("") 
-                self.dlg.lineEdit_11.setText("") 
-                self.dlg.clip_checkBox.setChecked(False)
-                self.dlg.autoinc_checkBox.setChecked(False)
-                self.dlg.clip_checkBox.setChecked(False)
-                self.dlg.csv_checkBox.setChecked(False)
-                self.dlg.export_checkBox.setChecked(False)
-                self.dlg.merge_checkBox.setChecked(False)
-                self.dlg.projName_checkBox.setChecked(False)
-                self.dlg.virtual_checkBox.setChecked(False)
-                self.dlg.stereonet_checkBox.setChecked(False)
+                
+                ### Show the dialog
+                self.dlg.show()
+                
+            result = self.dlg.exec_()
             
+               
+                    
+                    
+                    
+                    
+
+            
+              
+                
+                
