@@ -9,7 +9,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 
 **An existing WAXI QFIELD project must be open when you run this plugin, otherwise the Dialog will not display.**
 
-##Functionality
+## Functionality
 
 **Clip to current Canvas**: Select checkbox to clip all WAXI QFIELD layers to surrent QGIS Canvas, select the Clip check box and define a new directory to contain all the layers. Optionally select a polygon shapefile to be the clipping polygon. You can use the **Merge Projects** tool to recombine any modififications you have made to this clipped region  back into the global dataset.
 **Merge Projects**: Select checkbox to merge two existing WAXI QFIELD projects by selecting two existing project directories and a new one to store newly merged projects. Duplicate rows in each layer will be deleted. 3. 
