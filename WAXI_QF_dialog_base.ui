@@ -55,10 +55,13 @@
 }
 
 QTabBar::tab {
-    min-width: 188px; 
-    min-height: 40px;
+    min-width: 224px; 
+    min-height: 30px;
 	background-color: rgb(255, 170, 0);
   	border-radius: 7px;	
+	border: 1px solid #000000; 
+	font-family: Bookman Old Style; 
+	font-size: 12px;
 }
 
 
@@ -77,23 +80,17 @@ QTabBar::tab:hover {
    <property name="currentIndex">
     <number>0</number>
    </property>
-   <widget class="QWidget" name="WAXI_project">
+   <widget class="QWidget" name="Introduction">
     <property name="styleSheet">
-     <string notr="true">#WAXI_project {
+     <string notr="true">#Introduction {
 	background-color: rgb(255, 125, 0, 50);
 }
 
-QTabBar::tab:selected[text=&quot;Intro&quot;] {
-    background-color: rgb(255, 85, 0);
-}
 
-QTabBar::tab:!selected[text=&quot;Intro&quot;] {
-    background-color: #FFA07A;
-}
 </string>
     </property>
     <attribute name="title">
-     <string>WAXI_project</string>
+     <string>Introduction</string>
     </attribute>
     <widget class="QLineEdit" name="lineEdit_14">
      <property name="geometry">
@@ -101,23 +98,25 @@ QTabBar::tab:!selected[text=&quot;Intro&quot;] {
        <x>400</x>
        <y>10</y>
        <width>321</width>
-       <height>51</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+   font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
 	qproperty-alignment: 'AlignCenter';  
 	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
+	border: 1px solid #000000; 
 }
 </string>
      </property>
@@ -129,23 +128,25 @@ QTabBar::tab:!selected[text=&quot;Intro&quot;] {
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>120</y>
-       <width>491</width>
-       <height>201</height>
+       <y>90</y>
+       <width>511</width>
+       <height>271</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
+      <string notr="true">background-color: rgb(255, 240, 217);
 font-family: Bookman Old Style; 
-font-size: 16px;
-
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #999999;
 </string>
      </property>
      <property name="plainText">
       <string>The AMIRA West African Exploration Initiative (WAXI), in French l'Initiative d'Exploration d'Ouest Africaine (IXOA), is an ambitious research and training program based on the cooperation between most of the major stakeholders in the West African minerals sector : research institutions, geological surveys, governements and the minerals industry. 
 
+
 It is focused on the tectonics and mineral potential of the West African Craton. 
+
 
 WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West African mineral systems. In particular, novel research looking at Archean mineralisation and architecture and the impacts of earlier architectures on the development of mineral systems in the Birmian, the Panafrican and the overlying intracratonic basins will be undertaken.</string>
      </property>
@@ -154,22 +155,27 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
-       <width>521</width>
-       <height>41</height>
+       <y>50</y>
+       <width>531</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+  	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;
+	border: 1px solid #FF8C66; 
 	
 }
 
@@ -184,22 +190,27 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
-       <width>521</width>
-       <height>41</height>
+       <y>380</y>
+       <width>531</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+    font-size: 12px;
+	border-radius: 12px;
 	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
+	qproperty-alignment: 'AlignCenter'; 
+font-family: Bookman Old Style; 
+border: 1px solid #FF8C66; 
 }
 
 
@@ -213,22 +224,27 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>590</x>
-       <y>70</y>
+       <y>50</y>
        <width>521</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
 }
 
 
@@ -242,22 +258,26 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>120</y>
+       <y>90</y>
        <width>371</width>
        <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 10px;	
+    font-size: 11px;
+	border-radius: 13px;
 	background-color: rgb(255, 248, 170);
 	qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
 }
 
 
@@ -271,22 +291,26 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>260</y>
+       <y>240</y>
        <width>371</width>
        <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 10px;	
+   font-size: 11px;
+	border-radius: 13px;	
 	background-color: rgb(255, 248, 170);
 	qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
 }
 
 
@@ -300,42 +324,49 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>410</y>
+       <y>380</y>
        <width>371</width>
        <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 10px;	
+   font-size: 11px;
+	border-radius: 13px;
 	background-color: rgb(255, 248, 170);
 	qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
 }
 
 
 </string>
      </property>
      <property name="text">
-      <string>Research Groups (Universities and other Research Institutes)</string>
+      <string>Research Groups (Universities and Research Institutes)</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_21">
      <property name="geometry">
       <rect>
-       <x>320</x>
-       <y>520</y>
-       <width>471</width>
-       <height>61</height>
+       <x>360</x>
+       <y>540</y>
+       <width>371</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
+      <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 11px;
+font-style: italic;</string>
      </property>
      <property name="text">
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
@@ -344,18 +375,18 @@ WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West Af
     <widget class="QPlainTextEdit" name="plainTextEdit_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>380</y>
-       <width>501</width>
-       <height>141</height>
+       <x>20</x>
+       <y>420</y>
+       <width>511</width>
+       <height>121</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
+      <string notr="true">background-color: rgb(255, 240, 217);
 font-family: Bookman Old Style; 
-font-size: 16px;
-
+font-size: 13px;
+border-radius: 12px;	
+border: 1px solid #999999;
 
 </string>
      </property>
@@ -372,17 +403,19 @@ font-size: 16px;
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>160</y>
+       <y>130</y>
        <width>241</width>
-       <height>91</height>
+       <height>101</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 255, 213);
+      <string notr="true">background-color: rgb(255, 255, 213);
 font-style: italic;
-font-family: Bookman Old Style; 
-font-size: 15px;
+font-family: Bookman Old Style;
+font-size: 12px;
+border-radius: 12px;
+border: 1px solid #ccc090;
+	
 
  
 
@@ -402,18 +435,18 @@ font-size: 15px;
      <property name="geometry">
       <rect>
        <x>860</x>
-       <y>160</y>
+       <y>130</y>
        <width>241</width>
-       <height>91</height>
+       <height>101</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
+      <string notr="true">font-size: 12px;
+border-radius: 12px;	
 background-color: rgb(255, 255, 213);
 font-family: Bookman Old Style; 
-font-size: 15px;
 font-style: italic;
-
+border: 1px solid #ccc090;
 
 </string>
      </property>
@@ -429,18 +462,18 @@ font-style: italic;
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>300</y>
+       <y>280</y>
        <width>241</width>
-       <height>101</height>
+       <height>91</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 255, 213);
+      <string notr="true">background-color: rgb(255, 255, 213);
 font-style: italic;
 font-family: Bookman Old Style; 
-font-size: 15px;
-
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #ccc090;
 
 </string>
      </property>
@@ -456,18 +489,18 @@ font-size: 15px;
      <property name="geometry">
       <rect>
        <x>860</x>
-       <y>300</y>
+       <y>280</y>
        <width>241</width>
-       <height>101</height>
+       <height>91</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 255, 213);
+      <string notr="true">background-color: rgb(255, 255, 213);
 font-style: italic;
 font-family: Bookman Old Style; 
-font-size: 15px;
-
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #ccc090;
 
 </string>
      </property>
@@ -483,18 +516,18 @@ font-size: 15px;
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>450</y>
+       <y>420</y>
        <width>241</width>
-       <height>81</height>
+       <height>121</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 255, 213);
+      <string notr="true">background-color: rgb(255, 255, 213);
 font-style: italic;
 font-family: Bookman Old Style; 
-font-size: 15px;
-
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #ccc090;
 
 </string>
      </property>
@@ -517,20 +550,18 @@ font-size: 15px;
      <property name="geometry">
       <rect>
        <x>860</x>
-       <y>450</y>
+       <y>420</y>
        <width>241</width>
-       <height>81</height>
+       <height>121</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 255, 213);
+      <string notr="true">background-color: rgb(255, 255, 213);
 font-style: italic;
 font-family: Bookman Old Style; 
-font-size: 15px;
-
-
-</string>
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #ccc090;</string>
      </property>
      <property name="plainText">
       <string> - Université de Lorraine 
@@ -551,9 +582,767 @@ font-size: 15px;
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="Project_parameters">
+   <widget class="QWidget" name="Import_data">
     <property name="styleSheet">
-     <string notr="true">#Project_parameters {
+     <string notr="true">#Import_data {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-attachment: fixed; 
+	background-size: 100% 100%;
+	background-color: rgb(255, 125, 0, 45);
+}</string>
+    </property>
+    <attribute name="title">
+     <string>Import existing field databases</string>
+    </attribute>
+    <widget class="QLineEdit" name="lineEdit_12">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>20</y>
+       <width>281</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
+	qproperty-alignment: 'AlignCenter';  
+	background-color: rgb(255, 177, 153);
+border: 1px solid #000000; 
+}
+</string>
+     </property>
+     <property name="text">
+      <string>Import data in the WAXI project </string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_15">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>451</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+}
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>Step 1 : Select the file you want to import in QGIS</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_13">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>120</y>
+       <width>271</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+</string>
+     </property>
+     <property name="inputMask">
+      <string/>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_7">
+     <property name="geometry">
+      <rect>
+       <x>300</x>
+       <y>130</y>
+       <width>41</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Choose your Main Project </string>
+     </property>
+     <property name="whatsThis">
+      <string/>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_8">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>120</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Process this file</string>
+     </property>
+    </widget>
+    <widget class="QTabWidget" name="tabWidget_Step2_3">
+     <property name="geometry">
+      <rect>
+       <x>510</x>
+       <y>10</y>
+       <width>611</width>
+       <height>551</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QTabWidget::tab-bar {
+    alignment: left;
+}
+
+QTabBar::tab {
+    min-width: 200px; 
+    min-height: 25px;
+	background-color: rgb(255, 241, 237);
+  	border-radius: 12px;	
+	font-weight: bold;
+	font-size: 11px;
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+}
+
+
+QTabBar::tab:selected {
+   background-color : rgb(255, 200, 122);
+}
+
+
+QTabBar::tab:hover {
+    background-color: rgb(255, 200, 122);
+}
+
+
+</string>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="Step2">
+      <property name="styleSheet">
+       <string notr="true"># Step_2_Check_columns_match {
+	background-color: rgb(0, 170, 255);
+}</string>
+      </property>
+      <attribute name="title">
+       <string>Step 2 : Check Columns match</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableWidget1">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>491</width>
+         <height>511</height>
+        </rect>
+       </property>
+       <property name="lineWidth">
+        <number>5</number>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::AdjustToContents</enum>
+       </property>
+       <property name="showGrid">
+        <bool>true</bool>
+       </property>
+       <property name="gridStyle">
+        <enum>Qt::SolidLine</enum>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="rowCount">
+        <number>10</number>
+       </property>
+       <property name="columnCount">
+        <number>3</number>
+       </property>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <column>
+        <property name="text">
+         <string>OLD Name*</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>NEW Name**</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Check</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+       <item row="0" column="0">
+        <property name="text">
+         <string/>
+        </property>
+       </item>
+      </widget>
+      <widget class="QPushButton" name="pushButton_9">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>470</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Columns OK</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_11">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>410</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Go Back</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="Step3">
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <attribute name="title">
+       <string>Step 3 : Check Lithologies match </string>
+      </attribute>
+      <widget class="QTableWidget" name="tableWidget2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>491</width>
+         <height>511</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="rowCount">
+        <number>10</number>
+       </property>
+       <property name="columnCount">
+        <number>3</number>
+       </property>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <column>
+        <property name="text">
+         <string>OLD Name*</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>NEW Name**</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Check </string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+      </widget>
+      <widget class="QPushButton" name="pushButton_10">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>470</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Lithologies OK</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_12">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>410</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Go Back</string>
+       </property>
+      </widget>
+      <widget class="QGroupBox" name="legendbox">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>40</y>
+         <width>101</width>
+         <height>351</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="title">
+        <string>Reliability : </string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="Step4">
+      <property name="styleSheet">
+       <string notr="true">Step 4 :</string>
+      </property>
+      <attribute name="title">
+       <string>Step 4 : Check Structures match</string>
+      </attribute>
+      <widget class="QPushButton" name="pushButton_25">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>410</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Go Back</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_26">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>470</y>
+         <width>101</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Structures OK</string>
+       </property>
+      </widget>
+      <widget class="QTableWidget" name="tableWidget3">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>491</width>
+         <height>511</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
+       <property name="rowCount">
+        <number>10</number>
+       </property>
+       <property name="columnCount">
+        <number>3</number>
+       </property>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <row/>
+       <column>
+        <property name="text">
+         <string>OLD Name*</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="background">
+         <color>
+          <red>255</red>
+          <green>247</green>
+          <blue>225</blue>
+         </color>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>NEW Name**</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+          <kerning>true</kerning>
+         </font>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Check </string>
+        </property>
+        <property name="font">
+         <font>
+          <family>Bookman Old Style</family>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+       </column>
+      </widget>
+      <widget class="QGroupBox" name="legendbox_2">
+       <property name="geometry">
+        <rect>
+         <x>500</x>
+         <y>40</y>
+         <width>101</width>
+         <height>351</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;</string>
+       </property>
+       <property name="title">
+        <string>Reliability : </string>
+       </property>
+      </widget>
+      <zorder>tableWidget3</zorder>
+      <zorder>pushButton_25</zorder>
+      <zorder>pushButton_26</zorder>
+      <zorder>legendbox_2</zorder>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="pushButton_13">
+     <property name="geometry">
+      <rect>
+       <x>340</x>
+       <y>490</y>
+       <width>151</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 53, 46);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>RESET THIS WINDOW</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_14">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>420</y>
+       <width>201</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>Generate Output QGIS Layers</string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="plainTextEdit">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>390</y>
+       <width>431</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 240, 217);
+font-family: Bookman Old Style; 
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #999999;</string>
+     </property>
+     <property name="plainText">
+      <string> After having checked the conformity of the data :
+ </string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="plainTextEdit_16">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>200</y>
+       <width>431</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 240, 217);
+font-family: Bookman Old Style; 
+font-size: 12px;
+border-radius: 12px;	
+border: 1px solid #999999;</string>
+     </property>
+     <property name="plainText">
+      <string>Legends for the column names :
+
+* Name given by the geologist in the loaded file to be processed
+
+** Name conforms to the WAXI project</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_18">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>340</y>
+       <width>451</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+}
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>Step 5 : Import the processed file in QGIS</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_27">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>530</y>
+       <width>361</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 11px;
+font-style: italic;</string>
+     </property>
+     <property name="text">
+      <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
+     </property>
+    </widget>
+    <zorder>lineEdit_12</zorder>
+    <zorder>lineEdit_15</zorder>
+    <zorder>lineEdit_13</zorder>
+    <zorder>pushButton_7</zorder>
+    <zorder>pushButton_8</zorder>
+    <zorder>tabWidget_Step2_3</zorder>
+    <zorder>pushButton_13</zorder>
+    <zorder>plainTextEdit</zorder>
+    <zorder>pushButton_14</zorder>
+    <zorder>plainTextEdit_16</zorder>
+    <zorder>lineEdit_18</zorder>
+    <zorder>label_27</zorder>
+   </widget>
+   <widget class="QWidget" name="Fieldwork_preparation">
+    <property name="styleSheet">
+     <string notr="true">#Fieldwork_preparation {
 	background-position: center;
 	background-repeat: no-repeat;
 	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
@@ -565,21 +1354,23 @@ font-size: 15px;
 </string>
     </property>
     <attribute name="title">
-     <string>Project_parameters</string>
+     <string>Fieldwork preparation</string>
     </attribute>
     <widget class="QPushButton" name="projName_pushButton">
      <property name="geometry">
       <rect>
-       <x>1000</x>
-       <y>300</y>
+       <x>990</x>
+       <y>70</y>
        <width>111</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
 font-weight: bold;
-
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;
 </string>
      </property>
      <property name="text">
@@ -589,15 +1380,16 @@ font-weight: bold;
     <widget class="QLabel" name="label_16">
      <property name="geometry">
       <rect>
-       <x>640</x>
-       <y>350</y>
-       <width>71</width>
+       <x>610</x>
+       <y>120</y>
+       <width>61</width>
        <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;
+font-size: 12px;
+
  
 
 </string>
@@ -612,9 +1404,9 @@ font-size: 17px;
     <widget class="QLineEdit" name="lineEdit_9">
      <property name="geometry">
       <rect>
-       <x>720</x>
-       <y>360</y>
-       <width>391</width>
+       <x>680</x>
+       <y>120</y>
+       <width>331</width>
        <height>41</height>
       </rect>
      </property>
@@ -629,14 +1421,15 @@ font-size: 17px;
      <property name="geometry">
       <rect>
        <x>610</x>
-       <y>430</y>
-       <width>101</width>
+       <y>180</y>
+       <width>61</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Region :</string>
@@ -648,9 +1441,9 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_10">
      <property name="geometry">
       <rect>
-       <x>720</x>
-       <y>430</y>
-       <width>391</width>
+       <x>680</x>
+       <y>180</y>
+       <width>331</width>
        <height>41</height>
       </rect>
      </property>
@@ -659,197 +1452,23 @@ font-size: 17px;</string>
     border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
 }
 </string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="merge_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>370</x>
-       <y>300</y>
-       <width>131</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>Merge Projects</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_7">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>350</y>
-       <width>131</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;
-</string>
-     </property>
-     <property name="text">
-      <string>Main Project :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_8">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>410</y>
-       <width>131</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>Sub Project :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_9">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>470</y>
-       <width>151</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>Merged Project :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_4">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>360</y>
-       <width>241</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_5">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>420</y>
-       <width>241</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_6">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>480</y>
-       <width>241</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_2">
-     <property name="geometry">
-      <rect>
-       <x>430</x>
-       <y>370</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-     <property name="default">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_3">
-     <property name="geometry">
-      <rect>
-       <x>430</x>
-       <y>430</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_4">
-     <property name="geometry">
-      <rect>
-       <x>430</x>
-       <y>490</y>
-       <width>41</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
-     </property>
-     <property name="text">
-      <string>...</string>
      </property>
     </widget>
     <widget class="QPushButton" name="clip_pushButton">
      <property name="geometry">
       <rect>
-       <x>1000</x>
+       <x>410</x>
        <y>70</y>
        <width>101</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
      </property>
      <property name="text">
       <string>Clip</string>
@@ -858,15 +1477,16 @@ font-weight: bold;</string>
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>620</x>
-       <y>130</y>
-       <width>191</width>
+       <x>10</x>
+       <y>180</y>
+       <width>141</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Path to New Directory :</string>
@@ -878,15 +1498,16 @@ font-size: 17px;</string>
     <widget class="QLabel" name="label_14">
      <property name="geometry">
       <rect>
-       <x>620</x>
-       <y>180</y>
-       <width>151</width>
+       <x>40</x>
+       <y>110</y>
+       <width>111</width>
        <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Clipping Polygon :</string>
@@ -901,9 +1522,9 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_3">
      <property name="geometry">
       <rect>
-       <x>820</x>
-       <y>130</y>
-       <width>231</width>
+       <x>160</x>
+       <y>180</y>
+       <width>271</width>
        <height>41</height>
       </rect>
      </property>
@@ -917,8 +1538,8 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_8">
      <property name="geometry">
       <rect>
-       <x>780</x>
-       <y>190</y>
+       <x>160</x>
+       <y>120</y>
        <width>271</width>
        <height>41</height>
       </rect>
@@ -933,8 +1554,8 @@ font-size: 17px;</string>
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
       <rect>
-       <x>1070</x>
-       <y>130</y>
+       <x>450</x>
+       <y>180</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -949,8 +1570,8 @@ font-size: 17px;</string>
     <widget class="QPushButton" name="pushButton_6">
      <property name="geometry">
       <rect>
-       <x>1070</x>
-       <y>190</y>
+       <x>450</x>
+       <y>120</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -981,44 +1602,49 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_21">
      <property name="geometry">
       <rect>
-       <x>460</x>
+       <x>100</x>
        <y>10</y>
        <width>221</width>
-       <height>51</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+  	font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
 	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
+	background-color: rgb(255, 177, 153); 
+border: 1px solid #000000; 
 }
 </string>
      </property>
      <property name="text">
-      <string>Project Parameters </string>
+      <string>Database management</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_31">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>530</y>
-       <width>331</width>
-       <height>41</height>
+       <x>350</x>
+       <y>540</y>
+       <width>431</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
+      <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 11px;
+font-style: italic;</string>
      </property>
      <property name="text">
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
@@ -1027,23 +1653,28 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_32">
      <property name="geometry">
       <rect>
-       <x>620</x>
-       <y>300</y>
+       <x>590</x>
+       <y>70</y>
        <width>351</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;  
 	
 }
 
@@ -1054,56 +1685,31 @@ font-size: 17px;</string>
       <string>Update project name and region</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_33">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>300</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Merge 2 projects</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_34">
      <property name="geometry">
       <rect>
-       <x>620</x>
+       <x>10</x>
        <y>70</y>
        <width>341</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;   
+border: 1px solid #FF8C66;
 	
 }
 
@@ -1117,50 +1723,22 @@ font-size: 17px;</string>
     <widget class="QPushButton" name="pushButton_19">
      <property name="geometry">
       <rect>
-       <x>930</x>
-       <y>500</y>
-       <width>181</width>
-       <height>51</height>
+       <x>950</x>
+       <y>520</y>
+       <width>161</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(255, 53, 46);
 font-weight: bold;
 font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;
 </string>
      </property>
      <property name="text">
       <string>RESET THIS WINDOW</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_47">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Merge 2 layers</string>
      </property>
     </widget>
     <widget class="Line" name="line_5">
@@ -1211,621 +1789,292 @@ font-style: italic;
       <enum>Qt::Vertical</enum>
      </property>
     </widget>
-    <widget class="QPushButton" name="merge_pushButton_2">
+    <widget class="QLineEdit" name="lineEdit_48">
      <property name="geometry">
       <rect>
-       <x>380</x>
-       <y>70</y>
-       <width>131</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>Merge layers</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QWidget" name="Import_data">
-    <property name="styleSheet">
-     <string notr="true">#Import_data {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-attachment: fixed; 
-	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 45);
-}</string>
-    </property>
-    <attribute name="title">
-     <string>Import_data</string>
-    </attribute>
-    <widget class="QLineEdit" name="lineEdit_12">
-     <property name="geometry">
-      <rect>
-       <x>280</x>
+       <x>780</x>
        <y>10</y>
-       <width>551</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Import all the data you want in the WAXI project </string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_15">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>521</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Step 1 : Select the file you want to import in QGIS</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_23">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>120</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background: transparent;
-font-family: Bookman Old Style; 
-font-size: 17px;
-</string>
-     </property>
-     <property name="text">
-      <string>File to load :</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_13">
-     <property name="geometry">
-      <rect>
-       <x>120</x>
-       <y>120</y>
-       <width>251</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-     <property name="inputMask">
-      <string/>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_7">
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>130</y>
-       <width>41</width>
+       <width>241</width>
        <height>31</height>
       </rect>
      </property>
-     <property name="toolTip">
-      <string>Choose your Main Project </string>
-     </property>
-     <property name="whatsThis">
-      <string/>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
-     </property>
-     <property name="text">
-      <string>...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_18">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>70</y>
-       <width>471</width>
-       <height>41</height>
-      </rect>
-     </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+  	font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
+	qproperty-alignment: 'AlignCenter';  
+	background-color: rgb(255, 177, 153);
+border: 1px solid #000000; 
+}
+</string>
+     </property>
+     <property name="text">
+      <string>Project customisation </string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_51">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>300</y>
+       <width>321</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
 }
 
 
 </string>
      </property>
      <property name="text">
-      <string>Step 5 : Import the processed file in QGIS</string>
+      <string>Toggle Auto-Increment of Stop numbers</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_8">
+    <widget class="QPushButton" name="autoinc_pushButton">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>120</y>
-       <width>111</width>
-       <height>41</height>
+       <x>950</x>
+       <y>300</y>
+       <width>151</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
      </property>
      <property name="text">
-      <string>Process this file</string>
+      <string>Toggle behaviour</string>
      </property>
     </widget>
-    <widget class="QTabWidget" name="tabWidget_Step2_3">
+    <widget class="QRadioButton" name="radioButtonOn">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>210</y>
-       <width>751</width>
-       <height>341</height>
+       <x>690</x>
+       <y>340</y>
+       <width>61</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">QTabWidget::tab-bar {
-    alignment: left;
-}
-
-QTabBar::tab {
-    min-width: 250px; 
-    min-height: 40px;
-	background-color: rgb(255, 241, 237);
-  	border-radius: 18px;	
-	font-weight: bold;
-}
-
-
-QTabBar::tab:selected {
-   background-color : rgb(255, 200, 122);
-}
-
-
-QTabBar::tab:hover {
-    background-color: rgb(255, 200, 122);
-}
-
-
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 15px;
 </string>
      </property>
-     <property name="currentIndex">
-      <number>0</number>
+     <property name="text">
+      <string>On</string>
      </property>
-     <widget class="QWidget" name="Step2">
-      <property name="styleSheet">
-       <string notr="true"># Step_2_Check_columns_match {
-	background-color: rgb(0, 170, 255);
-}</string>
-      </property>
-      <attribute name="title">
-       <string>Step 2 : Check Columns match</string>
-      </attribute>
-      <widget class="QTableWidget" name="tableWidget1">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>591</width>
-         <height>281</height>
-        </rect>
-       </property>
-       <property name="lineWidth">
-        <number>5</number>
-       </property>
-       <property name="sizeAdjustPolicy">
-        <enum>QAbstractScrollArea::AdjustToContents</enum>
-       </property>
-       <property name="showGrid">
-        <bool>true</bool>
-       </property>
-       <property name="gridStyle">
-        <enum>Qt::SolidLine</enum>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-       <property name="cornerButtonEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="rowCount">
-        <number>10</number>
-       </property>
-       <property name="columnCount">
-        <number>3</number>
-       </property>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <column>
-        <property name="text">
-         <string>OLD Name*</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>NEW Name**</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Check</string>
-        </property>
-       </column>
-       <item row="0" column="0">
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-      </widget>
-      <widget class="QPushButton" name="pushButton_9">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>250</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Columns check OK</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_11">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>190</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Go Back</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="Step3">
-      <attribute name="title">
-       <string>Step 3 : Check Lithologies match </string>
-      </attribute>
-      <widget class="QTableWidget" name="tableWidget2">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>591</width>
-         <height>281</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="rowCount">
-        <number>10</number>
-       </property>
-       <property name="columnCount">
-        <number>3</number>
-       </property>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <column>
-        <property name="text">
-         <string>OLD Name*</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>NEW Name**</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Check </string>
-        </property>
-       </column>
-      </widget>
-      <widget class="QPushButton" name="pushButton_10">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>250</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Lithologies check OK</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_12">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>190</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Go Back</string>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="Step4">
-      <property name="styleSheet">
-       <string notr="true">Step 4 :</string>
-      </property>
-      <attribute name="title">
-       <string>Step 4 : Check Structures match</string>
-      </attribute>
-      <widget class="QPushButton" name="pushButton_25">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>190</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Go Back</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_26">
-       <property name="geometry">
-        <rect>
-         <x>620</x>
-         <y>250</y>
-         <width>121</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-       </property>
-       <property name="text">
-        <string>Structure check OK</string>
-       </property>
-      </widget>
-      <widget class="QTableWidget" name="tableWidget3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>591</width>
-         <height>281</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="rowCount">
-        <number>10</number>
-       </property>
-       <property name="columnCount">
-        <number>3</number>
-       </property>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <row/>
-       <column>
-        <property name="text">
-         <string>OLD Name*</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>NEW Name**</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Check </string>
-        </property>
-       </column>
-      </widget>
-     </widget>
     </widget>
-    <widget class="QPushButton" name="pushButton_13">
+    <widget class="QRadioButton" name="radioButtonOff">
      <property name="geometry">
       <rect>
-       <x>960</x>
-       <y>500</y>
-       <width>151</width>
+       <x>810</x>
+       <y>340</y>
+       <width>51</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 15px;</string>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_27">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>460</y>
+       <width>311</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>460</y>
+       <width>101</width>
        <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
-font-weight: bold;
-font-style: italic;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
 </string>
      </property>
      <property name="text">
-      <string>RESET THIS WINDOW</string>
+      <string>Description :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_14">
+    <widget class="QLabel" name="label_26">
      <property name="geometry">
       <rect>
-       <x>770</x>
-       <y>150</y>
-       <width>191</width>
+       <x>20</x>
+       <y>350</y>
+       <width>131</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
+</string>
+     </property>
+     <property name="text">
+      <string>List Name : </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_38">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>410</y>
+       <width>311</width>
        <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+
+
+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="csv_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>300</y>
+       <width>141</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
 font-weight: bold;
-
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Add New Item</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_99">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>300</y>
+       <width>331</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;  
+border: 1px solid #FF8C66;
+}
 
 
 </string>
      </property>
      <property name="text">
-      <string>Generate Output QGIS Layers</string>
+      <string>Add new item to CSV file</string>
      </property>
     </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit">
+    <widget class="QComboBox" name="comboBox">
      <property name="geometry">
       <rect>
-       <x>630</x>
-       <y>120</y>
-       <width>451</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-family: Bookman Old Style; 
-font-size: 16px;
-</string>
-     </property>
-     <property name="plainText">
-      <string> After having checked the conformity of the data :
- </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_16">
-     <property name="geometry">
-      <rect>
-       <x>790</x>
-       <y>340</y>
+       <x>160</x>
+       <y>360</y>
        <width>311</width>
-       <height>91</height>
+       <height>41</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_8">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>410</y>
+       <width>81</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-family: Bookman Old Style; 
-font-size: 15px;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
 </string>
      </property>
-     <property name="plainText">
-      <string>* Name given by the geologist in the loaded file to be processed
-
-** Name conforms to the WAXI project</string>
+     <property name="text">
+      <string>Value : </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <zorder>lineEdit_12</zorder>
-    <zorder>lineEdit_15</zorder>
-    <zorder>label_23</zorder>
-    <zorder>lineEdit_13</zorder>
-    <zorder>pushButton_7</zorder>
-    <zorder>lineEdit_18</zorder>
-    <zorder>pushButton_8</zorder>
-    <zorder>tabWidget_Step2_3</zorder>
-    <zorder>pushButton_13</zorder>
-    <zorder>plainTextEdit</zorder>
-    <zorder>pushButton_14</zorder>
-    <zorder>plainTextEdit_16</zorder>
    </widget>
-   <widget class="QWidget" name="Export_data">
+   <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
-     <string notr="true">#Export_data {
+     <string notr="true">#Data_management {
 	background-position: center;
 	background-repeat: no-repeat;
 	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
@@ -1834,20 +2083,23 @@ font-size: 15px;
 }</string>
     </property>
     <attribute name="title">
-     <string>Export_data</string>
+     <string>Field data management</string>
     </attribute>
     <widget class="QPushButton" name="export_pushButton">
      <property name="geometry">
       <rect>
-       <x>380</x>
-       <y>90</y>
-       <width>121</width>
-       <height>41</height>
+       <x>970</x>
+       <y>60</y>
+       <width>141</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
      </property>
      <property name="text">
       <string>Export Layers</string>
@@ -1856,15 +2108,16 @@ font-weight: bold;</string>
     <widget class="QLabel" name="label_12">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>150</y>
-       <width>151</width>
-       <height>41</height>
+       <x>590</x>
+       <y>110</y>
+       <width>121</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Export directory :</string>
@@ -1876,10 +2129,10 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_7">
      <property name="geometry">
       <rect>
-       <x>170</x>
-       <y>150</y>
-       <width>341</width>
-       <height>41</height>
+       <x>720</x>
+       <y>110</y>
+       <width>311</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1892,8 +2145,8 @@ font-size: 17px;</string>
     <widget class="QPushButton" name="pushButton_5">
      <property name="geometry">
       <rect>
-       <x>520</x>
-       <y>160</y>
+       <x>1050</x>
+       <y>110</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -1908,44 +2161,48 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_25">
      <property name="geometry">
       <rect>
-       <x>270</x>
+       <x>760</x>
        <y>10</y>
-       <width>581</width>
-       <height>51</height>
+       <width>191</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+  font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
 	qproperty-alignment: 'AlignCenter';  
 	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
-}
-</string>
+	border: 1px solid #000000; 
+}</string>
      </property>
      <property name="text">
-      <string>Export all the data you want from the WAXI project</string>
+      <string>Export data</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_32">
      <property name="geometry">
       <rect>
-       <x>410</x>
-       <y>520</y>
-       <width>331</width>
-       <height>61</height>
+       <x>340</x>
+       <y>530</y>
+       <width>451</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
+      <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 11px;
+font-style: italic;</string>
      </property>
      <property name="text">
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
@@ -1954,23 +2211,28 @@ font-size: 17px;</string>
     <widget class="QLineEdit" name="lineEdit_35">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>90</y>
+       <x>610</x>
+       <y>60</y>
        <width>331</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;  
+border: 1px solid #FF8C66;
 }
 
 
@@ -1984,9 +2246,9 @@ font-size: 17px;</string>
      <property name="geometry">
       <rect>
        <x>940</x>
-       <y>500</y>
+       <y>510</y>
        <width>171</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1999,49 +2261,89 @@ font-style: italic;
       <string>RESET THIS WINDOW</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="Stop">
-    <property name="styleSheet">
-     <string notr="true">#Stop {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
-	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 35);
-}</string>
-    </property>
-    <attribute name="title">
-     <string>Stop</string>
-    </attribute>
-    <widget class="QPushButton" name="virtual_pushButton">
+    <widget class="QLineEdit" name="lineEdit_52">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>80</y>
-       <width>171</width>
-       <height>41</height>
+       <x>610</x>
+       <y>160</y>
+       <width>331</width>
+       <height>31</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+      <string notr="true">QLineEdit {
+ 	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+}
+
+
+</string>
      </property>
      <property name="text">
       <string>Create Virtual Stops</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_20">
+    <widget class="QLineEdit" name="lineEdit_53">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>261</width>
-       <height>41</height>
+       <x>780</x>
+       <y>210</y>
+       <width>231</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="virtual_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>970</x>
+       <y>160</y>
+       <width>141</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Create Virtual Stops</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_23">
+     <property name="geometry">
+      <rect>
+       <x>600</x>
+       <y>200</y>
+       <width>171</width>
+       <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Min. Neighbour Dist. (m) :</string>
@@ -2050,628 +2352,514 @@ font-size: 17px;</string>
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_11">
+    <widget class="QLabel" name="label_10">
      <property name="geometry">
       <rect>
-       <x>280</x>
-       <y>140</y>
-       <width>231</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="autoinc_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>410</x>
-       <y>250</y>
-       <width>151</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>Toggle behaviour</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOn">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>300</y>
-       <width>61</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 20px;
-</string>
-     </property>
-     <property name="text">
-      <string>On</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOff">
-     <property name="geometry">
-      <rect>
-       <x>250</x>
-       <y>300</y>
-       <width>51</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 20px;</string>
-     </property>
-     <property name="text">
-      <string>Off</string>
-     </property>
-    </widget>
-    <widget class="Line" name="line_4">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>210</y>
-       <width>341</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_26">
-     <property name="geometry">
-      <rect>
-       <x>280</x>
-       <y>10</y>
-       <width>541</width>
+       <x>20</x>
+       <y>150</y>
+       <width>101</width>
        <height>51</height>
       </rect>
      </property>
-     <property name="font">
-      <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
+</string>
+     </property>
+     <property name="text">
+      <string>Sub Project :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_11">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>110</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
     border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
 }
 </string>
-     </property>
-     <property name="text">
-      <string>Virtual Stops</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_25">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>530</y>
-       <width>331</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
-     </property>
-     <property name="text">
-      <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_36">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>80</y>
-       <width>301</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Create Virtual Stops</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_37">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>250</y>
-       <width>361</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Toggle Auto-Increment of Stop numbers</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_20">
      <property name="geometry">
       <rect>
-       <x>940</x>
-       <y>500</y>
-       <width>171</width>
-       <height>51</height>
+       <x>400</x>
+       <y>160</y>
+       <width>41</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
-font-weight: bold;
-font-style: italic;
+      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_36">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>341</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+   	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;  
+border: 1px solid #FF8C66;
+	
+}
+
+
 </string>
      </property>
      <property name="text">
-      <string>RESET THIS WINDOW</string>
+      <string>Merge two projects</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="Stereo">
-    <property name="styleSheet">
-     <string notr="true">#Stereo {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
-	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 35);
-}</string>
-    </property>
-    <attribute name="title">
-     <string>Stereo</string>
-    </attribute>
-    <widget class="QPushButton" name="stereonet_pushButton">
+    <widget class="QPushButton" name="pushButton_27">
      <property name="geometry">
       <rect>
        <x>400</x>
-       <y>80</y>
-       <width>161</width>
+       <y>210</y>
+       <width>41</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_11">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>100</y>
+       <width>91</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
+</string>
      </property>
      <property name="text">
-      <string>Update Settings</string>
+      <string>Main Project :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_26">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>160</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="merge_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>60</y>
+       <width>131</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Merge Projects</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_37">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>210</y>
+       <width>241</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+}
+</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_29">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>110</y>
+       <width>41</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+     </property>
+     <property name="text">
+      <string>...</string>
+     </property>
+     <property name="default">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>111</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
+</string>
+     </property>
+     <property name="text">
+      <string>Merged Project :</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_49">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>10</y>
+       <width>191</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+  	font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
+	qproperty-alignment: 'AlignCenter';  
+	background-color: rgb(255, 177, 153);
+	border: 1px solid #000000; 
+}</string>
+     </property>
+     <property name="text">
+      <string>Merge data</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_33">
+     <property name="geometry">
+      <rect>
+       <x>730</x>
+       <y>290</y>
+       <width>261</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+  	font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
+	qproperty-alignment: 'AlignCenter';  
+	background-color: rgb(255, 177, 153);
+	border: 1px solid #000000; 
+}</string>
+     </property>
+     <property name="text">
+      <string>Stereographic projection settings</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="gtCircles_checkBox">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>140</y>
+       <x>640</x>
+       <y>370</y>
        <width>141</width>
        <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Great Circles</string>
      </property>
     </widget>
-    <widget class="QCheckBox" name="contours_checkBox">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>200</y>
-       <width>111</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>Contours</string>
-     </property>
-    </widget>
     <widget class="QCheckBox" name="rose_checkBox">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>250</y>
+       <x>640</x>
+       <y>480</y>
        <width>151</width>
        <height>61</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Rose Diagram</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="stereonet_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>970</x>
+       <y>340</y>
+       <width>141</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(198, 255, 212);
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Update Settings</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_148">
+     <property name="geometry">
+      <rect>
+       <x>610</x>
+       <y>340</y>
+       <width>331</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLineEdit {
+	font-size: 12px;
+	border-radius: 12px;		
+	background-color: rgb(255, 200, 122);
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+}
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>Stereonet Display</string>
+     </property>
+    </widget>
     <widget class="QCheckBox" name="linPlanes_checkBox">
      <property name="geometry">
       <rect>
-       <x>190</x>
-       <y>190</y>
+       <x>800</x>
+       <y>420</y>
        <width>161</width>
        <height>61</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Lineation Planes</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_27">
+    <widget class="QCheckBox" name="contours_checkBox">
      <property name="geometry">
       <rect>
-       <x>320</x>
-       <y>10</y>
-       <width>481</width>
+       <x>640</x>
+       <y>430</y>
+       <width>111</width>
        <height>51</height>
       </rect>
      </property>
-     <property name="font">
-      <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
      <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
-}
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 12px;
 </string>
      </property>
      <property name="text">
-      <string>Stereonet Display</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_26">
-     <property name="geometry">
-      <rect>
-       <x>390</x>
-       <y>530</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
-     </property>
-     <property name="text">
-      <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_38">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>80</y>
-       <width>351</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   border-radius: 18px;	
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Stereonet Display</string>
+      <string>Contours</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="kinematics_checkBox">
      <property name="geometry">
       <rect>
-       <x>190</x>
-       <y>130</y>
+       <x>800</x>
+       <y>360</y>
        <width>161</width>
        <height>71</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
+font-size: 12px;
+</string>
      </property>
      <property name="text">
       <string>Kinematics</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="CSV">
-    <property name="styleSheet">
-     <string notr="true">#CSV {
-	background-position: center;
-	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
-	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 35);
-}</string>
-    </property>
-    <attribute name="title">
-     <string>CSV</string>
-    </attribute>
-    <widget class="QPushButton" name="csv_pushButton">
+    <widget class="QPushButton" name="merge_layers_pushButton">
      <property name="geometry">
       <rect>
-       <x>350</x>
-       <y>70</y>
-       <width>151</width>
-       <height>41</height>
+       <x>380</x>
+       <y>280</y>
+       <width>131</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">background-color: rgb(198, 255, 212);
-font-weight: bold;</string>
+font-weight: bold;
+font-style: italic;
+font-family: Bookman Old Style; 
+font-size: 12px;</string>
      </property>
      <property name="text">
-      <string>Add New Item</string>
+      <string>Merge layers</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_13">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>130</y>
-       <width>131</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>List Name : </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>70</x>
-       <y>190</y>
-       <width>81</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>Value : </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_2">
-     <property name="geometry">
-      <rect>
-       <x>40</x>
-       <y>240</y>
-       <width>111</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Bookman Old Style; 
-font-size: 17px;</string>
-     </property>
-     <property name="text">
-      <string>Description :</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_2">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>240</y>
-       <width>311</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-</string>
-     </property>
-    </widget>
-    <widget class="QComboBox" name="comboBox">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>140</y>
-       <width>311</width>
-       <height>41</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>190</y>
-       <width>311</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-}
-
-
-</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_29">
-     <property name="geometry">
-      <rect>
-       <x>350</x>
-       <y>10</y>
-       <width>431</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Add new item to CSV file</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_27">
-     <property name="geometry">
-      <rect>
-       <x>420</x>
-       <y>530</y>
-       <width>321</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
-     </property>
-     <property name="text">
-      <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_39">
+    <widget class="QLineEdit" name="lineEdit_100">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
-       <width>321</width>
-       <height>41</height>
+       <y>280</y>
+       <width>341</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+  	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+border: 1px solid #FF8C66;
+	
 }
 
 
 </string>
      </property>
      <property name="text">
-      <string>Add new item to CSV file</string>
+      <string>Merge two layers</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_21">
+    <widget class="Line" name="line_10">
      <property name="geometry">
       <rect>
-       <x>950</x>
-       <y>500</y>
-       <width>161</width>
-       <height>51</height>
+       <x>540</x>
+       <y>60</y>
+       <width>43</width>
+       <height>461</height>
       </rect>
      </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
-font-weight: bold;
-font-style: italic;
-</string>
+     <property name="lineWidth">
+      <number>2</number>
      </property>
-     <property name="text">
-      <string>RESET THIS WINDOW</string>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="Line" name="line_11">
+     <property name="geometry">
+      <rect>
+       <x>670</x>
+       <y>260</y>
+       <width>381</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </widget>
@@ -2691,26 +2879,28 @@ font-style: italic;
     <widget class="QLineEdit" name="lineEdit_16">
      <property name="geometry">
       <rect>
-       <x>360</x>
+       <x>410</x>
        <y>10</y>
-       <width>361</width>
-       <height>51</height>
+       <width>311</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
-       <family>Castellar</family>
-       <pointsize>11</pointsize>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+  	font-size: 12px;
+	border-radius: 10px;
+	font-family: Bookman Old Style; 
 	qproperty-alignment: 'AlignCenter';  
 	background-color: rgb(255, 177, 153);
-	font-family: Castellar; 
+	border: 1px solid #000000; 
 }
 </string>
      </property>
@@ -2721,23 +2911,28 @@ font-style: italic;
     <widget class="QLineEdit" name="lineEdit_17">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>521</width>
-       <height>41</height>
+       <x>170</x>
+       <y>50</y>
+       <width>221</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+	border: 1px solid #FF8C66;
 }
 
 
@@ -2750,23 +2945,28 @@ font-style: italic;
     <widget class="QLineEdit" name="lineEdit_19">
      <property name="geometry">
       <rect>
-       <x>560</x>
-       <y>70</y>
-       <width>541</width>
-       <height>41</height>
+       <x>730</x>
+       <y>50</y>
+       <width>211</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter'; 
+	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+	border: 1px solid #FF8C66; 
 }
 
 
@@ -2779,23 +2979,28 @@ font-style: italic;
     <widget class="QLineEdit" name="lineEdit_20">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>350</y>
-       <width>521</width>
-       <height>41</height>
+       <x>170</x>
+       <y>360</y>
+       <width>221</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+  	font-size: 12px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style;
+	border: 1px solid #FF8C66;   
 }
 
 
@@ -2809,183 +3014,7 @@ font-style: italic;
      <property name="geometry">
       <rect>
        <x>70</x>
-       <y>130</y>
-       <width>81</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Bookman Old Style</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Bookman Old Style; 
-font-size: 17px;
-
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>WAXI :</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_41">
-     <property name="geometry">
-      <rect>
-       <x>90</x>
-       <y>230</y>
-       <width>61</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Bookman Old Style</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Bookman Old Style; 
-font-size: 17px;
-
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>CET :</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_15">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>130</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
-font-style: italic;
-background-color: rgb(255, 186, 90);</string>
-     </property>
-     <property name="text">
-      <string>Click here to access to WAXI website</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_16">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>230</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
-font-style: italic;
-background-color: rgb(255, 216, 169);</string>
-     </property>
-     <property name="text">
-      <string>Click here to access to CET website</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_42">
-     <property name="geometry">
-      <rect>
-       <x>60</x>
-       <y>180</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Bookman Old Style</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Bookman Old Style; 
-font-size: 17px;
-
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>AMIRA :</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_17">
-     <property name="geometry">
-      <rect>
-       <x>160</x>
-       <y>180</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
-font-style: italic;
-background-color: rgb(255, 205, 106);</string>
-     </property>
-     <property name="text">
-      <string>Click here to access to AMIRA website</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_4">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>120</y>
-       <width>501</width>
-       <height>211</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-size: 20px;
-font-family: Calibri; 
-</string>
-     </property>
-     <property name="plainText">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_43">
-     <property name="geometry">
-      <rect>
-       <x>60</x>
-       <y>280</y>
+       <y>110</y>
        <width>91</width>
        <height>41</height>
       </rect>
@@ -3003,7 +3032,185 @@ font-family: Calibri;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 17px;
+font-size: 14px;
+
+
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>WAXI :</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_41">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>210</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 10px;	
+background: transparent;
+qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 14px;
+
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>CET :</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_15">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>110</y>
+       <width>341</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(255, 186, 90);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string> WAXI website</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_16">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>210</y>
+       <width>341</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(255, 216, 169);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>CET website</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_42">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>160</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 10px;	
+background: transparent;
+qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 14px;
+
+
+
+
+</string>
+     </property>
+     <property name="text">
+      <string>AMIRA :</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_17">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>160</y>
+       <width>341</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(255, 205, 106);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>AMIRA website</string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="plainTextEdit_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>100</y>
+       <width>501</width>
+       <height>231</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 18px;
+background-color: rgb(255, 240, 217);
+font-size: 20px;
+font-family: Calibri; 
+border: 1px solid #999999;</string>
+     </property>
+     <property name="plainText">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_43">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>260</y>
+       <width>101</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 10px;	
+background: transparent;
+qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 14px;
 
 
 
@@ -3017,28 +3224,29 @@ font-size: 17px;
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>280</y>
+       <y>260</y>
        <width>341</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
 font-style: italic;
-background-color: rgb(255, 234, 210);</string>
+background-color: rgb(255, 234, 210);
+font-weight: bold;</string>
      </property>
      <property name="text">
-      <string>Click here to access to the Zenodo page </string>
+      <string>Zenodo page </string>
      </property>
     </widget>
     <widget class="QPlainTextEdit" name="plainTextEdit_5">
      <property name="geometry">
       <rect>
-       <x>570</x>
-       <y>120</y>
+       <x>580</x>
+       <y>100</y>
        <width>531</width>
-       <height>261</height>
+       <height>231</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3046,7 +3254,7 @@ background-color: rgb(255, 234, 210);</string>
 background-color: rgb(255, 240, 217);
 font-size: 20px;
 font-family: Calibri; 
-</string>
+border: 1px solid #999999;</string>
      </property>
      <property name="plainText">
       <string/>
@@ -3056,9 +3264,9 @@ font-family: Calibri;
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>400</y>
+       <y>410</y>
        <width>501</width>
-       <height>151</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3066,7 +3274,7 @@ font-family: Calibri;
 background-color: rgb(233, 255, 241);
 font-size: 20px;
 font-family: Calibri; 
-</string>
+ border: 1px solid rgb(175, 255, 178);</string>
      </property>
      <property name="plainText">
       <string/>
@@ -3075,10 +3283,10 @@ font-family: Calibri;
     <widget class="QPlainTextEdit" name="plainTextEdit_13">
      <property name="geometry">
       <rect>
-       <x>580</x>
-       <y>130</y>
+       <x>590</x>
+       <y>110</y>
        <width>261</width>
-       <height>81</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3086,7 +3294,7 @@ font-family: Calibri;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 16px;
+font-size: 13px;
 
 </string>
      </property>
@@ -3097,10 +3305,10 @@ font-size: 16px;
     <widget class="QPlainTextEdit" name="plainTextEdit_14">
      <property name="geometry">
       <rect>
-       <x>580</x>
-       <y>210</y>
+       <x>590</x>
+       <y>190</y>
        <width>251</width>
-       <height>71</height>
+       <height>61</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3108,8 +3316,7 @@ font-size: 16px;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 16px;
-
+font-size: 13px;
 </string>
      </property>
      <property name="plainText">
@@ -3119,10 +3326,10 @@ font-size: 16px;
     <widget class="QPlainTextEdit" name="plainTextEdit_15">
      <property name="geometry">
       <rect>
-       <x>580</x>
-       <y>300</y>
+       <x>590</x>
+       <y>270</y>
        <width>251</width>
-       <height>71</height>
+       <height>51</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3130,8 +3337,7 @@ font-size: 16px;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 16px;
-
+font-size: 13px;
 </string>
      </property>
      <property name="plainText">
@@ -3142,16 +3348,17 @@ font-size: 16px;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>410</y>
+       <y>420</y>
        <width>431</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
 font-style: italic;
 background-color: rgb(175, 255, 178);
+font-weight: bold;
 
 </string>
      </property>
@@ -3162,23 +3369,28 @@ background-color: rgb(175, 255, 178);
     <widget class="QLineEdit" name="lineEdit_45">
      <property name="geometry">
       <rect>
-       <x>560</x>
-       <y>400</y>
-       <width>541</width>
-       <height>41</height>
+       <x>730</x>
+       <y>360</y>
+       <width>211</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="font">
       <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
        <weight>75</weight>
        <bold>true</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-   border-radius: 18px;	
+   	font-size: 13px;
+	border-radius: 12px;		
 	background-color: rgb(255, 200, 122);
 	qproperty-alignment: 'AlignCenter';  
+	font-family: Bookman Old Style; 
+	border: 1px solid #FF8C66;
 }
 
 
@@ -3191,8 +3403,8 @@ background-color: rgb(175, 255, 178);
     <widget class="QPlainTextEdit" name="plainTextEdit_18">
      <property name="geometry">
       <rect>
-       <x>570</x>
-       <y>460</y>
+       <x>580</x>
+       <y>410</y>
        <width>521</width>
        <height>81</height>
       </rect>
@@ -3202,7 +3414,7 @@ background-color: rgb(175, 255, 178);
 background-color: rgb(165, 219, 255);
 font-size: 20px;
 font-family: Calibri; 
-</string>
+border: 1px solid rgb(24, 119, 242);</string>
      </property>
      <property name="plainText">
       <string/>
@@ -3211,9 +3423,9 @@ font-family: Calibri;
     <widget class="QLineEdit" name="lineEdit_44">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>480</y>
-       <width>131</width>
+       <x>650</x>
+       <y>430</y>
+       <width>101</width>
        <height>41</height>
       </rect>
      </property>
@@ -3230,7 +3442,7 @@ font-family: Calibri;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 18px;
+font-size: 15px;
 
 
 
@@ -3244,17 +3456,18 @@ font-size: 18px;
     <widget class="QPushButton" name="pushButton_28">
      <property name="geometry">
       <rect>
-       <x>750</x>
-       <y>480</y>
+       <x>760</x>
+       <y>430</y>
        <width>301</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
 font-style: italic;
-background-color: rgb(24, 119, 242) ;</string>
+background-color: rgb(24, 119, 242) ;
+font-weight: bold;</string>
      </property>
      <property name="text">
       <string>Follow the WAXI Facebook Page </string>
@@ -3263,10 +3476,10 @@ background-color: rgb(24, 119, 242) ;</string>
     <widget class="QPlainTextEdit" name="plainTextEdit_19">
      <property name="geometry">
       <rect>
-       <x>840</x>
-       <y>150</y>
-       <width>261</width>
-       <height>31</height>
+       <x>860</x>
+       <y>120</y>
+       <width>231</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3274,7 +3487,7 @@ background-color: rgb(24, 119, 242) ;</string>
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 17px;
+font-size: 14px;
 font-weight: bold;
 font-style: italic;
 </string>
@@ -3286,10 +3499,10 @@ font-style: italic;
     <widget class="QPlainTextEdit" name="plainTextEdit_20">
      <property name="geometry">
       <rect>
-       <x>840</x>
-       <y>220</y>
-       <width>261</width>
-       <height>51</height>
+       <x>860</x>
+       <y>200</y>
+       <width>251</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3297,7 +3510,7 @@ font-style: italic;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 17px;
+font-size: 14px;
 font-weight: bold;
 font-style: italic;
 </string>
@@ -3309,10 +3522,10 @@ font-style: italic;
     <widget class="QPlainTextEdit" name="plainTextEdit_21">
      <property name="geometry">
       <rect>
-       <x>840</x>
-       <y>300</y>
-       <width>261</width>
-       <height>51</height>
+       <x>860</x>
+       <y>270</y>
+       <width>241</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3320,7 +3533,7 @@ font-style: italic;
 background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
-font-size: 17px;
+font-size: 14px;
 font-weight: bold;
 font-style: italic;
 </string>
@@ -3333,16 +3546,17 @@ font-style: italic;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>470</y>
+       <y>480</y>
        <width>431</width>
        <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">font-family: Calibri; 
-font-size: 17px;
+      <string notr="true">font-family: Bookman Old Style; 
+font-size: 14px;
 font-style: italic;
 background-color: rgb(175, 255, 178);
+font-weight: bold;
 
 </string>
      </property>
@@ -3355,7 +3569,7 @@ background-color: rgb(175, 255, 178);
       <rect>
        <x>30</x>
        <y>520</y>
-       <width>471</width>
+       <width>481</width>
        <height>41</height>
       </rect>
      </property>
@@ -3364,6 +3578,7 @@ background-color: rgb(175, 255, 178);
        <family>Bookman Old Style</family>
        <pointsize>-1</pointsize>
        <weight>50</weight>
+       <italic>true</italic>
        <bold>false</bold>
       </font>
      </property>
@@ -3373,13 +3588,14 @@ background: transparent;
 qproperty-alignment: 'AlignCenter';  
 font-family: Bookman Old Style; 
 font-size: 13px;
+font-style: italic;
 
 
 
 </string>
      </property>
      <property name="text">
-      <string> (click on the button to access WAXI articles or theses)</string>
+      <string> (click on the buttons to access WAXI articles or theses)</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_28">
@@ -3387,15 +3603,52 @@ font-size: 13px;
       <rect>
        <x>590</x>
        <y>530</y>
-       <width>491</width>
-       <height>51</height>
+       <width>511</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  </string>
+      <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 11px;
+font-style: italic;</string>
      </property>
      <property name="text">
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_47">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>300</y>
+       <width>471</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Bookman Old Style</family>
+       <pointsize>-1</pointsize>
+       <weight>50</weight>
+       <italic>true</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border-radius: 10px;	
+background: transparent;
+qproperty-alignment: 'AlignCenter';  
+font-family: Bookman Old Style; 
+font-size: 13px;
+font-style: italic;
+
+
+
+</string>
+     </property>
+     <property name="text">
+      <string> (click on the buttons to access websites)</string>
      </property>
     </widget>
     <zorder>lineEdit_16</zorder>
@@ -3427,12 +3680,10 @@ font-size: 13px;
     <zorder>pushButton_24</zorder>
     <zorder>lineEdit_46</zorder>
     <zorder>label_28</zorder>
+    <zorder>lineEdit_47</zorder>
    </widget>
   </widget>
  </widget>
- <tabstops>
-  <tabstop>lineEdit_2</tabstop>
- </tabstops>
  <resources/>
  <connections/>
 </ui>

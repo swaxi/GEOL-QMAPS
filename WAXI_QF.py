@@ -26,18 +26,20 @@
 
 from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, pyqtSignal, QUrl
-from qgis.PyQt.QtGui import QIcon, QColor, QDesktopServices
+from qgis.PyQt.QtGui import QIcon, QColor,QBrush, QDesktopServices
 from qgis.PyQt import QtWidgets 
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget, QVBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox, QGroupBox
 from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint, QgsRectangle, QgsGeometry, QgsField, QgsFeature, QgsExpression, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsApplication
 from qgis.PyQt.QtCore import QVariant, QUrl
-import os
-
-import subprocess
-import sys
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
 
+import os
+import subprocess
+import sys
+import numpy as np
+import shutil
+import json
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -59,26 +61,18 @@ QgsFeature,
 QgsVectorDataProvider,
 QgsField
 )
+
 from scipy.spatial.distance import cdist
 
-
-import numpy as np
-import os
-import shutil
-import json
 
 # Libraries for manipulating Excel files 
 from pandas import *
 
-
 # Library for list copies
 from copy import copy 
 
-# Library for interactive graphics 
-import plotly.express as px
-
-import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+#import warnings
+#warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 # Library for check the input file nature
@@ -315,9 +309,9 @@ class WAXI_QF:
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
         
-        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_4.text())) and 
-            os.path.exists(self.mynormpath(self.dlg.lineEdit_5.text())) and 
-            os.path.exists(self.mynormpath(self.dlg.lineEdit_6.text()))):
+        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_11.text())) and 
+            os.path.exists(self.mynormpath(self.dlg.lineEdit_26.text())) and 
+            os.path.exists(self.mynormpath(self.dlg.lineEdit_37.text()))):
             
             
             # set up directory structure and load filename lists
@@ -328,9 +322,9 @@ class WAXI_QF:
             shps=shps.set_index("name")
             csvs=read_csv(csv_list,names=['name'])
     
-            main_project_path =  self.dlg.lineEdit_4.text()
-            sub_project_path =  self.dlg.lineEdit_5.text()
-            merge_project_path =  self.dlg.lineEdit_6.text()
+            main_project_path =  self.dlg.lineEdit_11.text()
+            sub_project_path =  self.dlg.lineEdit_26.text()
+            merge_project_path =  self.dlg.lineEdit_37.text()
     
             if(not os.path.exists(self.mynormpath(merge_project_path))):
                 os.mkdir(self.mynormpath(merge_project_path))
@@ -549,19 +543,7 @@ class WAXI_QF:
             self.iface.messageBar().pushMessage("Directory not found: "+ self.dlg.lineEdit_3.text(), level=Qgis.Warning, duration=45)
 
 
-    ### Réinitialiser la fenêtre 
-     
-    def resetWindowState1(self):
-        self.dlg.lineEdit_9.clear()
-        self.dlg.lineEdit_10.clear()
-        self.dlg.lineEdit_4.clear()
-        self.dlg.lineEdit_5.clear()
-        self.dlg.lineEdit_6.clear()
-        self.dlg.lineEdit_3.clear()
-        self.dlg.lineEdit_8.clear()
         
-        
-
 
     ###############################################################################
     ####################         Page 3 : Import data            ##################
@@ -662,12 +644,11 @@ class WAXI_QF:
         
 
         # File 2: WAXI project columns (Récuperation de l'emplacement du fichier Excel dans le dossier du projet WAXI QGIS) 
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
         
         column_reference = read_excel(emplacement_files_WAXI_columns)
+     
         
         # Exctration of column names in file 1 
         list_column_input = input_file.columns.tolist()
@@ -764,7 +745,7 @@ class WAXI_QF:
         self.dlg.tableWidget1.setColumnCount(col_count1 + 1)
         
         # En-têtes de colonnes dans le QTableWidget
-        column_names1 = ["OLD Name", 'NEW Name', 'Check']
+        column_names1 = ["OLD Name*", 'NEW Name**', 'Check']
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
           
         # Remplissage du QTableWidget avec les couples de la list_couples_column_trie2
@@ -798,13 +779,15 @@ class WAXI_QF:
                 # Ajout d'un bouton "Modifier"
                 btn_modifier = QPushButton("Edit", button_widget)
                 btn_modifier.clicked.connect(lambda state, row=k: self.button_edit1(row))
+                btn_modifier.setMinimumHeight(15)
                 
                 # Ajout d'un bouton "Supprimer"          
                 btn_supprimer = QPushButton("Delete", button_widget)
                 btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete1(row))
+                btn_supprimer.setMinimumHeight(15)
                 
                 # Ajout des 2 boutons au widget
-                layout = QVBoxLayout(button_widget)
+                layout = QHBoxLayout(button_widget)
                 layout.addWidget(btn_modifier)
                 layout.addWidget(btn_supprimer)
                 button_widget.setLayout(layout)
@@ -813,11 +796,11 @@ class WAXI_QF:
                 
                 # Taille des cellules 
                 
-                self.dlg.tableWidget1.setRowHeight(k, 80) 
+                self.dlg.tableWidget1.setRowHeight(k, 28) 
             
-                self.dlg.tableWidget1.setColumnWidth(0, 180) 
-                self.dlg.tableWidget1.setColumnWidth(1, 180) 
-                self.dlg.tableWidget1.setColumnWidth(2, 200) 
+                self.dlg.tableWidget1.setColumnWidth(0, 158) 
+                self.dlg.tableWidget1.setColumnWidth(1, 158) 
+                self.dlg.tableWidget1.setColumnWidth(2, 158) 
                
                 
                 # Changement de ligne 
@@ -874,10 +857,10 @@ class WAXI_QF:
     def button_edit1(self, row):
         
         # Récuperation de l'emplacement du fichier Excel avec le nom de toute les colonnes (que l'on coupe pour avoir le bon chemin du projet QGIS)
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        
+        
         
         column_reference = read_excel(emplacement_files_WAXI_columns)
         list_column_reference = column_reference.columns.tolist()
@@ -1027,10 +1010,9 @@ class WAXI_QF:
         list_lithology_input = fichier_output['Litho'].tolist()
 
         # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        
         
         # Reference list of lithologies
         if os.path.exists(emplacement_99_CSV_files):
@@ -1042,105 +1024,108 @@ class WAXI_QF:
    
     
         # Empty list of lithology name pairs (input value, reference value)
-        list_couple=[]
+        list_trio=[]
         for k in range (0,len(list_lithology_input)):
-            list_couple.append([list_lithology_input[k],'NULL'])
+            list_trio.append([list_lithology_input[k],'NULL',0])
         
-        ## Identification: criterion score > 7O : 
-            
-        score_limit1 = 70
-        list_litho_unknow=[]
+        ## Identification avec Fuzzywuzzy :  
         
         for k in range (0,len(list_lithology_input)) : 
             
             # Initialize similarity score and new name 
             score=0
-            new_rock_name = list_lithology_reference[0]
+            new_rock_name = 'NULL'
             
-            
-            ## Condition 1 : prefixe leuco, micro et meta à supprimer devant les noms
-            
-            if list_lithology_input[k].startswith("Micro"):
-                # on supprime le préfixe 'micro-'
-                list_lithology_input[k] =  list_lithology_input[k][5:]
-         
-            
-            if list_lithology_input[k][0] == "L" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "u" and list_lithology_input[k][3] == "c" and list_lithology_input[k][4] == "o" : 
-                # on supprime le préfixe 'leuco-'
-                list_lithology_input[k] =  list_lithology_input[k][5:]
-            
-            
-            if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
-                # on supprime le préfixe 'meta-'
-                list_lithology_input[k] =  list_lithology_input[k][4:]
-            
-            
-            if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "é" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
-                # on supprime le préfixe 'méta'
-                list_lithology_input[k] =  list_lithology_input[k][4:]
-               
+            if list_lithology_input[k] == 'NULL' or list_lithology_input[k] == ' ':
                 
-             ## Condition 2 : mots souvent utilisés "pegmatite" ou "granitoid" les remplacer par "granite"
-            if list_lithology_input[k] == "pegmatite" or list_lithology_input[k] == "granitoid" :
-                list_lithology_input[k] = "granite"
+                list_trio[k][1] = 'NULL'
+                list_trio[k][2] = 0
+            
+            else : 
+            
+                ## Condition 1 : prefixe leuco, micro et meta à supprimer devant les noms
+                
+                if list_lithology_input[k].startswith("Micro"):
+                    # on supprime le préfixe 'micro-'
+                    list_lithology_input[k] =  list_lithology_input[k][5:]
+             
+                
+                if list_lithology_input[k][0] == "L" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "u" and list_lithology_input[k][3] == "c" and list_lithology_input[k][4] == "o" : 
+                    # on supprime le préfixe 'leuco-'
+                    list_lithology_input[k] =  list_lithology_input[k][5:]
+                
+                
+                if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
+                    # on supprime le préfixe 'meta-'
+                    list_lithology_input[k] =  list_lithology_input[k][4:]
+                
+                
+                if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "é" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
+                    # on supprime le préfixe 'méta'
+                    list_lithology_input[k] =  list_lithology_input[k][4:]
+                   
+                    
+                 ## Condition 2 : mots souvent utilisés "pegmatite" ou "granitoid" les remplacer par "granite"
+                if list_lithology_input[k] == "pegmatite" or list_lithology_input[k] == "granitoid" :
+                    list_lithology_input[k] = "granite"
         
         
-            for rock_reference in list_lithology_reference : 
-                new_score = fuzz.token_set_ratio(list_lithology_input[k], rock_reference)
+                for rock_reference in list_lithology_reference :
                 
-                # Si les 2 mots ne commencent pas par la même lettre : malus de -15 sur le score 
-                if list_lithology_input[k][0] != rock_reference [0]:
-                    new_score  = new_score-15
-               
-                if new_score>score :  
-                    score = new_score
-                    new_rock_name = rock_reference
+                    new_score = fuzz.token_set_ratio(list_lithology_input[k], rock_reference)
+                    
+                    # Si les 2 mots ne commencent pas par la même lettre : malus de -15 sur le score 
+                    if list_lithology_input[k][0].lower() != rock_reference[0].lower():
+                        new_score  = new_score-15
+                   
+                    if new_score>score :  
+                        score = new_score
+                        new_rock_name = rock_reference
            
-            if score >= score_limit1 :
-                list_couple[k][1] = new_rock_name
+                # Ajout du nom qui a le + matché
+                list_trio[k][1] = new_rock_name
+                
+                # Ajout du score de match 
+                list_trio[k][2] = score
             
-            else :
-                list_litho_unknow.append(list_lithology_input[k])
-                list_couple[k][1] = 'Unknown'
-        
-        
+       
         # Création d'une liste de vérification des lithologies pour l'utilisateur 
         
         list_old = []
         list_new = []
-        list_couple_unique=[]
+        list_score=[]
+        list_trio_unique=[]
         list_old_unique = []
-        for m in range (len(list_couple)):
-            list_old.append(list_couple[m][0])
-            list_new.append(list_couple[m][1])
+        for m in range (len(list_trio)):
+            list_old.append(list_trio[m][0])
+            list_new.append(list_trio[m][1])
+            list_score.append(list_trio[m][2])
         
-        for m in range (len(list_couple)):
+        for m in range (len(list_trio)):
             if list_old[m] not in list_old_unique: 
                 list_old_unique.append(list_old[m])
-                list_couple_unique.append([list_old[m],list_new[m]])
-                
-      
-            
-      
-                
+                list_trio_unique.append([list_old[m],list_new[m],list_score[m]])
+
+        
+
+
+
         ###    Remplissage 2 : LITHOLOGIES NAME ## input = list_couple     ### 
-    
-        # Nombre de colonnes 2 (old + new)
-        col_count2 = 2
           
         # Réglage du nombre de colonnes dans le QTableWidget
-        self.dlg.tableWidget2.setColumnCount(col_count2 + 1)
+        self.dlg.tableWidget2.setColumnCount(3)
         
         # En-têtes de colonnes dans le QTableWidget
-        column_names2 = ["OLD Name", 'NEW Name', 'Check']
+        column_names2 = ["OLD Name*", 'NEW Name**', 'Check']
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
           
-        # Remplissage du QTableWidget 2 avec les couples de la list_couple
+        # Remplissage du QTableWidget 2 avec les couples de la list_trio_unique
         
-        # Initialisation du nombre de ligne du QTableWidget à 1
-        current_row_count = 1
-         
-        for k, (old, new) in enumerate(list_couple_unique): 
+        # Re-organisation de la liste par score décroissant 
+        list_trio_unique = sorted(list_trio_unique, key=lambda x: x[2], reverse=True)
+        current_row_count=1
+       
+        for k, (old, new, score) in enumerate(list_trio_unique): 
                       
             # Ajout d'une nouvelle ligne
             self.dlg.tableWidget2.setRowCount(current_row_count)
@@ -1149,86 +1134,139 @@ class WAXI_QF:
             self.dlg.tableWidget2.setItem(k, 0, QTableWidgetItem(str(old)))
             self.dlg.tableWidget2.setItem(k, 1, QTableWidgetItem(str(new)))
             
+            
+            ### Création d'une échelle de couleur selon le score : rouge pour les scores les plus bas et le vert pour les scores les plus élevés
+            
+            # Score entre 0 et 100 normalisé
+            score_normalized = score / 100
+        
+            # Interpolation linéaire entre le rouge et le vert
+            teinte = int(score_normalized * 120)
+            saturation = 140
+            value = 250
+        
+            # Calcul de la couleur en utilisant l'espace de couleur HSV
+            color = QColor.fromHsv(teinte, saturation, value)
+            
+            for column in range(2):
+               item = self.dlg.tableWidget2.item(k, column)
+               if item:
+                   item.setBackground(color)
+            
+            # Légende pour l'échelle de couleurs 
+            score_ranges = [100 , 80, 60, 40, 20, 0]
+            legend_colors = [QColor.fromHsv(108, 140, 250),QColor.fromHsv(84, 140, 250),QColor.fromHsv(60, 140, 250),QColor.fromHsv(36, 140, 250),QColor.fromHsv(12, 140, 250)]
+            
+            # Créez un widget pour la légende
+            legendbox_layout = QVBoxLayout(self.dlg.legendbox)
+
+            # Ajoutez des étiquettes avec les couleurs et les gammes de score
+            for i in range(len(score_ranges) - 1):
+                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
+                color_label = QLabel()
+                color_label.setStyleSheet(f"background-color: {legend_colors[i].name()}; border: 2px solid black;")
+                legendbox_layout.addWidget(color_label)
+                legendbox_layout.addWidget(QLabel(range_label))
+            
             # Interdire l'édition des 2 premières colonnes
             item1 = self.dlg.tableWidget2.item(k, 0)
             item2 = self.dlg.tableWidget2.item(k, 1)
             item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
             item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
-  
+              
     
             # Ajout d'une colonne avec 2 boutons "Supprimer","Modifier" pour chaque ligne
     
             # Création un widget contenant les 2 boutons         
             button_widget = QWidget(self.dlg)
             
-            # Ajout d'un bouton "Modifier"
             btn_modifier = QPushButton("Edit", button_widget)
             btn_modifier.clicked.connect(lambda state, row=k: self.button_edit2(row))
-                
+            btn_modifier.setMinimumHeight(15)
+            
             # Ajout d'un bouton "Supprimer"          
             btn_supprimer = QPushButton("Delete", button_widget)
             btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete2(row))
-                         
+            btn_supprimer.setMinimumHeight(15)
+            
             # Ajout des 2 boutons au widget
-            layout = QVBoxLayout(button_widget)
+            layout = QHBoxLayout(button_widget)
             layout.addWidget(btn_modifier)
             layout.addWidget(btn_supprimer)
             button_widget.setLayout(layout)
-    
+        
             self.dlg.tableWidget2.setCellWidget(k, 2, button_widget)
-             
             
             # Taille des cellules 
             
-            self.dlg.tableWidget2.setRowHeight(k, 80) 
+            self.dlg.tableWidget2.setRowHeight(k, 28) 
         
-            self.dlg.tableWidget2.setColumnWidth(0, 180) 
-            self.dlg.tableWidget2.setColumnWidth(1, 180) 
-            self.dlg.tableWidget2.setColumnWidth(2, 200) 
-           
+            self.dlg.tableWidget2.setColumnWidth(0, 150) 
+            self.dlg.tableWidget2.setColumnWidth(1, 150) 
+            self.dlg.tableWidget2.setColumnWidth(2, 150)   
             
-            # Changement de ligne 
-            current_row_count += 1
+            current_row_count+=1
+            
             
         # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
-        self.row_edit_status = [False] * len(list_couple_unique)
+        self.row_edit_status = [False] * len(list_trio_unique)
         self.table2States = []
         self.table2States.append(self.getTableState2())
     
-        return list_litho_unknow
  
        
 
         
-    # Récupération de l'état de toutes les cellules du tableWidget1
+    # Récupération de l'état de toutes les cellules du tableWidget2
     def getTableState2(self):
-        
         state2 = []
         for row in range(self.dlg.tableWidget2.rowCount()):
+            row_state = []
             for col in range(2):
                 item = self.dlg.tableWidget2.item(row, col)
-                state2.append({'text': item.text()})
                 
+                # Texte 
+                if isinstance(item, QTableWidgetItem):
+                    cell_text = item.text()
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                
+                # ComboBox
+                elif isinstance(item, QWidget):
+                    combo_box = self.dlg.tableWidget2.cellWidget(row, col)
+                    if isinstance(combo_box, QComboBox):
+                        cell_text = combo_box.currentText()
+                    else:
+                        cell_text = ""
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                else:
+                    cell_text = ""
+                    cell_color = None
+
+                cell_state = {'text': cell_text, 'color': cell_color}
+                row_state.append(cell_state)
+            state2.append(row_state)
         return state2
 
-    
-
-
+   
     # Suppression de la ligne
     def button_delete2(self, row):
         
         # Sauvegarde de l'état précédent du tableau
         self.table2States.append(self.getTableState2())
         
-        self.dlg.tableWidget2.setItem(row, 0, QTableWidgetItem("-"))
-        self.dlg.tableWidget2.setItem(row, 1, QTableWidgetItem("-"))
+        for col in range(2):
+            item = self.dlg.tableWidget2.item(row, col)
+            if item is not None:
+                item.setText("-")
         
         combo_box_item = self.dlg.tableWidget2.cellWidget(row, 1)
         
         if isinstance(combo_box_item, QComboBox):
+            combo_box_text = combo_box_item.currentText()          
             combo_box_item.hide()
             combo_box_item.setCurrentText('-')
             self.dlg.tableWidget2.setCellWidget(row, 1, combo_box_item)
+             
         
         # Interdire l'édition de ces cellules
         item1 = self.dlg.tableWidget2.item(row, 0)
@@ -1238,16 +1276,15 @@ class WAXI_QF:
         
         self.dlg.tableWidget2.repaint()
 
-     
 
-    # Modification de la ligne si la lithologie est classée comme Unknown
+   
+
+    # Modification de la ligne 
     def button_edit2(self, row):
         
-        # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        # Récuperation de l'emplacement du fichier 99_CSV 
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
         
         # Reference list of lithologies for Unknown lithologies
         if os.path.exists(emplacement_99_CSV_files):
@@ -1275,26 +1312,35 @@ class WAXI_QF:
             combo_box.addItems(list_lithology_reference)
             self.dlg.tableWidget2.setCellWidget(row, 1, combo_box)
             combo_box.setCurrentText(current_text)
-            
-          
+
             item = self.dlg.tableWidget2.item(row, 1)
             item.setFlags(item.flags() | Qt.ItemIsEditable)
-            item.setBackground(QColor("lightgray"))
             self.row_edit_status[row] = True
-            
-        
-        
-      
     
+ 
         # CAS 3 : Si le bouton est cliqué pour la 2e fois  
-        else:
+        else:   
+            
             combo_box = self.dlg.tableWidget2.cellWidget(row, 1)
-            selected_text = combo_box.currentText()
-            self.dlg.tableWidget2.removeCellWidget(row, 1)
-            self.dlg.tableWidget2.item(row, 1).setText(selected_text)
             item = self.dlg.tableWidget2.item(row, 1)
+            
+            # ComboBox
+            if isinstance(combo_box, QComboBox):
+                selected_text = combo_box.currentText()
+                self.dlg.tableWidget2.removeCellWidget(row, 1)
+            
+            # Text
+            else:
+                selected_text = item.text()    
+            
+            item.setText(selected_text)
+            
+            table_state = self.getTableState2()
+            cell_state = table_state[row][1]
+            original_color = QColor(cell_state['color'])
+            item.setBackground(original_color)
+            
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            item.setBackground(QColor("white"))
             self.row_edit_status[row] = False
                 
         self.dlg.tableWidget2.repaint()
@@ -1304,18 +1350,23 @@ class WAXI_QF:
     def Go_Back_table2(self):
         
         if self.table2States:
-            # Récupération de l'état précédent du tableau
             previousState = self.table2States.pop()
-            for i, cell in enumerate(previousState):
-                row, col = divmod(i, 2)
-                item = self.dlg.tableWidget2.item(row, col)
-                item.setText(cell['text'])
-                     
+            for row, row_state in enumerate(previousState):
+                for col, cell in enumerate(row_state):
+                    # texte de la cellule 
+                    cell_text = cell['text']
+                    item = self.dlg.tableWidget2.item(row, col)
+                    item.setText(cell_text)
+                    
+                    # couleur de la cellule 
+                    cell_color = cell['color']
+                    if cell_color:
+                        item.setBackground(QColor(cell_color))
+                        
         else:
             self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
 
-  
-
+    
     ## Récupération du contenu du QTableWidget 2 : LITHOLOGIES NAMES CHECK  ## 
     
     def recup_contenu_2(self): 
@@ -1347,7 +1398,7 @@ class WAXI_QF:
     ###############################################################################     
       
  
-    def lithologies_sorting (self,fichier_output, list_columns_check3, list_lithologies_unique_check_OK, list_litho_unknow, name_input_file):  
+    def lithologies_sorting (self,fichier_output, list_columns_check3, list_lithologies_unique_check_OK, name_input_file):  
         
         from openpyxl import Workbook
         from fuzzywuzzy import fuzz
@@ -1374,12 +1425,9 @@ class WAXI_QF:
      
         ### Sorting lithologies ### 
         
-        # Lists of reference rocks from the WAXI4 QGIS project 
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
-        
+        # Lists of reference rocks from the WAXI4 QGIS project
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
         
         litho_local = list((read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
         litho_supergene = list((read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
@@ -1413,13 +1461,6 @@ class WAXI_QF:
             litho_output.append(header)
     
         # Ajout du Worksheet UNKNOWN
-                                                  
-        litho_unknown_output =  fichier_output_lithology.create_sheet(("Unknown lithologies_PT_" + name_input_file).split('.')[0])
-        header_unknown = list_columns_check3 
-        litho_unknown_output.append(header_unknown)   
-        
-        count_unknown_litho = 0 
-     
         
         for k in range(0,len(fichier_output['Litho'])):
             
@@ -1530,29 +1571,6 @@ class WAXI_QF:
                         
                 fichier_output_lithology[("Metamorphic lithologies_PT_"+ name_input_file).split('.')[0]].append(ligne)
                      
-                
-            # Si litho unknown : 
-            else :
-                if r == 'Unknown' :
-                    # Récupération de la ligne correspondant à la roche
-                    ligne = []     
-                    for col in list_columns_check3 :
-                        if col !="Litho": 
-                            ligne.append(fichier_output[col][k])
-                        
-                        else : 
-                            ligne.append(list_litho_unknow[count_unknown_litho])
-            
-                    litho_unknown_output.append(ligne)
-                    count_unknown_litho +=1
-                
-                # Cas très très particulier où la lithologie a une score acceptable mais n'est dans aucune liste 
-                else :
-                    ligne = []     
-                    for col in list_columns_check3 :     
-                        ligne.append(fichier_output[col][k])
-                    
-                    litho_unknown_output.append(ligne)
         
         return fichier_output_lithology
     
@@ -1571,20 +1589,19 @@ class WAXI_QF:
         # List of input structures
         list_structure_input = fichier_output['Structure_type'].tolist()
         
-        # Récuperation de l'emplacement du fichier Excel 
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        # Récuperation de l'emplacement du fichier Excel     
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
         
         
-        # Empty list of structure name pairs (input value, reference value)
-        list_couple2=[]
+        # Empty list of structure name pairs (input value, reference value)    
+
+        list_trio_struct=[]
         for k in range (0,len(list_structure_input)):
-            list_couple2.append([list_structure_input[k],'NULL'])
+            list_trio_struct.append([list_structure_input[k],'NULL',0])
         
         
         # Modification de la colonne Structure_type pour qu'elle soit conforme
@@ -1592,65 +1609,73 @@ class WAXI_QF:
             
             type_structure = list_structure_input[k]
             
-            score = 0
-            structure = 'NULL'
+            if type_structure == 'NULL' or type_structure == ' ':
                 
-            # On parcourt toutes les cases du fichier Excel pour déterminer le type de structures
-            for index, row in Dataframe.iloc[1:].iterrows():
-                for colonne, valeur in row.items():
+                list_trio_struct[k][1] = 'NULL'
+                list_trio_struct[k][2] = 0
+            
+            else : 
+                score = 0
+                structure = 'NULL'
                     
-                    new_score = fuzz.token_set_ratio(type_structure, valeur)
-                    
-                    if new_score > score : 
-                        score = new_score
-                        structure = colonne
+                # On parcourt toutes les cases du fichier Excel pour déterminer le type de structures
+                for index, row in Dataframe.iloc[1:].iterrows():
+                    for colonne, valeur in row.items():
                         
-            if score > 50 : 
-                list_couple2[k][1] =  structure     
-            else :
-                if 'vein' in type_structure or 'veins' in type_structure : 
-                    list_couple2[k][1] = 'Veins_PT'
+                        new_score = fuzz.token_set_ratio(type_structure, valeur)
+                        
+                        if new_score > score : 
+                            score = new_score
+                            structure = colonne
+                    
+                    
+                if score<50 and ('vein' in type_structure or 'veins' in type_structure) : 
+                    list_trio_struct[k][1] = 'Veins_PT'
+                    list_trio_struct[k][2] = 90
+                    
                 else :     
-                    list_couple2[k][1] = 'NULL' 
-                
-
-        
-      
-        # Création d'une liste de vérification des structures pour l'utilisateur 
+                    list_trio_struct[k][1] = structure 
+                    list_trio_struct[k][2] = score
+            
+       
+        # Création d'une liste de vérification des structures pour l'utilisateur  
         
         list_old2 = []
         list_new2 = []
-        list_couple_unique2=[]
+        list_score2=[]
+        list_trio_unique2=[]
         list_old_unique2 = []
-        for m in range (len(list_couple2)):
-            list_old2.append(list_couple2[m][0])
-            list_new2.append(list_couple2[m][1])
+        for m in range (len(list_trio_struct)):
+            list_old2.append(list_trio_struct[m][0])
+            list_new2.append(list_trio_struct[m][1])
+            list_score2.append(list_trio_struct[m][2])
         
-        for m in range (len(list_couple2)):
+        for m in range (len(list_trio_struct)):
             if list_old2[m] not in list_old_unique2: 
                 list_old_unique2.append(list_old2[m])
-                list_couple_unique2.append([list_old2[m],list_new2[m]])
+                list_trio_unique2.append([list_old2[m],list_new2[m],list_score2[m]])
+
+        
+ 
+              
   
-                
-  
-        ###    Remplissage 3 : STRCUTURE NAME ## input = list_couple2     ### 
-    
-        # Nombre de colonnes 2 (old + new)
-        col_count3 = 2
-          
+        ###    Remplissage 3 : STRCUTURE NAME ## input = list_trio_unique2     ### 
+ 
         # Réglage du nombre de colonnes dans le QTableWidget
-        self.dlg.tableWidget3.setColumnCount(col_count3 + 1)
+        self.dlg.tableWidget3.setColumnCount(3)
         
         # En-têtes de colonnes dans le QTableWidget
-        column_names3 = ["OLD Name", 'NEW Name', 'Check']
+        column_names3 = ["OLD Name*", 'NEW Name**', 'Check']
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
           
-        # Remplissage du QTableWidget 3 avec les couples de la list_couple2
         
-        # Initialisation du nombre de ligne du QTableWidget à 1
-        current_row_count = 1
-         
-        for k, (old, new) in enumerate(list_couple_unique2): 
+        # Remplissage du QTableWidget 3 avec les couples de la list_trio_unique2 
+     
+        # Re-organisation de la liste par score décroissant 
+        list_trio_unique2 = sorted(list_trio_unique2, key=lambda x: x[2], reverse=True)
+        current_row_count=1
+        
+        for k, (old, new, score) in enumerate(list_trio_unique2): 
                       
             # Ajout d'une nouvelle ligne
             self.dlg.tableWidget3.setRowCount(current_row_count)
@@ -1658,6 +1683,40 @@ class WAXI_QF:
             # Remplissage des 2 colonnes
             self.dlg.tableWidget3.setItem(k, 0, QTableWidgetItem(str(old)))
             self.dlg.tableWidget3.setItem(k, 1, QTableWidgetItem(str(new)))
+            
+            ### Création d'une échelle de couleur selon le score : rouge pour les scores les plus bas et le vert pour les scores les plus élevés
+            
+            # Score entre 0 et 100 normalisé
+            score_normalized = score / 100
+        
+            # Interpolation linéaire entre le rouge et le vert
+            teinte = int(score_normalized * 120)
+            saturation = 140
+            value = 250
+        
+            # Calcul de la couleur en utilisant l'espace de couleur HSV
+            color = QColor.fromHsv(teinte, saturation, value)
+            
+            for column in range(2):
+               item2 = self.dlg.tableWidget3.item(k, column)
+               if item2:
+                   item2.setBackground(color)
+            
+            # Légende pour l'échelle de couleurs 
+            score_ranges = [100 , 80, 60, 40, 20, 0]
+            legend_colors = [QColor.fromHsv(108, 140, 250),QColor.fromHsv(84, 140, 250),QColor.fromHsv(60, 140, 250),QColor.fromHsv(36, 140, 250),QColor.fromHsv(12, 140, 250)]
+            
+            # Créez un widget pour la légende
+            legendbox_layout2 = QVBoxLayout(self.dlg.legendbox_2)
+
+            # Ajoutez des étiquettes avec les couleurs et les gammes de score
+            for i in range(len(score_ranges) - 1):
+                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
+                color_label = QLabel()
+                color_label.setStyleSheet(f"background-color: {legend_colors[i].name()}; border: 2px solid black;")
+                legendbox_layout2.addWidget(color_label)
+                legendbox_layout2.addWidget(QLabel(range_label))
+            
             
             # Interdire l'édition des 2 premières colonnes
             item1 = self.dlg.tableWidget3.item(k, 0)
@@ -1671,40 +1730,39 @@ class WAXI_QF:
             # Création un widget contenant les 2 boutons         
             button_widget = QWidget(self.dlg)
             
-            # Ajout d'un bouton "Modifier"
             btn_modifier = QPushButton("Edit", button_widget)
-            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit3(row))
-                
+            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit1(row))
+            btn_modifier.setMinimumHeight(15)
+            
             # Ajout d'un bouton "Supprimer"          
             btn_supprimer = QPushButton("Delete", button_widget)
-            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete3(row))
-                         
+            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete1(row))
+            btn_supprimer.setMinimumHeight(15)
+            
             # Ajout des 2 boutons au widget
-            layout = QVBoxLayout(button_widget)
+            layout = QHBoxLayout(button_widget)
             layout.addWidget(btn_modifier)
             layout.addWidget(btn_supprimer)
             button_widget.setLayout(layout)
-    
+        
             self.dlg.tableWidget3.setCellWidget(k, 2, button_widget)
-             
             
             # Taille des cellules 
             
-            self.dlg.tableWidget3.setRowHeight(k, 80) 
+            self.dlg.tableWidget3.setRowHeight(k, 28) 
         
-            self.dlg.tableWidget3.setColumnWidth(0, 180) 
-            self.dlg.tableWidget3.setColumnWidth(1, 180) 
-            self.dlg.tableWidget3.setColumnWidth(2, 200) 
+            self.dlg.tableWidget3.setColumnWidth(0, 150) 
+            self.dlg.tableWidget3.setColumnWidth(1, 150) 
+            self.dlg.tableWidget3.setColumnWidth(2, 150)
            
             
             # Changement de ligne 
             current_row_count += 1
             
         # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
-        self.row_edit_status = [False] * len(list_couple_unique2)
+        self.row_edit_status = [False] * len(list_trio_unique2)
         self.table3States = []
         self.table3States.append(self.getTableState3())
-
  
         
     # Récupération de l'état de toutes les cellules du tableWidget3
@@ -1712,23 +1770,45 @@ class WAXI_QF:
         
         state3 = []
         for row in range(self.dlg.tableWidget3.rowCount()):
+            row_state = []
             for col in range(2):
                 item = self.dlg.tableWidget3.item(row, col)
-                state3.append({'text': item.text()})
+                
+                # Texte 
+                if isinstance(item, QTableWidgetItem):
+                    cell_text = item.text()
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                
+                # ComboBox
+                elif isinstance(item, QWidget):
+                    combo_box = self.dlg.tableWidget3.cellWidget(row, col)
+                    if isinstance(combo_box, QComboBox):
+                        cell_text = combo_box.currentText()
+                    else:
+                        cell_text = ""
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                else:
+                    cell_text = ""
+                    cell_color = None
+
+                cell_state = {'text': cell_text, 'color': cell_color}
+                row_state.append(cell_state)
+            state3.append(row_state)
                 
         return state3
 
-    
-
+   
 
     # Suppression de la ligne
     def button_delete3(self, row):
         
-        # Sauvegarde de l'état précédent du tableau
+        ## Sauvegarde de l'état précédent du tableau
         self.table3States.append(self.getTableState3())
         
-        self.dlg.tableWidget3.setItem(row, 0, QTableWidgetItem("-"))
-        self.dlg.tableWidget3.setItem(row, 1, QTableWidgetItem("-"))
+        for col in range(2):
+            item = self.dlg.tableWidget3.item(row, col)
+            if item is not None:
+                item.setText("-")
         
         combo_box_item = self.dlg.tableWidget3.cellWidget(row, 1)
         
@@ -1736,6 +1816,7 @@ class WAXI_QF:
             combo_box_item.hide()
             combo_box_item.setCurrentText('-')
             self.dlg.tableWidget3.setCellWidget(row, 1, combo_box_item)
+            
         
         # Interdire l'édition de ces cellules
         item1 = self.dlg.tableWidget3.item(row, 0)
@@ -1744,17 +1825,15 @@ class WAXI_QF:
         item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
         
         self.dlg.tableWidget3.repaint()
+  
+    
 
-     
-
-    # Modification de la ligne si la lithologie est classée comme Unknown
+    # Modification de la ligne 
     def button_edit3(self, row):
         
-        # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(chemin_projet_WAXI_debut), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        # Récuperation de l'emplacement du fichier columns type structure   
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
@@ -1762,7 +1841,7 @@ class WAXI_QF:
         # CAS 1 : Si la ligne est déjà supprimée
         if self.dlg.tableWidget3.item(row, 0).text() == "-" and self.dlg.tableWidget3.item(row, 1).text() == "-":
             return
-           
+    
         
         # CAS 2 : Si le bouton est cliqué pour la 1er fois 
         if not self.row_edit_status[row]:
@@ -1773,49 +1852,65 @@ class WAXI_QF:
             current_text = self.dlg.tableWidget3.item(row, 1).text()
               
             combo_box = QComboBox()
-            combo_box.addItems( list_structure_reference)
+            combo_box.addItems(list_structure_reference)
             self.dlg.tableWidget3.setCellWidget(row, 1, combo_box)
             combo_box.setCurrentText(current_text)
             
           
             item = self.dlg.tableWidget3.item(row, 1)
             item.setFlags(item.flags() | Qt.ItemIsEditable)
-            item.setBackground(QColor("lightgray"))
             self.row_edit_status[row] = True
             
-        
-        
-      
-    
+       
         # CAS 3 : Si le bouton est cliqué pour la 2e fois  
         else:
             combo_box = self.dlg.tableWidget3.cellWidget(row, 1)
-            selected_text = combo_box.currentText()
-            self.dlg.tableWidget3.removeCellWidget(row, 1)
-            self.dlg.tableWidget3.item(row, 1).setText(selected_text)
             item = self.dlg.tableWidget3.item(row, 1)
+            
+            # ComboBox
+            if isinstance(combo_box, QComboBox):
+                selected_text = combo_box.currentText()
+                self.dlg.tableWidget3.removeCellWidget(row, 1)
+            
+            # Text
+            else:
+                selected_text = item.text()    
+            
+            item.setText(selected_text)
+            
+            table_state = self.getTableState2()
+            cell_state = table_state[row][1]
+            original_color = QColor(cell_state['color'])
+            item.setBackground(original_color)
+            
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            item.setBackground(QColor("white"))
             self.row_edit_status[row] = False
-                
+         
         self.dlg.tableWidget3.repaint()
-    
+     
+
     
     # Retour en arrière 
     def Go_Back_table3(self):
         
         if self.table3States:
-            # Récupération de l'état précédent du tableau
             previousState = self.table3States.pop()
-            for i, cell in enumerate(previousState):
-                row, col = divmod(i, 2)
-                item = self.dlg.tableWidget3.item(row, col)
-                item.setText(cell['text'])
+            for row, row_state in enumerate(previousState):
+                for col, cell in enumerate(row_state):
+                    # texte de la cellule 
+                    cell_text = cell['text']
+                    item = self.dlg.tableWidget3.item(row, col)
+                    item.setText(cell_text)
+                    
+                    # couleur de la cellule 
+                    cell_color = cell['color']
+                    if cell_color:
+                        item.setBackground(QColor(cell_color))
                      
         else:
             self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
 
-  
+
 
     ## Récupération du contenu du QTableWidget 2 : LITHOLOGIES NAMES CHECK  ## 
     
@@ -1839,7 +1934,7 @@ class WAXI_QF:
         
         return list_structure_unique_check_OK
   
-  
+ 
   
   
     ###############################################################################
@@ -1861,22 +1956,20 @@ class WAXI_QF:
                                 'Veins_PT','Dikes-Sills_PT','Planar structures_LN','Fractured zones_PG','Brecciated zones_PG',
                                 'Cataclastic zones_PG']
         
-        for worksheet in worksheets_structure:
+        for k in range (len(worksheets_structure)):
             
             # Récupération de la couche de référence dans QGI
-            layer = project.mapLayersByName(worksheet)[0]
+            layer = project.mapLayersByName(worksheets_structure[k])[0]
     
             # Récupération des noms des champs de la table attributaire de cette couche 
             header = [str(field.name()) for field in layer.fields()]
         
             # Création du worksheet 
-            name_worksheet2 = worksheet +'_'+ name_layer_to_import
+            name_worksheet2 = worksheets_structure[k] +'_'+ name_layer_to_import
             structure_output = fichier_output_structures.create_sheet(name_worksheet2.split('.')[0]) 
             structure_output.append(header)
             
-
-
-
+ 
         ### 2. Rangement des colonnes dans les différents worksheet 
         
         # On parcourt la colonne contenant les anciennes structures dans le fichier_output
@@ -1937,7 +2030,18 @@ class WAXI_QF:
     
         from openpyxl import Workbook, load_workbook
         
-        workbooks = [file_lithology, file_structure]
+        if file_lithology and file_structure : 
+            workbooks = [file_lithology, file_structure]
+        
+        elif file_lithology :
+            workbooks = [file_lithology]
+        
+        elif file_structure : 
+            workbooks = [file_structure]
+        
+        else : 
+            workbooks = []
+        
         
         for workbook in workbooks : 
             
@@ -2013,7 +2117,7 @@ class WAXI_QF:
             
             else:
                 # Sinon message d'erreur si la couche sélectionnée ne peut pas être importée
-                self.iface.messageBar().pushMessage("Erreur", "Impossible de charger la couche sélectionnée !", level=Qgis.Critical)
+                self.iface.messageBar().pushMessage("Erreur", "Unable to load selected layer !", level=Qgis.Critical)
 
             # Step 1 : Check layer coordinates + Create the Geometry column
             self.convert_coordinates_WGS84(couche)
@@ -2036,42 +2140,36 @@ class WAXI_QF:
         # Step 3 : Récupération des données du QTableWidget1
         list_columns_check = self.recup_contenu_1()
             
-        # Test si la colonne 'Geometry' est bien présente # 
-        list_new_columns_check = []
-        for k in range (len(list_columns_check)):
-            list_new_columns_check.append(list_columns_check[k][1])
         
         # Step 4 : création du Dataframe avec les colonnes triées et vérifiées
         fichier_output, list_columns_check3 = self.DataFrame_columns_check (fichier_input, list_columns_check,  name_layer_to_import)
          
-        list_litho_unknow = []
-        if 'Litho' in list_new_columns_check  :
-            # Step 5 LITHO : Fill Table2 with Lithologies pairs 
-            list_litho_unknow = self.fill_Table2(fichier_output)
         
-        if 'Structure_type' in list_new_columns_check  :
+        if 'Litho' in list_columns_check3  :
+            # Step 5 LITHO : Fill Table2 with Lithologies pairs 
+            self.fill_Table2(fichier_output)
+        
+        if 'Structure_type' in list_columns_check3  :
             # Step 6 STRUCTURE : Fill Table3 with Structure pairs
             self.fill_Table3(fichier_output)
             
     
-        self.iface.messageBar().pushMessage("Column check ","OK", level=Qgis.Success, duration=45)
+        self.iface.messageBar().pushMessage("Names of columns checked ","OK", level=Qgis.Success, duration=45)
     
-        return fichier_output, list_columns_check3, list_litho_unknow, list_new_columns_check
-        
+        return fichier_output, list_columns_check3
     
             
      
         
      
-    def method_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3, list_litho_unknow):
+    def method_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3):
         
         # Step 7 : Récupération des données du QTableWidget2
         list_lithologies_unique_check_OK = self.recup_contenu_2()
         
         # Step 8 : Rangement des lithologies dans différentes feuilles d'un fichier Excel
-        fichier_output_lithology = self.lithologies_sorting(fichier_output, list_columns_check3, list_lithologies_unique_check_OK, list_litho_unknow, name_layer_to_import)
-     
-        self.iface.messageBar().pushMessage("Lithologies check ","OK", level=Qgis.Success, duration=45)
+        fichier_output_lithology = self.lithologies_sorting(fichier_output, list_columns_check3, list_lithologies_unique_check_OK, name_layer_to_import)
+        self.iface.messageBar().pushMessage("Names of lithologies checked ","OK", level=Qgis.Success, duration=45)
         
         return fichier_output_lithology
 
@@ -2085,8 +2183,7 @@ class WAXI_QF:
        
         # Step 10 : rangement des structures
         fichier_output_structures = self.structure_sorting(name_layer_to_import, fichier_output, list_columns_check3, list_structure_unique_check_OK)
-        
-        self.iface.messageBar().pushMessage("Structures check ","OK", level=Qgis.Success, duration=45)
+        self.iface.messageBar().pushMessage("Names of structures checked ","OK", level=Qgis.Success, duration=45)
         
         return fichier_output_structures
          
@@ -2099,17 +2196,6 @@ class WAXI_QF:
         self.import_Excel_create_QGISfile (fichier_output_lithology, fichier_output_structures)
         self.iface.messageBar().pushMessage("Data imported in the QGIS project ","OK", level=Qgis.Success, duration=45)
 
-    
-    
-    def method_resetWindowState2(self):
-        
-        # Aspect de l'interface : ré-initialisation de tous les Widgets de la page 
-        self.dlg.lineEdit_13.clear()
-        self.dlg.tableWidget1.setRowCount(0)
-        self.dlg.tableWidget2.setRowCount(0)
-        self.dlg.tableWidget3.setRowCount(0)
-        
-    
     
     
     
@@ -2127,8 +2213,6 @@ class WAXI_QF:
         
         # Connecte correctement le bouton Columns check OK
         self.dlg.pushButton_9.clicked.connect(lambda: self.click_columns_check_OK(fichier_input, name_layer_to_import))
-        self.iface.messageBar().pushMessage("BOUTON 1 CLIQUE ","OK", level=Qgis.Success, duration=45)
-    
     
     
     def click_columns_check_OK (self, fichier_input, name_layer_to_import): 
@@ -2136,48 +2220,46 @@ class WAXI_QF:
         # Récupère les paramètres 
         fichier_output = DataFrame()
         list_columns_check3 = []
-        list_litho_unknow = []
         
-        fichier_output, list_columns_check3, list_litho_unknow, list_new_columns_check = self.method_columns_check_OK(fichier_input, name_layer_to_import)
+        fichier_output, list_columns_check3 = self.method_columns_check_OK(fichier_input, name_layer_to_import)
         
         # Connecte correctement le bouton Lithologies check OK 
-        if 'Litho' in list_new_columns_check  :
-            self.dlg.pushButton_10.clicked.connect(lambda: self.click_lithologies_check_OK(fichier_input, name_layer_to_import, fichier_output,  list_columns_check3, list_litho_unknow, list_new_columns_check)) 
-            self.iface.messageBar().pushMessage("BOUTON 2 CLIQUE ","OK", level=Qgis.Success, duration=45)
+        if 'Litho' in list_columns_check3  :
+            self.dlg.pushButton_10.clicked.connect(lambda: self.click_lithologies_check_OK(fichier_input, name_layer_to_import, fichier_output,  list_columns_check3)) 
         
-        else : 
-            self.iface.messageBar().pushMessage("No Lithology column detected !", level=Qgis.Warning, duration=45)
+        else :
+            if 'Structure_type' in list_columns_check3  :
+                self.dlg.pushButton_26.clicked.connect(lambda: self.click_structure_check_OK(fichier_input,name_layer_to_import, fichier_output, list_columns_check3, fichier_output_lithology=None))
+            
+            else : 
+                self.iface.messageBar().pushMessage("No Lithology and Structure_type columns detected !", level=Qgis.Warning, duration=45)
             
     
     
-    def click_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output,  list_columns_check3, list_litho_unknow, list_new_columns_check): 
+    def click_lithologies_check_OK (self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3): 
         
         # Récupère les paramètres 
         from openpyxl import Workbook
         fichier_output_lithology = Workbook()
         
-        fichier_output_lithology = self.method_lithologies_check_OK(fichier_input, name_layer_to_import,fichier_output, list_columns_check3, list_litho_unknow)
+        fichier_output_lithology = self.method_lithologies_check_OK(fichier_input, name_layer_to_import,fichier_output, list_columns_check3)
         
         # Connecte correctement le bouton Structure check OK
-        if 'Structure_type' in list_new_columns_check  :
-            self.dlg.pushButton_26.clicked.connect(lambda: self.click_structure_check_OK(fichier_input, fichier_output_lithology,name_layer_to_import, fichier_output, list_columns_check3)) 
-            self.iface.messageBar().pushMessage("BOUTON 3 CLIQUE ","OK", level=Qgis.Success, duration=45)
-        
+        if 'Structure_type' in list_columns_check3  :
+            self.dlg.pushButton_26.clicked.connect(lambda: self.click_structure_check_OK(fichier_input,name_layer_to_import, fichier_output, list_columns_check3, fichier_output_lithology))
         else : 
-            self.iface.messageBar().pushMessage("No Structure_type column detected !", level=Qgis.Warning, duration=45)
+            # Connecte correctement le bouton Generate_Output_QGIS_layer 
+            self.dlg.pushButton_14.clicked.connect(lambda: self.click_Generate_Output_QGIS_layer(fichier_input, name_layer_to_import, fichier_output_lithology, fichier_output_structures=None))
         
         
         
-    def click_structure_check_OK (self,fichier_input, fichier_output_lithology, name_layer_to_import, fichier_output, list_columns_check3)  : 
+    def click_structure_check_OK (self,fichier_input, name_layer_to_import, fichier_output, list_columns_check3, fichier_output_lithology)  : 
         
         fichier_output_structures  = self.method_structures_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
         
         
         # Connecte correctement le bouton Generate_Output_QGIS_layer 
         self.dlg.pushButton_14.clicked.connect(lambda: self.click_Generate_Output_QGIS_layer(fichier_input, name_layer_to_import, fichier_output_lithology, fichier_output_structures))
-        self.iface.messageBar().pushMessage("BOUTON 4 CLIQUE ","OK", level=Qgis.Success, duration=45)
-    
-    
     
     def click_Generate_Output_QGIS_layer (self, fichier_input, name_layer_to_import, fichier_output_lithology, fichier_output_structures):
         self.method_import_data_as_layers(fichier_output_lithology, fichier_output_structures)
@@ -2185,7 +2267,7 @@ class WAXI_QF:
         
        
     def click_Reset_This_Window (self):
-        self.method_resetWindowState2()
+        self.resetWindow_import_data()
     
         
   
@@ -2290,12 +2372,6 @@ class WAXI_QF:
     def mynormpath(self,path):
         return(os.path.normpath(path).replace("\\","/"))
     
-      
-    ### Réinitialiser la fenêtre 
-    
-    def resetWindowState3(self):
-        self.dlg.lineEdit_7.clear()
-    
     
     
     
@@ -2306,7 +2382,7 @@ class WAXI_QF:
     ### Virtual Stops ###     
     
     def virtualStops(self):
-        distance = self.dlg.lineEdit_11.text()
+        distance = self.dlg.lineEdit_53.text()
         from .dbscan import Basic_DBSCAN
         from datetime import datetime
         
@@ -2469,11 +2545,6 @@ class WAXI_QF:
         layer.loadNamedStyle(head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml")
         layer.triggerRepaint()
         
-    
-    ### Réinitialiser la fenêtre 
-    
-    def resetWindowState4(self):
-        self.dlg.lineEdit_11.clear()
 
 
 
@@ -2483,20 +2554,15 @@ class WAXI_QF:
 
 
     def set_stereoConfig(self):
+    
+        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         
-        chemin_projet_WAXI = QgsProject.instance().fileName()
-        index_coupure = chemin_projet_WAXI.find("PROJECT_v2.3/")
-        chemin_projet_WAXI_debut = chemin_projet_WAXI[:index_coupure + len("PROJECT_v2.3/")]
-        print(chemin_projet_WAXI_debut)
-        stereoConfigPath = os.path.join(chemin_projet_WAXI_debut,"0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json")
+        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json")
         stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
         
         if(os.path.exists(stereoConfigPath)):
             with open(stereoConfigPath,"r") as json_file:
                 stereoConfig=json.load(json_file)
-        
-        #if(os.path.exists(stereoConfigPath)):
-            #os.remove(stereoConfigPath)
             
         stereoConfig={'showGtCircles':self.dlg.gtCircles_checkBox.isChecked(),
                       'showContours':self.dlg.contours_checkBox.isChecked(),
@@ -2516,7 +2582,7 @@ class WAXI_QF:
     def addCsvItem(self):
     # adds a single vaue/description pair to any csv file in the WAXI QFIELD template
     
-        if(self.dlg.lineEdit.text() and self.dlg.lineEdit_2.text()):
+        if(self.dlg.lineEdit_38.text() and self.dlg.lineEdit_27.text()):
 
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
             csvs=read_csv(csv_list,names=['name'])
@@ -2524,8 +2590,8 @@ class WAXI_QF:
             for name in csvs.name:
                 csv_file_list.append(name)
     
-            value = self.dlg.lineEdit.text()
-            description = self.dlg.lineEdit_2.text()
+            value = self.dlg.lineEdit_38.text()
+            description = self.dlg.lineEdit_27.text()
             layer_name=csv_file_list[self.dlg.comboBox.currentIndex()]
             project = QgsProject.instance()
     
@@ -2577,17 +2643,9 @@ class WAXI_QF:
             else:
                 self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
-    
-    ### Réinitialiser la fenêtre 
-    
-    def resetWindowState5(self):
-        self.dlg.lineEdit.clear()
-        self.dlg.lineEdit_2.clear()
-        
+ 
 
-    
-    
-    
+   
     ###############################################################################
     ###    Step BONUS : Merge the created files with the category in QGIS       ###
     ###############################################################################
@@ -2624,10 +2682,38 @@ class WAXI_QF:
         # Supprimer la première couche
         QgsProject.instance().removeMapLayer(couche1.id())
     
-   
     
-   
     
+    
+   ###############################################################################
+   ###                   Ré_initialisation des fenêtres                        ###
+   ###############################################################################
+    
+    def resetWindow_import_data(self):
+        
+        # Aspect de l'interface : ré-initialisation de tous les Widgets de la page 
+        self.dlg.lineEdit_13.clear()
+        self.dlg.tableWidget1.setRowCount(0)
+        self.dlg.tableWidget2.setRowCount(0)
+        self.dlg.tableWidget3.setRowCount(0)
+       
+     
+    def resetWindow_fieldwork_preparation(self):
+        self.dlg.lineEdit_8.clear()
+        self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_38.clear()
+        self.dlg.lineEdit_27.clear()
+        self.dlg.lineEdit_9.clear()
+        self.dlg.lineEdit_10.clear()
+        
+        
+        
+    def resetWindow_data_management (self) :
+        self.dlg.lineEdit_11.clear()
+        self.dlg.lineEdit_26.clear()
+        self.dlg.lineEdit_37.clear()
+        self.dlg.lineEdit_7.clear()
+        self.dlg.lineEdit_53.clear()
    
     
    
@@ -2717,13 +2803,13 @@ class WAXI_QF:
         Auto_on = 'Turn on autoincrementing of Stop Number behaviour when a new Stop is added'
         Auto_off = 'Turn off autoincrementing of Stop Number behaviour when a new Stop is added'
 
-        Clip_tooltip='Select the checkbox below and provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project'
-        Add_item_tooltip='Select the checkbox below, chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD'
-        Export_tooltip='Select the checkbox below and provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)'
-        Update_tooltip='Select the checkbox below and provide new Name and Region info for project'
-        Merge_tooltip='Select the checkbox below and provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
+        Clip_tooltip='Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project'
+        Add_item_tooltip='Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD'
+        Export_tooltip='Provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)'
+        Update_tooltip='Provide new Name and Region info for project'
+        Merge_tooltip='Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed.'
         Virtualstop_tooltip = 'Combine all point layers to get virtual Stop IDS'
-        Autoincrement_tooltip= 'Select the checkbox below and toggle autoincrementing of Stop Number behaviour when a new Stop is added'
+        Autoincrement_tooltip= 'Toggle autoincrementing of Stop Number behaviour when a new Stop is added'
 
         gtCircles_tooltip= 'Select Checkbox to switch to Great Circle Display for Stereonet Plugin'
         contours_tooltip= 'Select Checkbox to add Contour Display for Stereonet Plugin'
@@ -2734,13 +2820,11 @@ class WAXI_QF:
 
         # Titres
         self.dlg.lineEdit_34.setToolTip(Clip_tooltip)
-        self.dlg.lineEdit_39.setToolTip(Add_item_tooltip)
+        self.dlg.lineEdit_99.setToolTip(Add_item_tooltip)
         self.dlg.lineEdit_35.setToolTip(Export_tooltip)
         self.dlg.lineEdit_32.setToolTip(Update_tooltip)
-        self.dlg.lineEdit_33.setToolTip(Merge_tooltip)
-        self.dlg.lineEdit_36.setToolTip(Virtualstop_tooltip)
-        self.dlg.lineEdit_37.setToolTip(Autoincrement_tooltip)
-        self.dlg.lineEdit_38.setToolTip(gtCircles_tooltip)
+        self.dlg.lineEdit_52.setToolTip(Virtualstop_tooltip)
+        self.dlg.lineEdit_51.setToolTip(Autoincrement_tooltip)
         
         
         # Project Parameters 
@@ -2751,7 +2835,13 @@ class WAXI_QF:
         self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
 
         
+        # CSV 
+        self.dlg.csv_pushButton.setToolTip ("Add new item to CSV file")
         
+        
+        # Stop 
+        self.dlg.autoinc_pushButton.setToolTip("Toggle Auto-Increment of Stop numbers")
+        self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
         
         # Import Data 
         self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
@@ -2765,29 +2855,39 @@ class WAXI_QF:
         self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
         
         self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
-        self.dlg.pushButton_13.setToolTip("Reset this window")
         
+        self.dlg.pushButton_13.setToolTip("Reset this window")
         self.dlg.pushButton_19.setToolTip("Reset this window")
         self.dlg.pushButton_22.setToolTip("Reset this window")
-        self.dlg.pushButton_20.setToolTip("Reset this window")
-        self.dlg.pushButton_21.setToolTip("Reset this window")
+        
+     
+        # Export Data 
+        self.dlg.export_pushButton.setToolTip("Export layers")
+        
+        # Stereo 
+        self.dlg.stereonet_pushButton.setToolTip("Update setting of stereonet display")
+        
         
         # Help 
-        
         self.dlg.pushButton_15.setToolTip("Click here to access to WAXI website")
         self.dlg.pushButton_17.setToolTip("Click here to access to AMIRA website")
         self.dlg.pushButton_16.setToolTip("Click here to access to CET website")
         self.dlg.pushButton_18.setToolTip("Click here to access to the WAXI Zenodo page")
+        
+        self.dlg.pushButton_23.setToolTip("Click here to access to the WAXI publications")
+        self.dlg.pushButton_24.setToolTip("Click here to access to the WAXI theses")
+        
         self.dlg.pushButton_28.setToolTip("Click here to see the WAXI Facebook Page")
       
         
+      
         # RadioButtons
         self.dlg.radioButtonOn.setToolTip(Auto_on)
         self.dlg.radioButtonOff.setToolTip(Auto_off)
 
         # LineEdit
-        self.dlg.lineEdit.setToolTip(Value_tooltip)
-        self.dlg.lineEdit_2.setToolTip(Description_tooltip)
+        self.dlg.lineEdit_38.setToolTip(Value_tooltip)
+        self.dlg.lineEdit_27.setToolTip(Description_tooltip)
 
         self.dlg.lineEdit_8.setToolTip(Clip_Polygon_tooltip)
         self.dlg.pushButton_6.setToolTip(Clip_Polygon_tooltip)
@@ -2798,16 +2898,16 @@ class WAXI_QF:
         self.dlg.lineEdit_7.setToolTip(Export_path_tooltip)
         self.dlg.pushButton_5.setToolTip(Export_path_tooltip)
 
-        self.dlg.lineEdit_4.setToolTip(Merge_main_tooltip)
-        self.dlg.pushButton_2.setToolTip(Merge_main_tooltip)
+        self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
+        self.dlg.pushButton_29.setToolTip(Merge_main_tooltip)
 
-        self.dlg.lineEdit_5.setToolTip(Merge_sub_tooltip)
-        self.dlg.pushButton_3.setToolTip(Merge_sub_tooltip)
+        self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
+        self.dlg.pushButton_20.setToolTip(Merge_sub_tooltip)
 
-        self.dlg.lineEdit_6.setToolTip(Merge_output_tooltip)
-        self.dlg.pushButton_4.setToolTip(Merge_output_tooltip)
+        self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
+        self.dlg.pushButton_27.setToolTip(Merge_output_tooltip)
 
-        self.dlg.lineEdit_11.setToolTip(Epsilon_tooltip)
+        self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
 
 
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
@@ -2884,16 +2984,11 @@ class WAXI_QF:
                 self.dlg.lineEdit_25.setReadOnly(True)
                 self.dlg.lineEdit_35.setReadOnly(True)
                 
-                self.dlg.lineEdit_26.setReadOnly(True)
                 self.dlg.lineEdit_36.setReadOnly(True)
-                self.dlg.lineEdit_37.setReadOnly(True)
+                self.dlg.lineEdit_51.setReadOnly(True)
                 
-                self.dlg.lineEdit_27.setReadOnly(True)
-                self.dlg.lineEdit_38.setReadOnly(True)
-                
-                self.dlg.lineEdit_29.setReadOnly(True)
-                self.dlg.lineEdit_39.setReadOnly(True)
-                
+            
+                self.dlg.lineEdit_99.setReadOnly(True)
                 self.dlg.lineEdit_16.setReadOnly(True)
                 self.dlg.lineEdit_17.setReadOnly(True)
                 self.dlg.plainTextEdit_4.setReadOnly(True)
@@ -2916,18 +3011,10 @@ class WAXI_QF:
                 self.dlg.plainTextEdit_20.setReadOnly(True)
                 self.dlg.plainTextEdit_21.setReadOnly(True)
                 
-                stereoConfigPath = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json"
-
-                stereoConfig={'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
-                if(os.path.exists(stereoConfigPath)):
-                    with open(stereoConfigPath,"r") as json_file:
-                        stereoConfig=json.load(json_file)
+                self.dlg.lineEdit_49.setReadOnly(True)
+                self.dlg.lineEdit_100.setReadOnly(True)
+                self.dlg.lineEdit_52.setReadOnly(True)
                 
-                self.dlg.gtCircles_checkBox.setChecked(stereoConfig['showGtCircles'])
-                self.dlg.contours_checkBox.setChecked(stereoConfig['showContours'])
-                self.dlg.kinematics_checkBox.setChecked(stereoConfig['showKinematics'])
-                self.dlg.linPlanes_checkBox.setChecked(stereoConfig['linPlanes'])
-                self.dlg.rose_checkBox.setChecked(stereoConfig['roseDiagram'])
                 
                 
             
@@ -2942,7 +3029,7 @@ class WAXI_QF:
                 self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
                 self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
                 self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
-                self.dlg.pushButton_19.clicked.connect(self.resetWindowState1)
+                self.dlg.pushButton_19.clicked.connect(self.resetWindow_fieldwork_preparation)
                
                 # Partie Import_data (le premier bouton connecte tous les autres boutons avec les bons paramètres en entrée au fur et à mesure de l'éxécution du programme)
               
@@ -2955,13 +3042,12 @@ class WAXI_QF:
                 
                 # Partie Export_data
                 self.dlg.export_pushButton.clicked.connect(self.exportData)
-                self.dlg.pushButton_22.clicked.connect(self.resetWindowState3)
+                self.dlg.pushButton_22.clicked.connect(self.resetWindow_data_management)
                 
                 
                 # Partie Stop 
                 self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
                 self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
-                self.dlg.pushButton_20.clicked.connect(self.resetWindowState4)
     
     
                 # Partie Stereo             
@@ -2969,12 +3055,10 @@ class WAXI_QF:
                 
                 
                 # Partie CSV
-                self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
-                self.dlg.pushButton_21.clicked.connect(self.resetWindowState5)
+                self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)       
             
             
-            
-            
+        
             
                 # Partie HELP 
                 
@@ -3003,12 +3087,13 @@ class WAXI_QF:
                     
             
                 # PushButton qui permettent de chercher des fichiers dans l'ordi
-                self.dlg.pushButton.clicked.connect(self.select_dst_directory)
-                self.dlg.pushButton_2.clicked.connect(self.select_main_directory)
-                self.dlg.pushButton_3.clicked.connect(self.select_sub_directory)
-                self.dlg.pushButton_4.clicked.connect(self.select_merged_directory)
-                self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
+            
                 self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
+                self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
+                self.dlg.pushButton.clicked.connect(self.select_dst_directory)
+                self.dlg.pushButton_29.clicked.connect(self.select_main_directory)
+                self.dlg.pushButton_20.clicked.connect(self.select_sub_directory)
+                self.dlg.pushButton_27.clicked.connect(self.select_merged_directory)
                 self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
             
             
