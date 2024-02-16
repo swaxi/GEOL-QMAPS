@@ -2712,7 +2712,7 @@ class WAXI_QF:
     
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         
-        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json")
+        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/stereonet.json")
         stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
         
         if(os.path.exists(stereoConfigPath)):
