@@ -26,14 +26,17 @@
 
 from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, pyqtSignal, QUrl
-from qgis.PyQt.QtGui import QIcon, QColor,QBrush, QDesktopServices
+from qgis.PyQt.QtGui import QIcon, QColor,QBrush, QDesktopServices, QFont, QStandardItemModel, QStandardItem
 from qgis.PyQt import QtWidgets 
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox, QGroupBox
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox, QGroupBox, QStyledItemDelegate, QListView
 from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint, QgsRectangle, QgsGeometry, QgsField, QgsFeature, QgsExpression, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsApplication
 from qgis.PyQt.QtCore import QVariant, QUrl
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
 
+import fiona
+import geopandas as gpd
+from osgeo import ogr
 import os
 import subprocess
 import sys
@@ -156,9 +159,22 @@ class WAXI_QF:
 
         except:
             self.install_library("fuzzywuzzy")
-
         
-        
+        # Bibliothèque Geopandas
+        try :    
+            import geopandas 
+            
+        except :
+            self.install_library("geopandas")
+            
+        # Bibliothèque Fiona
+        try : 
+            import fiona 
+            
+        except :
+            self.install_library("fiona")
+            
+     
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -645,7 +661,7 @@ class WAXI_QF:
 
         # File 2: WAXI project columns (Récuperation de l'emplacement du fichier Excel dans le dossier du projet WAXI QGIS) 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_reference_WAXI4.xlsx")
         
         column_reference = read_excel(emplacement_files_WAXI_columns)
      
@@ -663,61 +679,63 @@ class WAXI_QF:
         # Create an empty list of column name pairs (input,reference) :
         list_couples_column=[]
         list_score=[]
-        for k in range (len(list_column_input)):
-            list_couples_column.append([list_column_input[k],'no value'])
         
+        list_trio_columns=[]
+        for k in range (0,len(list_column_input)):
+            list_trio_columns.append([list_column_input[k],'NULL',0])
+        
+    
         # Pair creation based on similarity score 
-        for elt1 in range (len(list_column_input)):
+        for k in range (0,len(list_column_input)):
             
             # Initialize similarity score and new name 
             best_column = 'NULL'
             score = 0
+            
+            if list_column_input[k] == 'NULL' or list_column_input[k] == ' ':
+                
+                list_trio_columns[k][1] = 'NULL'
+                list_trio_columns[k][2] = 0
             
             for column in list_column_reference:
                 
                 sum_score=0
                 
                 # 1st part of score: comparison with column name        
-                sum_score += fuzz.token_set_ratio(list_column_input[elt1],column)*3
+                sum_score += fuzz.token_set_ratio(list_column_input[k],column)*3
                 
                 # 2nd part of the score: comparison with keywords associated with the column name       
                 contenu_column=column_reference[column]
                 for elt2 in contenu_column : 
-                    sum_score += fuzz.token_set_ratio(list_column_input[elt1],elt2)
+                    sum_score += fuzz.token_set_ratio(list_column_input[k],elt2)
          
                 # Si les 2 noms de colonnes ne commencent pas par la même lettre : malus de -100 sur le score 
                 #if list_column_input[elt1][0] != column[0]:
                     #sum_score = sum_score-100
          
-                if sum_score>score and sum_score>570 :
+                if sum_score>score :
                     score=sum_score
                     best_column=column
                 
-            # Si correspondance de colonne trouvée
-            if best_column != 'NULL':         
-                # Add new column name to pair      
-                list_couples_column[elt1][1] = best_column
-                
-            # Si PAS de correspondance trouvée
-            else :
-                list_couples_column[elt1][1] = 'NULL'
+            # Ajout du nom qui a le + matché
+            list_trio_columns[k][1] = best_column
             
-            # Add final score to list_score 
-            list_score.append(score)
-            
+            # Ajout du score de match 
+            list_trio_columns[k][2] = score
         
-        ## Modification 1 : columns assigned to the same output column : 
-            
-        length2 = len(list_couples_column)
-        list_couples_column_trie2=list_couples_column
         
-        # We go through all the elements of list_couples_column :  
-        for place1 in range (length2-1):
+        
+        ## Modification - Columns assigned to the same output column : 
             
-            test = list_couples_column[place1][1]
+        list_trio_columns_trie = list_trio_columns
+        
+        # We go through all the elements of list_trio_unique0 :  
+        for place1 in range (len(list_trio_columns)-1):
+            
+            test = list_trio_columns[place1][1]
             
             # We compare the chosen element with all the other elements in the list to see if it is duplicated: 
-            for place2 in range (length2-1):
+            for place2 in range (len(list_trio_columns)-1):
                 
                 # We check that we're not taking the same element  :
                 if place1 != place2:
@@ -726,23 +744,23 @@ class WAXI_QF:
                     if test != 'NULL':
         
                         # If the chosen element has the same name as another element, we compare their similarity scores: 
-                        if test == list_couples_column[place2][1]:
-                            if list_score[place1]>list_score[place2] :
-                               list_couples_column_trie2[place2][1] = 'NULL'
+                        if test == list_trio_columns[place2][1]:
+                            if list_trio_columns[place1][2] > list_trio_columns[place2][2]:
+                               list_trio_columns_trie[place2][1] = 'NULL'
+                               list_trio_columns_trie[place2][2]=0
                             else : 
-                               list_couples_column_trie2[place1][1] = 'NULL'
+                               list_trio_columns_trie[place1][1] = 'NULL'
+                               list_trio_columns_trie[place1][2]=0
  
         
  
     
         
-        ###    Remplissage 1 : COLUMNS NAME ## input = list_couples_column_trie2     ### 
+        ###    Remplissage 1 : COLUMNS NAME ## input = list_trio_columns_trie     ### 
 
-        # Nombre de colonnes 2 (old + new)
-        col_count1 = 2
-          
+
         # Réglage du nombre de colonnes dans le QTableWidget
-        self.dlg.tableWidget1.setColumnCount(col_count1 + 1)
+        self.dlg.tableWidget1.setColumnCount(3)
         
         # En-têtes de colonnes dans le QTableWidget
         column_names1 = ["OLD Name*", 'NEW Name**', 'Check']
@@ -750,33 +768,70 @@ class WAXI_QF:
           
         # Remplissage du QTableWidget avec les couples de la list_couples_column_trie2
         
-        # Initialisation du nombre de ligne du QTableWidget à 1
-        current_row_count = 1
-
-        for k, (old, new) in enumerate(list_couples_column_trie2): 
+        
+        # Re-organisation de la liste par score décroissant 
+        current_row_count=1
+       
+        for k, (old, new, score) in enumerate(list_trio_columns_trie): 
                       
             # Ajout d'une nouvelle ligne
             if old != 'Geometry' :
                 
+                # Ajout d'une nouvelle ligne
                 self.dlg.tableWidget1.setRowCount(current_row_count)
                 
                 # Remplissage des 2 colonnes
                 self.dlg.tableWidget1.setItem(k, 0, QTableWidgetItem(str(old)))
                 self.dlg.tableWidget1.setItem(k, 1, QTableWidgetItem(str(new)))
                 
+                
+                ### Création d'une échelle de couleur selon le score : rouge pour les scores les plus bas et le vert pour les scores les plus élevés
+                
+                # Score entre 0 et 100 normalisé (score total de 800 pour la comparaison des colonnes)
+                score_normalized = (score/8)/100
+            
+            
+                # Interpolation linéaire entre le rouge et le vert
+                teinte = int(score_normalized * 120)
+                saturation = 140
+                value = 250
+            
+                # Calcul de la couleur en utilisant l'espace de couleur HSV
+                color = QColor.fromHsv(teinte, saturation, value)
+                
+                for column in range(2):
+                   item = self.dlg.tableWidget1.item(k, column)
+                   if item:
+                       item.setBackground(color)
+                
+                # Légende pour l'échelle de couleurs 
+                score_ranges = [0, 20, 40, 60, 80, 100]
+                legend_colors = [QColor.fromHsv(12, 140, 250), QColor.fromHsv(36, 140, 250), QColor.fromHsv(60, 140, 250), QColor.fromHsv(84, 140, 250), QColor.fromHsv(108, 140, 250)]
+                
+                # Créez un widget pour la légende
+                legendbox_layout = QVBoxLayout(self.dlg.legendbox_3)
+
+                # Ajoutez des étiquettes avec les couleurs et les gammes de score
+                for i in range(len(score_ranges) - 1):
+                    range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
+                    color_label = QLabel()
+                    color_label.setStyleSheet(f"background-color: {legend_colors[i].name()}; border: 2px solid black;")
+                    legendbox_layout.addWidget(color_label)
+                    legendbox_layout.addWidget(QLabel(range_label))
+                
                 # Interdire l'édition des 2 premières colonnes
                 item1 = self.dlg.tableWidget1.item(k, 0)
                 item2 = self.dlg.tableWidget1.item(k, 1)
                 item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
                 item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
-      
+                  
+
         
                 # Ajout d'une colonne avec 2 boutons "Supprimer","Modifier" pour chaque ligne
-                
-                # Création un widget contenant les 2 boutons
+        
+                # Création un widget contenant les 2 boutons         
                 button_widget = QWidget(self.dlg)
                 
-                # Ajout d'un bouton "Modifier"
                 btn_modifier = QPushButton("Edit", button_widget)
                 btn_modifier.clicked.connect(lambda state, row=k: self.button_edit1(row))
                 btn_modifier.setMinimumHeight(15)
@@ -798,18 +853,18 @@ class WAXI_QF:
                 
                 self.dlg.tableWidget1.setRowHeight(k, 28) 
             
-                self.dlg.tableWidget1.setColumnWidth(0, 158) 
-                self.dlg.tableWidget1.setColumnWidth(1, 158) 
-                self.dlg.tableWidget1.setColumnWidth(2, 158) 
-               
+                self.dlg.tableWidget1.setColumnWidth(0, 150) 
+                self.dlg.tableWidget1.setColumnWidth(1, 150) 
+                self.dlg.tableWidget1.setColumnWidth(2, 150)   
                 
-                # Changement de ligne 
-                current_row_count += 1
-            
-        # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
-        self.row_edit_status = [False] * len(list_couples_column_trie2)
-        self.table1States = []
-        self.table1States.append(self.getTableState1())
+                current_row_count+=1
+                
+                
+            # Initialisation de l'état d'édition des cellules + des actions effectuées dans le tableau 
+            self.row_edit_status = [False] * len(list_trio_columns_trie)
+            self.table1States = []
+            self.table1States.append(self.getTableState1())
+        
         
         return input_file
  
@@ -819,14 +874,33 @@ class WAXI_QF:
         
         state = []
         for row in range(self.dlg.tableWidget1.rowCount()):
+            row_state = []
             for col in range(2):
                 item = self.dlg.tableWidget1.item(row, col)
-                if item is not None:
-                    state.append({'text': item.text()})
+                
+                # Texte 
+                if isinstance(item, QTableWidgetItem):
+                    cell_text = item.text()
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                
+                # ComboBox
+                elif isinstance(item, QWidget):
+                    combo_box = self.dlg.tableWidget1.cellWidget(row, col)
+                    if isinstance(combo_box, QComboBox):
+                        cell_text = combo_box.currentText()
+                    else:
+                        cell_text = ""
+                    cell_color = item.background().color().name() if item.background().style() != Qt.NoBrush else None
+                else:
+                    cell_text = ""
+                    cell_color = None
+
+                cell_state = {'text': cell_text, 'color': cell_color}
+                row_state.append(cell_state)
+            state.append(row_state)
                 
         return state
 
-    
 
     # Suppression de la ligne  
     def button_delete1(self, row):
@@ -834,8 +908,10 @@ class WAXI_QF:
         # Sauvegarde de l'état précédent du tableau
         self.table1States.append(self.getTableState1())
         
-        self.dlg.tableWidget1.setItem(row, 0, QTableWidgetItem("-"))
-        self.dlg.tableWidget1.setItem(row, 1, QTableWidgetItem("-"))
+        for col in range(2):
+            item = self.dlg.tableWidget1.item(row, col)
+            if item is not None:
+                item.setText("-")
         
         combo_box_item = self.dlg.tableWidget1.cellWidget(row, 1)
         
@@ -851,14 +927,16 @@ class WAXI_QF:
         item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
         
         self.dlg.tableWidget1.repaint()          
-    
+     
+        
+     
     
     # Modification de la ligne si le nom de la colonne n'a pas matché
     def button_edit1(self, row):
         
         # Récuperation de l'emplacement du fichier Excel avec le nom de toute les colonnes (que l'on coupe pour avoir le bon chemin du projet QGIS)
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_reference_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_reference_WAXI4.xlsx")
         
         
         
@@ -868,7 +946,7 @@ class WAXI_QF:
         # CAS 1 : Si la ligne est déjà supprimée
         if self.dlg.tableWidget1.item(row, 0).text() == "-" and self.dlg.tableWidget1.item(row, 1).text() == "-":
             return
-           
+                
         
         # CAS 2 : Si le bouton est cliqué pour la 1er fois 
         if not self.row_edit_status[row]:
@@ -877,7 +955,8 @@ class WAXI_QF:
             self.table1States.append(self.getTableState1())
             
             current_text = self.dlg.tableWidget1.item(row, 1).text()
-              
+         
+          
             combo_box = QComboBox()
             combo_box.addItems(list_column_reference)
             self.dlg.tableWidget1.setCellWidget(row, 1, combo_box)
@@ -886,69 +965,93 @@ class WAXI_QF:
            
             item = self.dlg.tableWidget1.item(row, 1)
             item.setFlags(item.flags() | Qt.ItemIsEditable)
-            item.setBackground(QColor("lightgray"))
             self.row_edit_status[row] = True
-            
+                  
        
         # CAS 3 : Si le bouton est cliqué pour la 2e fois  
         else:
             combo_box = self.dlg.tableWidget1.cellWidget(row, 1)
-            selected_text = combo_box.currentText()
-            self.dlg.tableWidget1.removeCellWidget(row, 1)
-            self.dlg.tableWidget1.item(row, 1).setText(selected_text)
             item = self.dlg.tableWidget1.item(row, 1)
+            
+            # ComboBox
+            if isinstance(combo_box, QComboBox):
+                selected_text = combo_box.currentText()
+                self.dlg.tableWidget1.removeCellWidget(row, 1)
+            
+            # Text
+            else:
+                selected_text = item.text()    
+            
+            item.setText(selected_text)
+            
+            table_state = self.getTableState1()
+            cell_state = table_state[row][1]
+            original_color = QColor(cell_state['color'])
+            item.setBackground(original_color)
+            
             item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            item.setBackground(QColor("white"))
             self.row_edit_status[row] = False
                 
         self.dlg.tableWidget1.repaint()
     
-    
-   
+        
 
     # Retour en arrière 
     def Go_Back_table1(self):
         
         if self.table1States:
-            # Récupération de l'état précédent du tableau
             previousState = self.table1States.pop()
-            for i, cell in enumerate(previousState):
-                row, col = divmod(i, 2)
-                item = self.dlg.tableWidget1.item(row, col)
-                item.setText(cell['text'])
+            for row, row_state in enumerate(previousState):
+                for col, cell in enumerate(row_state):
+                    # texte de la cellule 
+                    cell_text = cell['text']
+                    item = self.dlg.tableWidget1.item(row, col)
+                    item.setText(cell_text)
+                    
+                    # couleur de la cellule 
+                    cell_color = cell['color']
+                    if cell_color:
+                        item.setBackground(QColor(cell_color))
                      
         else:
             self.iface.messageBar().pushMessage("No previous action !", level=Qgis.Warning, duration=45) 
 
     
 
+
     # Récupération du contenu du QTableWidget 1 : COLUMNS NAMES CHECK  ## 
     def recup_contenu_1(self): 
         
         list_columns_check_OK = []
-        
+        new_values_count = {}
+
         # Récupération du contenu des cellules du QTableWidget
         for row in range(self.dlg.tableWidget1.rowCount()):
             old = self.dlg.tableWidget1.item(row, 0).text()
             
             if old != '-': 
+                
                 # Test si une cellule contient une QComboBox
                 if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
                     new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
                 else:
                     new = self.dlg.tableWidget1.item(row, 1).text()
-        
-                if new != 'NULL' :
+    
+                if new != 'NULL':
+                    # Vérifier s'il y a déjà une occurrence de la valeur new
+                    if new in new_values_count:
+                        self.iface.messageBar().pushMessage("Erreur: La valeur '{}' est en double !".format(new), level=Qgis.Warning, duration=45) 
+                        return
+                    
+                    new_values_count[new] = 1
+                    
                     list_columns_check_OK.append([old, new])
+    
+        list_columns_check_OK.append(['Geometry', 'Geometry'])
         
-        list_columns_check_OK.append(['Geometry','Geometry'])
+        return list_columns_check_OK
         
-        return list_columns_check_OK 
-    
-    
-    
-    
-    
+
         
     ###############################################################################
     # Step 4 : Création du DataFrame trié et vérifié selon les colonnes reconnues #
@@ -1011,7 +1114,7 @@ class WAXI_QF:
 
         # Récuperation de l'emplacement du fichier 99_CSV (que l'on coupe pour avoir le bon chemin du projet QGIS)
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
         
         
         # Reference list of lithologies
@@ -1078,7 +1181,7 @@ class WAXI_QF:
                     if list_lithology_input[k][0].lower() != rock_reference[0].lower():
                         new_score  = new_score-15
                    
-                    if new_score>score :  
+                    if new_score > score :  
                         score = new_score
                         new_rock_name = rock_reference
            
@@ -1122,7 +1225,7 @@ class WAXI_QF:
         # Remplissage du QTableWidget 2 avec les couples de la list_trio_unique
         
         # Re-organisation de la liste par score décroissant 
-        list_trio_unique = sorted(list_trio_unique, key=lambda x: x[2], reverse=True)
+        list_trio_unique = sorted(list_trio_unique, key=lambda x: x[2], reverse=False)
         current_row_count=1
        
         for k, (old, new, score) in enumerate(list_trio_unique): 
@@ -1154,8 +1257,8 @@ class WAXI_QF:
                    item.setBackground(color)
             
             # Légende pour l'échelle de couleurs 
-            score_ranges = [100 , 80, 60, 40, 20, 0]
-            legend_colors = [QColor.fromHsv(108, 140, 250),QColor.fromHsv(84, 140, 250),QColor.fromHsv(60, 140, 250),QColor.fromHsv(36, 140, 250),QColor.fromHsv(12, 140, 250)]
+            score_ranges = [0, 20, 40, 60, 80, 100]
+            legend_colors = [QColor.fromHsv(12, 140, 250), QColor.fromHsv(36, 140, 250), QColor.fromHsv(60, 140, 250), QColor.fromHsv(84, 140, 250), QColor.fromHsv(108, 140, 250)]
             
             # Créez un widget pour la légende
             legendbox_layout = QVBoxLayout(self.dlg.legendbox)
@@ -1284,15 +1387,45 @@ class WAXI_QF:
         
         # Récuperation de l'emplacement du fichier 99_CSV 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
         
-        # Reference list of lithologies for Unknown lithologies
+        # Liste Litho Metamorphic lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference = read_csv(emplacement_99_CSV_files +'Lithologies.csv', sep=';')
-            list_lithology_reference = list(fichier_reference['Valeur'])
-        
+            fichier_reference = read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';')
+            list_litho_metamorphic = list(fichier_reference['Valeur'])
+            list_litho_metamorphic.sort()
         else:
             self.iface.messageBar().pushMessage("Layer not found: "+ emplacement_99_CSV_files, level=Qgis.Warning, duration=45) 
+        
+        # Liste Litho Igneous intrusive lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference1 = read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';')
+            list_litho_plutonic = list(fichier_reference1['Valeur'])
+            list_litho_plutonic.sort()
+            
+        # Liste Litho Igneous extrusive lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference2 = read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';')
+            list_litho_volcanic = list(fichier_reference2['Valeur'])
+            list_litho_volcanic.sort()
+        
+        # Liste Litho Volcanoclastic lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference3 = read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';')
+            list_litho_volcanoclastic = list(fichier_reference3['Valeur'])
+            list_litho_volcanoclastic.sort()
+        
+        # Liste Litho Sedimentary lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference4 = read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';')
+            list_litho_sedimentary = list(fichier_reference4['Valeur'])
+            list_litho_sedimentary.sort()
+        
+        # Liste Litho Supergene lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference5 = read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';')
+            list_litho_supergene = list(fichier_reference5['Valeur'])
+            list_litho_supergene.sort()
         
         
         # CAS 1 : Si la ligne est déjà supprimée
@@ -1307,12 +1440,34 @@ class WAXI_QF:
             self.table2States.append(self.getTableState2())
             
             current_text = self.dlg.tableWidget2.item(row, 1).text()
-              
+            
+            rock_types = {"      ---Plutonic---      ": list_litho_plutonic,"      ---Volcanic---      ":list_litho_volcanic, 
+                          "      ---Sedimentary---      ": list_litho_sedimentary, "      ---Metamorphic---      ": list_litho_metamorphic,
+                          "       ---Supergene---      ":list_litho_supergene, "      ---Volcanoclastic---      ":list_litho_volcanoclastic}
+            
             combo_box = QComboBox()
-            combo_box.addItems(list_lithology_reference)
+            delegate = QStyledItemDelegate(combo_box)
+            combo_box.setItemDelegate(delegate)
+            
+            for rock_type, rock_names in rock_types.items():
+                combo_box.addItem(rock_type)
+                combo_box.setItemData(combo_box.count() - 1, QFont("Bookman Old Style", 10, QFont.Bold), Qt.FontRole)
+                combo_box.setItemData(combo_box.count() - 1, False,  Qt.UserRole)
+                
+                for rock_name in rock_names:
+                    combo_box.addItem(rock_name)
+            
+            # Désactivitation de la sélection des tyoes de roches 
+            elements_combobox = [combo_box.itemText(i) for i in range(combo_box.count())]
+            for i in range(len(elements_combobox)):
+                list_type = ["      ---Plutonic---      ","      ---Volcanic---      ","      ---Sedimentary---      ", "      ---Metamorphic---      ","       ---Supergene---      ", "      ---Volcanoclastic---      " ]
+                if elements_combobox[i] in list_type :
+                    combo_box.model().item(i).setEnabled(False)
+                
+                    
             self.dlg.tableWidget2.setCellWidget(row, 1, combo_box)
             combo_box.setCurrentText(current_text)
-
+            
             item = self.dlg.tableWidget2.item(row, 1)
             item.setFlags(item.flags() | Qt.ItemIsEditable)
             self.row_edit_status[row] = True
@@ -1427,7 +1582,7 @@ class WAXI_QF:
         
         # Lists of reference rocks from the WAXI4 QGIS project
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/99. CSV FILES/")
+        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
         
         litho_local = list((read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
         litho_supergene = list((read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
@@ -1591,7 +1746,7 @@ class WAXI_QF:
         
         # Récuperation de l'emplacement du fichier Excel     
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
@@ -1672,7 +1827,7 @@ class WAXI_QF:
         # Remplissage du QTableWidget 3 avec les couples de la list_trio_unique2 
      
         # Re-organisation de la liste par score décroissant 
-        list_trio_unique2 = sorted(list_trio_unique2, key=lambda x: x[2], reverse=True)
+        list_trio_unique2 = sorted(list_trio_unique2, key=lambda x: x[2], reverse=False)
         current_row_count=1
         
         for k, (old, new, score) in enumerate(list_trio_unique2): 
@@ -1703,9 +1858,9 @@ class WAXI_QF:
                    item2.setBackground(color)
             
             # Légende pour l'échelle de couleurs 
-            score_ranges = [100 , 80, 60, 40, 20, 0]
-            legend_colors = [QColor.fromHsv(108, 140, 250),QColor.fromHsv(84, 140, 250),QColor.fromHsv(60, 140, 250),QColor.fromHsv(36, 140, 250),QColor.fromHsv(12, 140, 250)]
-            
+            score_ranges = [0, 20, 40, 60, 80, 100]
+            legend_colors = [QColor.fromHsv(12, 140, 250), QColor.fromHsv(36, 140, 250), QColor.fromHsv(60, 140, 250), QColor.fromHsv(84, 140, 250), QColor.fromHsv(108, 140, 250)]
+         
             # Créez un widget pour la légende
             legendbox_layout2 = QVBoxLayout(self.dlg.legendbox_2)
 
@@ -1833,7 +1988,7 @@ class WAXI_QF:
         
         # Récuperation de l'emplacement du fichier columns type structure   
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/columns_types_structures_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
@@ -2579,8 +2734,10 @@ class WAXI_QF:
     ####################              Page 7 : CSV               ##################
     ###############################################################################  
         
+    
+    ### Option 1 :  ADD a single value/description pair to any csv file in the WAXI QFIELD template
     def addCsvItem(self):
-    # adds a single vaue/description pair to any csv file in the WAXI QFIELD template
+    
     
         if(self.dlg.lineEdit_38.text() and self.dlg.lineEdit_27.text()):
 
@@ -2643,7 +2800,76 @@ class WAXI_QF:
             else:
                 self.iface.messageBar().pushMessage("Layer not found: "+layer_name, level=Qgis.Warning, duration=45)
 
- 
+     
+
+
+
+    ### Option 2 :  DELETE a single value to any csv file in the WAXI QFIELD template 
+    def deleteCsvItem(self):
+    
+        csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
+        csvs=read_csv(csv_list,names=['name'])
+        csv_file_list=[]
+        for name in csvs.name:
+            csv_file_list.append(name)
+
+        delete_value = self.dlg.comboBox_delete.currentIndex()
+        layer_name = csv_file_list[self.dlg.comboBox.currentIndex()]
+        project = QgsProject.instance()
+
+        layer = project.mapLayersByName(layer_name)
+        group = QgsProject.instance().layerTreeRoot()
+
+        if len(layer) > 0:
+            
+            # Remove the layer from the project
+            for layer in project.mapLayers().values():
+                
+                # Check if the layer name matches the target name
+                if (layer.name() == layer_name and layer_name != 'Type-Lithologies' and layer_name != 'Lithologies'):
+                    
+                    # Get the file path of the layer
+                    file_path = self.mynormpath(layer.dataProvider().dataSourceUri())
+                    head_tail=os.path.split(file_path)
+                    QgsProject.instance().removeMapLayer(layer)
+
+                    User_List= read_csv(file_path,encoding="latin_1",sep=";")
+                    indexes_to_drop = User_List[User_List['Valeur'] ==  delete_value].index
+                    User_List.drop(indexes_to_drop, inplace=True)
+                    
+                    # réécriture du fichier csv modifié
+                    User_List.to_csv(file_path, encoding="latin_1", sep=";", index=False)
+                    
+                    
+                    ######################################################## stop de la dernière reprise 
+                    if('lithologies' in layer_name):
+                        User_List= read_csv(head_tail[0]+"/Lithologies.csv",encoding="latin_1",sep=";")
+                        User_List.loc[str(len(User_List))] = [value,value]
+                        User_List.to_csv(head_tail[0]+"/Lithologies.csv",index=False,sep=";",encoding="latin_1")
+
+                        User_List= read_csv(head_tail[0]+"/Type-Lithologies.csv",encoding="latin_1",sep=";")
+                        User_List.loc[str(len(User_List))] = [layer_name.split(" ")[0],value]
+                        User_List.to_csv(head_tail[0]+"/Type-Lithologies.csv",index=False,sep=";",encoding="latin_1")
+
+                    updated_layer = QgsVectorLayer(file_path, layer_name, "ogr")
+                    
+                    if updated_layer.isValid():
+
+                        # Add the updated layer to the project
+                        QgsProject.instance().addMapLayer(updated_layer,False)
+                        group = QgsProject.instance().layerTreeRoot().findGroup("CSV FILES")
+                        
+                        if group:
+
+                            # Add the layer to the new group
+                            group.addLayer(updated_layer)
+                            self.iface.messageBar().pushMessage("Item "+value+" "+description+" added to "+layer_name, level=Qgis.Success, duration=15)
+
+                    else:
+                        self.iface.messageBar().pushMessage("Layer Failed to load updated layer: "+layer_name, level=Qgis.Warning, duration=15)
+                    break  # Stop iterating once the layer is found
+           
+
 
    
     ###############################################################################
@@ -2930,16 +3156,19 @@ class WAXI_QF:
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
         
+        import geopandas as gpd
+        import fiona 
         
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
         
-        
-        current_file_name = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT.qml"
+        geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
 
-        if(not os.path.exists(current_file_name)):
-            self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+        test_layers = fiona.listlayers(geopackage_path)
+        
+        if('Stops_PT' not in test_layers):
+                self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
         
         else:
             
@@ -3016,9 +3245,6 @@ class WAXI_QF:
                 self.dlg.lineEdit_52.setReadOnly(True)
                 
                 
-                
-            
-                
             
             
                 ### Connection des PushButtons ### 
@@ -3072,7 +3298,7 @@ class WAXI_QF:
                 self.dlg.pushButton_16.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/")))
             
                 # Connection à la page Zenodo : https://zenodo.org/records/10147786
-                self.dlg.pushButton_18.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://zenodo.org/records/10147786")))
+                self.dlg.pushButton_18.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://zenodo.org/records/10668587")))
             
                 # Connection à la page Facebook : https://www.facebook.com/waxi03/about
                 self.dlg.pushButton_28.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.facebook.com/waxi03/about")))
@@ -3105,20 +3331,7 @@ class WAXI_QF:
                 for name in csvs.name:
                     csv_file_list.append(name)
                 self.dlg.comboBox.addItems(csv_file_list[:-2])
-
-
-                ### RadioButton for check to see which qml is loaded for Stops_PT 
-                no_auto_filename = head_tail[0]+"/0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/Stops_PT_no_autoinc.qml"
-
-                if(os.path.exists(current_file_name)):
-                    file_stats_current = os.stat(current_file_name)
-                    file_stats_no_auto = os.stat(no_auto_filename)
-                    if(file_stats_current.st_size == file_stats_no_auto.st_size):
-                        self.dlg.radioButtonOff.setChecked(True)
-                    else:
-                        self.dlg.radioButtonOn.setChecked(True)
-
-
+                    
                 self.define_tips()
                 
                 
