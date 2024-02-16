@@ -2739,7 +2739,7 @@ class WAXI_QF:
     ###############################################################################  
         
     
-    ### Option 1 :  ADD a single value/description pair to any csv file in the WAXI QFIELD template
+    ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
     def addCsvItem(self):
     
     
@@ -2808,7 +2808,7 @@ class WAXI_QF:
 
 
 
-    ### Option 2 :  DELETE a single value to any csv file in the WAXI QFIELD template 
+    ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template 
     def deleteCsvItem(self):
     
         csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
