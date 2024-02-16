@@ -2716,10 +2716,6 @@ class WAXI_QF:
     def set_stereoConfig(self):
     
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-<<<<<<< HEAD
-=======
-        
->>>>>>> 8b3ecf23b9d1b43fb418de979db5364507dde17c
         stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/stereonet.json")
         stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
         
