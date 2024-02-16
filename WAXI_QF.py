@@ -709,10 +709,6 @@ class WAXI_QF:
                 for elt2 in contenu_column : 
                     sum_score += fuzz.token_set_ratio(list_column_input[k],elt2)
          
-                # Si les 2 noms de colonnes ne commencent pas par la même lettre : malus de -100 sur le score 
-                #if list_column_input[elt1][0] != column[0]:
-                    #sum_score = sum_score-100
-         
                 if sum_score>score :
                     score=sum_score
                     best_column=column
@@ -744,16 +740,25 @@ class WAXI_QF:
                     if test != 'NULL':
         
                         # If the chosen element has the same name as another element, we compare their similarity scores: 
-                        if test == list_trio_columns[place2][1]:
+                        if test == list_trio_columns[place2][1]:    
                             if list_trio_columns[place1][2] > list_trio_columns[place2][2]:
                                list_trio_columns_trie[place2][1] = 'NULL'
-                               list_trio_columns_trie[place2][2]=0
-                            else : 
+                               list_trio_columns_trie[place2][2] = 0
+                               
+                            elif list_trio_columns[place1][2] < list_trio_columns[place2][2] : 
                                list_trio_columns_trie[place1][1] = 'NULL'
-                               list_trio_columns_trie[place1][2]=0
- 
-        
- 
+                               list_trio_columns_trie[place1][2] = 0
+                            
+                            else : 
+                                if abs(len(list_trio_columns[place1][0]) - len(list_trio_columns[place1][1])) < abs(len(list_trio_columns[place2][0]) - len(list_trio_columns[place1][1])):
+                                    list_trio_columns_trie[place2][1] = 'NULL'
+                                    list_trio_columns_trie[place2][2] = 0
+                                
+                                else : 
+                                    list_trio_columns_trie[place1][1] = 'NULL'
+                                    list_trio_columns_trie[place1][2] = 0
+                           
+                                    
     
         
         ###    Remplissage 1 : COLUMNS NAME ## input = list_trio_columns_trie     ### 
@@ -2711,8 +2716,7 @@ class WAXI_QF:
     def set_stereoConfig(self):
     
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        
-        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/0. CURRENT MISSION/0. STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS/stereonet.json")
+        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/stereonet.json")
         stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
         
         if(os.path.exists(stereoConfigPath)):
