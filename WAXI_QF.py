@@ -2758,8 +2758,8 @@ class WAXI_QF:
         
     def merge_2_layers (self):
         
-        couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2.currentText()))[0]
-        couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1.currentText()))[0]
+        couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1.currentText()))[0]
+        couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2.currentText()))[0]
         
         if couche1 != couche2 :
             
