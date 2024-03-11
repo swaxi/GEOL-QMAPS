@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1131</width>
-    <height>606</height>
+    <height>674</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -57,8 +57,8 @@
 QTabBar::tab {
     min-width: 224px; 
     min-height: 30px;
-	background-color: rgb(255, 170, 0);
-  	border-radius: 7px;	
+	background-color: rgb(240, 240, 240);
+  	border-radius: 2px;	
 	border: 1px solid #000000; 
 	font-family: Arial; 
 	font-size: 13px;
@@ -66,659 +66,23 @@ QTabBar::tab {
 
 
 QTabBar::tab:selected {
-   background-color : rgb(255, 199, 194);
+   background-color : rgb(225, 225, 225);
 }
 
 
 QTabBar::tab:hover {
-    background-color: rgb(255, 199, 194);
+    background-color: rgb(229, 241, 251);
 }
 
 
 </string>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
-   <widget class="QWidget" name="HomePage">
-    <property name="styleSheet">
-     <string notr="true">#HomePage {
-	background-color: rgb(255, 125, 0, 50);
-}
-
-
-</string>
-    </property>
-    <attribute name="title">
-     <string>Home Page</string>
-    </attribute>
-    <widget class="QLineEdit" name="lineEdit_14">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>10</y>
-       <width>321</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>WELCOME to the WAXI Plugin !</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_2">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>100</y>
-       <width>501</width>
-       <height>251</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 240, 217);
-font-family: Arial; 
-font-size: 13px;
-border-radius: 12px;	
-border: 1px solid #999999;
-</string>
-     </property>
-     <property name="plainText">
-      <string>The AMIRA West African Exploration Initiative (WAXI), in French l'Initiative d'Exploration d'Ouest Africaine (IXOA), is an ambitious research and training program based on the cooperation between most of the major stakeholders in the West African minerals sector : research institutions, geological surveys, governements and the minerals industry. 
-
-
-It is focused on the tectonics and mineral potential of the West African Craton. 
-
-
-WAXI Stage 4 builds on the approach taken in WAXI Stages 1-3 focusing on West African mineral systems. In particular, novel research looking at Archean mineralisation and architecture and the impacts of earlier architectures on the development of mineral systems in the Birmian, the Panafrican and the overlying intracratonic basins will be undertaken.</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_22">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>50</y>
-       <width>521</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-	border: 1px solid #FF8C66; 
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>WAXI Project</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_23">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>370</y>
-       <width>521</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    font-size: 12px;
-	border-radius: 12px;
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter'; 
-font-family: Arial; 
-border: 1px solid #FF8C66; 
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>WAXI Plugin</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_21">
-     <property name="geometry">
-      <rect>
-       <x>360</x>
-       <y>540</y>
-       <width>371</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 11px;
-font-style: italic;</string>
-     </property>
-     <property name="text">
-      <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_3">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>420</y>
-       <width>501</width>
-       <height>121</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 240, 217);
-font-family: Arial; 
-font-size: 13px;
-border-radius: 12px;	
-border: 1px solid #999999;
-
-</string>
-     </property>
-     <property name="plainText">
-      <string>
-                      ¤    Plugin construction - Mark JESSELL*/Eliott BETEND* 
-
-                      ¤    WAXI QGIS Template - Julien PERRET*
-
-                      *Centre for Exploration Targeting (CET), Perth (WA)</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_24">
-     <property name="geometry">
-      <rect>
-       <x>580</x>
-       <y>50</y>
-       <width>521</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Websites </string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_30">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>160</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(255, 205, 106);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>AMIRA website</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_7">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>100</y>
-       <width>501</width>
-       <height>251</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-size: 20px;
-font-family: Calibri; 
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_55">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>310</y>
-       <width>471</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <italic>true</italic>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 13px;
-font-style: italic;
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string> (click on the buttons to access websites)</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_56">
-     <property name="geometry">
-      <rect>
-       <x>630</x>
-       <y>260</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; ; 
-font-size: 14px;
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Zenodo :</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_57">
-     <property name="geometry">
-      <rect>
-       <x>660</x>
-       <y>210</y>
-       <width>61</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>CET :</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_31">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>260</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(255, 234, 210);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>Zenodo page </string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_32">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>210</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(255, 216, 169);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>CET website</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_58">
-     <property name="geometry">
-      <rect>
-       <x>640</x>
-       <y>110</y>
-       <width>91</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>WAXI :</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_33">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>110</y>
-       <width>341</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(255, 186, 90);
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string> WAXI website</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_59">
-     <property name="geometry">
-      <rect>
-       <x>630</x>
-       <y>160</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>AMIRA :</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_35">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>430</y>
-       <width>431</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(175, 255, 178);
-font-weight: bold;
-
-</string>
-     </property>
-     <property name="text">
-      <string>Publications by WAXI Team</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_8">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>420</y>
-       <width>501</width>
-       <height>121</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(233, 255, 241);
-font-size: 20px;
-font-family: Calibri; 
- border: 1px solid rgb(175, 255, 178);</string>
-     </property>
-     <property name="plainText">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_36">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>480</y>
-       <width>431</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 14px;
-font-style: italic;
-background-color: rgb(175, 255, 178);
-font-weight: bold;
-
-</string>
-     </property>
-     <property name="text">
-      <string>Theses by WAXI Team</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_28">
-     <property name="geometry">
-      <rect>
-       <x>580</x>
-       <y>370</y>
-       <width>521</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66;   
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>WAXI Resources</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_47">
-     <property name="geometry">
-      <rect>
-       <x>600</x>
-       <y>510</y>
-       <width>481</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <italic>true</italic>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 13px;
-font-style: italic;
-
-
-
-</string>
-     </property>
-     <property name="text">
-      <string> (click on the buttons to access WAXI articles or theses)</string>
-     </property>
-    </widget>
-    <zorder>plainTextEdit_7</zorder>
-    <zorder>plainTextEdit_8</zorder>
-    <zorder>lineEdit_14</zorder>
-    <zorder>plainTextEdit_2</zorder>
-    <zorder>lineEdit_22</zorder>
-    <zorder>lineEdit_23</zorder>
-    <zorder>label_21</zorder>
-    <zorder>plainTextEdit_3</zorder>
-    <zorder>lineEdit_24</zorder>
-    <zorder>pushButton_30</zorder>
-    <zorder>lineEdit_55</zorder>
-    <zorder>lineEdit_56</zorder>
-    <zorder>lineEdit_57</zorder>
-    <zorder>pushButton_31</zorder>
-    <zorder>pushButton_32</zorder>
-    <zorder>lineEdit_58</zorder>
-    <zorder>pushButton_33</zorder>
-    <zorder>lineEdit_59</zorder>
-    <zorder>pushButton_35</zorder>
-    <zorder>pushButton_36</zorder>
-    <zorder>lineEdit_28</zorder>
-    <zorder>lineEdit_47</zorder>
-   </widget>
+   <property name="usesScrollButtons">
+    <bool>false</bool>
+   </property>
    <widget class="QWidget" name="Import_data">
     <property name="styleSheet">
      <string notr="true">#Import_data {
@@ -726,90 +90,28 @@ font-style: italic;
 	background-repeat: no-repeat;
 	background-attachment: fixed; 
 	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 45);
+	background-color: rgb(240, 240, 240, 0);
 }</string>
     </property>
     <attribute name="title">
      <string>Import existing field databases</string>
     </attribute>
-    <widget class="QLineEdit" name="lineEdit_12">
-     <property name="geometry">
-      <rect>
-       <x>110</x>
-       <y>10</y>
-       <width>281</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   font-size: 13px;
-	border-radius: 10px;
-font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Import data in the WAXI project </string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_15">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>451</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Step 1 : Select the file you want to import in QGIS</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_13">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>120</y>
+       <x>90</x>
+       <y>70</y>
        <width>271</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -823,8 +125,8 @@ border: 1px solid #FF8C66;
     <widget class="QPushButton" name="pushButton_7">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>130</y>
+       <x>370</x>
+       <y>70</y>
        <width>41</width>
        <height>31</height>
       </rect>
@@ -836,7 +138,7 @@ border: 1px solid #FF8C66;
       <string/>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -845,14 +147,14 @@ border: 1px solid #FF8C66;
     <widget class="QPushButton" name="pushButton_8">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>120</y>
+       <x>90</x>
+       <y>160</y>
        <width>111</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial;  
@@ -879,23 +181,23 @@ font-size: 12px;</string>
 QTabBar::tab {
     min-width: 200px; 
     min-height: 25px;
-	background-color: rgb(255, 241, 237);
-  	border-radius: 12px;	
+	background-color: rgb(240, 240, 240);
+  	border-radius: 2px;	
 	font-weight: bold;
 	font-size: 11px;
 	qproperty-alignment: 'AlignCenter';  
 	font-family: Baskerville; 
-border: 1px solid #FF8C66;
+border: 1px solid #000000;
 }
 
 
 QTabBar::tab:selected {
-   background-color : rgb(255, 200, 122);
+   background-color : rgb(225, 225, 225);
 }
 
 
 QTabBar::tab:hover {
-    background-color: rgb(255, 200, 122);
+    background-color: rgb(229, 241, 251);
 }
 
 
@@ -907,11 +209,11 @@ QTabBar::tab:hover {
      <widget class="QWidget" name="Step2">
       <property name="styleSheet">
        <string notr="true"># Step_2_Check_columns_match {
-	background-color: rgb(0, 170, 255);
+	background-color: rgb(240, 240, 240);
 }</string>
       </property>
       <attribute name="title">
-       <string>Step 2 : Check Columns match</string>
+       <string>Step 3 : Check Columns match</string>
       </attribute>
       <widget class="QTableWidget" name="tableWidget1">
        <property name="geometry">
@@ -1017,13 +319,13 @@ QTabBar::tab:hover {
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>470</y>
+         <y>480</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1037,13 +339,13 @@ font-size: 12px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>410</y>
+         <y>440</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1168,7 +470,7 @@ font-size: 13px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1188,7 +490,7 @@ font-size: 12px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1233,7 +535,7 @@ font-size: 13px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1253,7 +555,7 @@ font-size: 12px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(198, 255, 212);
+        <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1373,14 +675,14 @@ font-size: 13px;</string>
     <widget class="QPushButton" name="pushButton_13">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>490</y>
+       <x>10</x>
+       <y>500</y>
        <width>151</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1393,14 +695,14 @@ font-size: 12px;</string>
     <widget class="QPushButton" name="pushButton_14">
      <property name="geometry">
       <rect>
-       <x>130</x>
-       <y>420</y>
+       <x>90</x>
+       <y>320</y>
        <width>201</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1411,85 +713,6 @@ font-size: 12px;
      </property>
      <property name="text">
       <string>Generate Output QGIS Layers</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>390</y>
-       <width>431</width>
-       <height>81</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 240, 217);
-font-family: Arial; 
-font-size: 12px;
-border-radius: 12px;	
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string> After having checked the conformity of the data :
- </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_16">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>200</y>
-       <width>431</width>
-       <height>91</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 240, 217);
-font-family: Arial; 
-font-size: 12px;
-border-radius: 12px;	
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string>Legends for the column names :
-
-* Name given by the geologist in the loaded file to be processed
-
-** Name conforms to the WAXI project</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_18">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>340</y>
-       <width>451</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Step 5 : Import the processed file in QGIS</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_27">
@@ -1511,18 +734,151 @@ font-style: italic;</string>
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
      </property>
     </widget>
-    <zorder>lineEdit_12</zorder>
-    <zorder>lineEdit_15</zorder>
+    <widget class="QLabel" name="label_19">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>211</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Import data into project</string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="plainTextEdit_7">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>420</y>
+       <width>251</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="plainText">
+      <string>Legends for the column names :
+
+* OLD Name - given by the geologist in the loaded file to be processed
+
+* NEW Name - conforms to the WAXI project</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_33">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>270</y>
+       <width>411</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>After having checked the conformity of the data:</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>40</y>
+       <width>471</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Step 1a : Select the file you want to import in QGIS</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>130</y>
+       <width>471</width>
+       <height>81</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Step 1b : Process File</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>250</y>
+       <width>471</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Step 5 : Import the processed file in QGIS </string>
+     </property>
+    </widget>
+    <zorder>groupBox_3</zorder>
+    <zorder>groupBox_2</zorder>
+    <zorder>groupBox</zorder>
     <zorder>lineEdit_13</zorder>
     <zorder>pushButton_7</zorder>
     <zorder>pushButton_8</zorder>
     <zorder>tabWidget_Step2_3</zorder>
     <zorder>pushButton_13</zorder>
-    <zorder>plainTextEdit</zorder>
     <zorder>pushButton_14</zorder>
-    <zorder>plainTextEdit_16</zorder>
-    <zorder>lineEdit_18</zorder>
     <zorder>label_27</zorder>
+    <zorder>label_19</zorder>
+    <zorder>plainTextEdit_7</zorder>
+    <zorder>label_33</zorder>
    </widget>
    <widget class="QWidget" name="Fieldwork_preparation">
     <property name="styleSheet">
@@ -1531,7 +887,7 @@ font-style: italic;</string>
 	background-repeat: no-repeat;
 	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
 	background-size: 150% 150%;
-	background-color: rgb(255, 125, 0, 45);
+	background-color: rgb(240, 240, 240, 0);
 }
 
 
@@ -1543,14 +899,14 @@ font-style: italic;</string>
     <widget class="QPushButton" name="projName_pushButton">
      <property name="geometry">
       <rect>
-       <x>990</x>
-       <y>70</y>
+       <x>980</x>
+       <y>190</y>
        <width>111</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1564,8 +920,8 @@ font-size: 12px;
     <widget class="QLabel" name="label_16">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>120</y>
+       <x>620</x>
+       <y>90</y>
        <width>61</width>
        <height>51</height>
       </rect>
@@ -1588,15 +944,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_9">
      <property name="geometry">
       <rect>
-       <x>680</x>
-       <y>120</y>
+       <x>690</x>
+       <y>90</y>
        <width>331</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -1604,8 +961,8 @@ font-size: 13px;
     <widget class="QLabel" name="label_17">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>180</y>
+       <x>620</x>
+       <y>150</y>
        <width>61</width>
        <height>41</height>
       </rect>
@@ -1625,15 +982,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_10">
      <property name="geometry">
       <rect>
-       <x>680</x>
-       <y>180</y>
+       <x>690</x>
+       <y>150</y>
        <width>331</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -1642,13 +1000,13 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>410</x>
-       <y>70</y>
+       <y>170</y>
        <width>101</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1661,8 +1019,8 @@ font-size: 12px;</string>
     <widget class="QLabel" name="label_3">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>180</y>
+       <x>30</x>
+       <y>80</y>
        <width>141</width>
        <height>41</height>
       </rect>
@@ -1682,8 +1040,8 @@ font-size: 13px;
     <widget class="QLabel" name="label_14">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>110</y>
+       <x>50</x>
+       <y>120</y>
        <width>121</width>
        <height>51</height>
       </rect>
@@ -1694,7 +1052,7 @@ font-size: 13px;
 </string>
      </property>
      <property name="text">
-      <string>Clipping Polygon :</string>
+      <string>Clipping Polygon (Optional) :</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1706,15 +1064,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_3">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>180</y>
+       <x>180</x>
+       <y>90</y>
        <width>271</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -1722,15 +1081,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_8">
      <property name="geometry">
       <rect>
-       <x>160</x>
-       <y>120</y>
+       <x>180</x>
+       <y>130</y>
        <width>271</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -1738,14 +1098,14 @@ font-size: 13px;
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>180</y>
+       <x>470</x>
+       <y>90</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1754,71 +1114,23 @@ font-size: 13px;
     <widget class="QPushButton" name="pushButton_6">
      <property name="geometry">
       <rect>
-       <x>450</x>
-       <y>120</y>
+       <x>470</x>
+       <y>130</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
      </property>
     </widget>
-    <widget class="Line" name="line_3">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>230</y>
-       <width>461</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="lineWidth">
-      <number>2</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_21">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>10</y>
-       <width>221</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153); 
-border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Database management</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_31">
      <property name="geometry">
       <rect>
-       <x>350</x>
+       <x>340</x>
        <y>540</y>
        <width>431</width>
        <height>31</height>
@@ -1834,87 +1146,17 @@ font-style: italic;</string>
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_32">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>70</y>
-       <width>351</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter'; 
- font-family: Arial; 
-border: 1px solid #FF8C66;  
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Update project name and region</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_34">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>70</y>
-       <width>341</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Clip to current canvas</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="pushButton_19">
      <property name="geometry">
       <rect>
-       <x>950</x>
-       <y>520</y>
+       <x>940</x>
+       <y>530</y>
        <width>161</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1925,131 +1167,33 @@ font-size: 12px;
       <string>RESET THIS WINDOW</string>
      </property>
     </widget>
-    <widget class="Line" name="line_5">
-     <property name="geometry">
-      <rect>
-       <x>640</x>
-       <y>230</y>
-       <width>441</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="lineWidth">
-      <number>2</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="Line" name="line_2">
-     <property name="geometry">
-      <rect>
-       <x>550</x>
-       <y>40</y>
-       <width>43</width>
-       <height>171</height>
-      </rect>
-     </property>
-     <property name="lineWidth">
-      <number>2</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
     <widget class="Line" name="line_6">
      <property name="geometry">
       <rect>
-       <x>550</x>
-       <y>270</y>
+       <x>540</x>
+       <y>20</y>
        <width>43</width>
-       <height>231</height>
+       <height>511</height>
       </rect>
      </property>
      <property name="lineWidth">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_48">
-     <property name="geometry">
-      <rect>
-       <x>780</x>
-       <y>10</y>
-       <width>241</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Project customisation </string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_51">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>260</y>
-       <width>321</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Toggle Auto-Increment of Stop numbers</string>
      </property>
     </widget>
     <widget class="QPushButton" name="autoinc_pushButton">
      <property name="geometry">
       <rect>
-       <x>950</x>
-       <y>260</y>
+       <x>930</x>
+       <y>310</y>
        <width>151</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2062,8 +1206,8 @@ font-size: 12px;</string>
     <widget class="QRadioButton" name="radioButtonOn">
      <property name="geometry">
       <rect>
-       <x>680</x>
-       <y>300</y>
+       <x>620</x>
+       <y>280</y>
        <width>61</width>
        <height>41</height>
       </rect>
@@ -2080,8 +1224,8 @@ font-size: 15px;
     <widget class="QRadioButton" name="radioButtonOff">
      <property name="geometry">
       <rect>
-       <x>810</x>
-       <y>300</y>
+       <x>670</x>
+       <y>280</y>
        <width>51</width>
        <height>41</height>
       </rect>
@@ -2097,15 +1241,16 @@ font-size: 15px;</string>
     <widget class="QLineEdit" name="lineEdit_27">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>440</y>
-       <width>241</width>
-       <height>41</height>
+       <x>110</x>
+       <y>410</y>
+       <width>211</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2113,8 +1258,8 @@ font-size: 15px;</string>
     <widget class="QLabel" name="label_7">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>440</y>
+       <x>10</x>
+       <y>410</y>
        <width>91</width>
        <height>41</height>
       </rect>
@@ -2134,8 +1279,8 @@ font-size: 13px;
     <widget class="QLabel" name="label_26">
      <property name="geometry">
       <rect>
-       <x>270</x>
-       <y>290</y>
+       <x>30</x>
+       <y>270</y>
        <width>81</width>
        <height>41</height>
       </rect>
@@ -2155,32 +1300,31 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_38">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>390</y>
-       <width>241</width>
-       <height>41</height>
+       <x>110</x>
+       <y>360</y>
+       <width>211</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 20px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
-
-
 </string>
      </property>
     </widget>
     <widget class="QPushButton" name="csv_pushButton">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>500</y>
+       <x>180</x>
+       <y>450</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-size: 12px;
@@ -2190,45 +1334,11 @@ font-family: Arial; </string>
       <string>Add this new item</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_99">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>260</y>
-       <width>331</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Add items to CSV file</string>
-     </property>
-    </widget>
     <widget class="QComboBox" name="comboBox">
      <property name="geometry">
       <rect>
-       <x>100</x>
-       <y>330</y>
+       <x>110</x>
+       <y>280</y>
        <width>421</width>
        <height>31</height>
       </rect>
@@ -2237,8 +1347,8 @@ border: 1px solid #FF8C66;
     <widget class="QLabel" name="label_8">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>390</y>
+       <x>40</x>
+       <y>360</y>
        <width>61</width>
        <height>41</height>
       </rect>
@@ -2255,47 +1365,13 @@ font-size: 13px;
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_101">
-     <property name="geometry">
-      <rect>
-       <x>360</x>
-       <y>260</y>
-       <width>191</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Delete items from CSV file</string>
-     </property>
-    </widget>
     <widget class="Line" name="line_7">
      <property name="geometry">
       <rect>
-       <x>330</x>
-       <y>380</y>
+       <x>310</x>
+       <y>330</y>
        <width>43</width>
-       <height>151</height>
+       <height>161</height>
       </rect>
      </property>
      <property name="lineWidth">
@@ -2308,8 +1384,8 @@ border: 1px solid #FF8C66;
     <widget class="QLabel" name="label_9">
      <property name="geometry">
       <rect>
-       <x>360</x>
-       <y>370</y>
+       <x>340</x>
+       <y>340</y>
        <width>91</width>
        <height>51</height>
       </rect>
@@ -2329,24 +1405,24 @@ font-size: 13px;
     <widget class="QComboBox" name="comboBox_delete">
      <property name="geometry">
       <rect>
-       <x>370</x>
-       <y>420</y>
+       <x>340</x>
+       <y>380</y>
        <width>181</width>
-       <height>41</height>
+       <height>31</height>
       </rect>
      </property>
     </widget>
     <widget class="QPushButton" name="csv_pushButton_2">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>500</y>
+       <x>380</x>
+       <y>450</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-size: 12px;
@@ -2356,6 +1432,203 @@ font-family: Arial; </string>
       <string>Delete this item</string>
      </property>
     </widget>
+    <widget class="QLabel" name="label_34">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>10</y>
+       <width>201</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Database management</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_37">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>330</y>
+       <width>161</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Add items to CSV file</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_38">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>330</y>
+       <width>201</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Delete items from CSV file</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_39">
+     <property name="geometry">
+      <rect>
+       <x>720</x>
+       <y>20</y>
+       <width>181</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Project customisation </string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>60</y>
+       <width>521</width>
+       <height>151</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Clip to current canvas</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>240</y>
+       <width>521</width>
+       <height>281</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Add or delete items in List file</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>60</y>
+       <width>521</width>
+       <height>171</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Update project name and region</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_7">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>260</y>
+       <width>521</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Toggle Auto-Increment of Stop numbers</string>
+     </property>
+    </widget>
+    <zorder>groupBox_7</zorder>
+    <zorder>groupBox_6</zorder>
+    <zorder>groupBox_4</zorder>
+    <zorder>groupBox_5</zorder>
+    <zorder>projName_pushButton</zorder>
+    <zorder>label_16</zorder>
+    <zorder>lineEdit_9</zorder>
+    <zorder>label_17</zorder>
+    <zorder>lineEdit_10</zorder>
+    <zorder>clip_pushButton</zorder>
+    <zorder>label_3</zorder>
+    <zorder>label_14</zorder>
+    <zorder>lineEdit_3</zorder>
+    <zorder>lineEdit_8</zorder>
+    <zorder>pushButton</zorder>
+    <zorder>pushButton_6</zorder>
+    <zorder>label_31</zorder>
+    <zorder>pushButton_19</zorder>
+    <zorder>line_6</zorder>
+    <zorder>autoinc_pushButton</zorder>
+    <zorder>radioButtonOn</zorder>
+    <zorder>radioButtonOff</zorder>
+    <zorder>lineEdit_27</zorder>
+    <zorder>label_7</zorder>
+    <zorder>label_26</zorder>
+    <zorder>lineEdit_38</zorder>
+    <zorder>csv_pushButton</zorder>
+    <zorder>comboBox</zorder>
+    <zorder>label_8</zorder>
+    <zorder>line_7</zorder>
+    <zorder>label_9</zorder>
+    <zorder>comboBox_delete</zorder>
+    <zorder>csv_pushButton_2</zorder>
+    <zorder>label_34</zorder>
+    <zorder>label_37</zorder>
+    <zorder>label_38</zorder>
+    <zorder>label_39</zorder>
    </widget>
    <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
@@ -2364,7 +1637,7 @@ font-family: Arial; </string>
 	background-repeat: no-repeat;
 	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
 	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 35);
+	background-color: rgb(240, 240, 240, 0);
 }</string>
     </property>
     <attribute name="title">
@@ -2373,14 +1646,14 @@ font-family: Arial; </string>
     <widget class="QPushButton" name="export_pushButton">
      <property name="geometry">
       <rect>
-       <x>970</x>
-       <y>60</y>
+       <x>960</x>
+       <y>110</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2393,8 +1666,8 @@ font-size: 12px;</string>
     <widget class="QLabel" name="label_12">
      <property name="geometry">
       <rect>
-       <x>590</x>
-       <y>110</y>
+       <x>610</x>
+       <y>70</y>
        <width>121</width>
        <height>31</height>
       </rect>
@@ -2414,15 +1687,16 @@ font-size: 12px;
     <widget class="QLineEdit" name="lineEdit_7">
      <property name="geometry">
       <rect>
-       <x>720</x>
-       <y>110</y>
-       <width>311</width>
+       <x>740</x>
+       <y>70</y>
+       <width>251</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2430,48 +1704,17 @@ font-size: 12px;
     <widget class="QPushButton" name="pushButton_5">
      <property name="geometry">
       <rect>
-       <x>1050</x>
-       <y>110</y>
+       <x>1010</x>
+       <y>70</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_25">
-     <property name="geometry">
-      <rect>
-       <x>760</x>
-       <y>10</y>
-       <width>191</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
- 	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}</string>
-     </property>
-     <property name="text">
-      <string>Export data</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_32">
@@ -2493,40 +1736,6 @@ font-style: italic;</string>
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_35">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>60</y>
-       <width>331</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-   border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Export layers to common themes</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="pushButton_22">
      <property name="geometry">
       <rect>
@@ -2537,7 +1746,7 @@ font-style: italic;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 53, 46);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2547,52 +1756,19 @@ font-family: Arial;
       <string>RESET THIS WINDOW</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_52">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>160</y>
-       <width>331</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
- 	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-   border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Create Virtual Stops</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_53">
      <property name="geometry">
       <rect>
        <x>780</x>
-       <y>210</y>
-       <width>231</width>
+       <y>190</y>
+       <width>211</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2600,14 +1776,14 @@ font-family: Arial;
     <widget class="QPushButton" name="virtual_pushButton">
      <property name="geometry">
       <rect>
-       <x>970</x>
-       <y>160</y>
+       <x>960</x>
+       <y>230</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2621,7 +1797,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>200</y>
+       <y>180</y>
        <width>171</width>
        <height>51</height>
       </rect>
@@ -2641,8 +1817,8 @@ font-size: 12px;
     <widget class="QLabel" name="label_10">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>150</y>
+       <x>60</x>
+       <y>110</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -2662,15 +1838,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_11">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>110</y>
+       <x>180</x>
+       <y>70</y>
        <width>241</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2678,65 +1855,30 @@ font-size: 13px;
     <widget class="QPushButton" name="pushButton_20">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>160</y>
+       <x>440</x>
+       <y>120</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_36">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>60</y>
-       <width>341</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Merge two projects</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="pushButton_27">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>210</y>
+       <x>440</x>
+       <y>170</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -2745,8 +1887,8 @@ border: 1px solid #FF8C66;
     <widget class="QLabel" name="label_11">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>100</y>
+       <x>60</x>
+       <y>60</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -2766,15 +1908,16 @@ font-size: 13px;
     <widget class="QLineEdit" name="lineEdit_26">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>160</y>
+       <x>180</x>
+       <y>120</y>
        <width>241</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2782,14 +1925,14 @@ font-size: 13px;
     <widget class="QPushButton" name="merge_pushButton">
      <property name="geometry">
       <rect>
-       <x>380</x>
-       <y>60</y>
+       <x>400</x>
+       <y>210</y>
        <width>131</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2802,15 +1945,16 @@ font-size: 12px;</string>
     <widget class="QLineEdit" name="lineEdit_37">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>210</y>
+       <x>180</x>
+       <y>170</y>
        <width>241</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 10px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
 }
 </string>
      </property>
@@ -2818,14 +1962,14 @@ font-size: 12px;</string>
     <widget class="QPushButton" name="pushButton_29">
      <property name="geometry">
       <rect>
-       <x>400</x>
-       <y>110</y>
+       <x>440</x>
+       <y>70</y>
        <width>41</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 85, 0, 155);</string>
+      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -2837,8 +1981,8 @@ font-size: 12px;</string>
     <widget class="QLabel" name="label_15">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>200</y>
+       <x>50</x>
+       <y>160</y>
        <width>111</width>
        <height>41</height>
       </rect>
@@ -2855,75 +1999,13 @@ font-size: 13px;
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_49">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>10</y>
-       <width>191</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}</string>
-     </property>
-     <property name="text">
-      <string>Merge data</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_33">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>280</y>
-       <width>261</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}</string>
-     </property>
-     <property name="text">
-      <string>Stereographic projection settings</string>
-     </property>
-    </widget>
     <widget class="QCheckBox" name="gtCircles_checkBox">
      <property name="geometry">
       <rect>
-       <x>610</x>
-       <y>370</y>
-       <width>121</width>
-       <height>51</height>
+       <x>630</x>
+       <y>400</y>
+       <width>297</width>
+       <height>19</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2938,10 +2020,10 @@ font-size: 12px;
     <widget class="QCheckBox" name="rose_checkBox">
      <property name="geometry">
       <rect>
-       <x>690</x>
-       <y>410</y>
-       <width>161</width>
-       <height>41</height>
+       <x>630</x>
+       <y>440</y>
+       <width>195</width>
+       <height>19</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2956,14 +2038,14 @@ font-size: 12px;
     <widget class="QPushButton" name="stereonet_pushButton">
      <property name="geometry">
       <rect>
-       <x>970</x>
-       <y>330</y>
+       <x>960</x>
+       <y>450</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2973,47 +2055,13 @@ font-size: 12px;</string>
       <string>Update Settings</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_148">
-     <property name="geometry">
-      <rect>
-       <x>610</x>
-       <y>330</y>
-       <width>331</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Stereonet Display</string>
-     </property>
-    </widget>
     <widget class="QCheckBox" name="linPlanes_checkBox">
      <property name="geometry">
       <rect>
-       <x>860</x>
-       <y>410</y>
-       <width>171</width>
-       <height>41</height>
+       <x>830</x>
+       <y>400</y>
+       <width>116</width>
+       <height>19</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3028,10 +2076,10 @@ font-size: 12px;
     <widget class="QCheckBox" name="contours_checkBox">
      <property name="geometry">
       <rect>
-       <x>970</x>
-       <y>370</y>
-       <width>121</width>
-       <height>51</height>
+       <x>740</x>
+       <y>400</y>
+       <width>145</width>
+       <height>19</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3046,10 +2094,10 @@ font-size: 12px;
     <widget class="QCheckBox" name="kinematics_checkBox">
      <property name="geometry">
       <rect>
-       <x>780</x>
-       <y>370</y>
-       <width>151</width>
-       <height>51</height>
+       <x>740</x>
+       <y>440</y>
+       <width>85</width>
+       <height>19</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -3064,14 +2112,14 @@ font-size: 12px;
     <widget class="QPushButton" name="merge_layers_pushButton">
      <property name="geometry">
       <rect>
-       <x>380</x>
-       <y>280</y>
+       <x>400</x>
+       <y>450</y>
        <width>131</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 212);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -3081,79 +2129,28 @@ font-size: 12px;</string>
       <string>Merge layers</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_100">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>280</y>
-       <width>341</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 12px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-border: 1px solid #FF8C66;
-	
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Merge two layers</string>
-     </property>
-    </widget>
     <widget class="Line" name="line_10">
      <property name="geometry">
       <rect>
        <x>540</x>
-       <y>60</y>
+       <y>10</y>
        <width>43</width>
-       <height>461</height>
+       <height>511</height>
       </rect>
      </property>
      <property name="lineWidth">
-      <number>2</number>
+      <number>1</number>
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
-    <widget class="Line" name="line_11">
-     <property name="geometry">
-      <rect>
-       <x>670</x>
-       <y>260</y>
-       <width>381</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="lineWidth">
-      <number>2</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
     <widget class="QLabel" name="label_24">
      <property name="geometry">
       <rect>
        <x>600</x>
-       <y>450</y>
-       <width>271</width>
+       <y>340</y>
+       <width>351</width>
        <height>51</height>
       </rect>
      </property>
@@ -3165,30 +2162,7 @@ font-style: italic;
 font-weight: bold;</string>
      </property>
      <property name="text">
-      <string>This tool is related to the qgis-stereonet plugin </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_25">
-     <property name="geometry">
-      <rect>
-       <x>590</x>
-       <y>480</y>
-       <width>201</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 12px;
-font-style: italic;
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>Here is the link to download it : </string>
+      <string>This tool is related to the qgis-stereonet plugin, available here: </string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -3197,14 +2171,14 @@ font-weight: bold;</string>
     <widget class="QPushButton" name="stereonet_pushButton_2">
      <property name="geometry">
       <rect>
-       <x>790</x>
-       <y>490</y>
+       <x>960</x>
+       <y>350</y>
        <width>141</width>
        <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(198, 255, 250);
+      <string notr="true">background-color: rgb(240, 240, 240);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -3218,7 +2192,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>330</y>
+       <y>300</y>
        <width>111</width>
        <height>51</height>
       </rect>
@@ -3239,7 +2213,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>380</y>
+       <y>350</y>
        <width>101</width>
        <height>51</height>
       </rect>
@@ -3260,7 +2234,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>340</y>
+       <y>310</y>
        <width>301</width>
        <height>31</height>
       </rect>
@@ -3270,7 +2244,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>390</y>
+       <y>360</y>
        <width>301</width>
        <height>31</height>
       </rect>
@@ -3279,8 +2253,8 @@ font-size: 13px;
     <widget class="QLabel" name="label_29">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>430</y>
+       <x>10</x>
+       <y>410</y>
        <width>511</width>
        <height>31</height>
       </rect>
@@ -3299,6 +2273,227 @@ font-weight: bold;</string>
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
+    <widget class="QLabel" name="label_42">
+     <property name="geometry">
+      <rect>
+       <x>220</x>
+       <y>10</y>
+       <width>201</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Merge data</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_43">
+     <property name="geometry">
+      <rect>
+       <x>770</x>
+       <y>10</y>
+       <width>201</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Export data</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_46">
+     <property name="geometry">
+      <rect>
+       <x>710</x>
+       <y>300</y>
+       <width>311</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Stereographic projections</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_8">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>40</y>
+       <width>521</width>
+       <height>211</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Merge two projects</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_9">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>280</y>
+       <width>521</width>
+       <height>211</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Merge two layers</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_10">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>40</y>
+       <width>531</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Export layers to common themes</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_11">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>160</y>
+       <width>531</width>
+       <height>111</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Create Virtual Stops</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_12">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>330</y>
+       <width>531</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Stereographic projection settings</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>280</y>
+       <width>501</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <zorder>line</zorder>
+    <zorder>groupBox_11</zorder>
+    <zorder>groupBox_12</zorder>
+    <zorder>groupBox_10</zorder>
+    <zorder>groupBox_9</zorder>
+    <zorder>groupBox_8</zorder>
+    <zorder>export_pushButton</zorder>
+    <zorder>label_12</zorder>
+    <zorder>lineEdit_7</zorder>
+    <zorder>pushButton_5</zorder>
+    <zorder>label_32</zorder>
+    <zorder>pushButton_22</zorder>
+    <zorder>lineEdit_53</zorder>
+    <zorder>virtual_pushButton</zorder>
+    <zorder>label_23</zorder>
+    <zorder>label_10</zorder>
+    <zorder>lineEdit_11</zorder>
+    <zorder>pushButton_20</zorder>
+    <zorder>pushButton_27</zorder>
+    <zorder>label_11</zorder>
+    <zorder>lineEdit_26</zorder>
+    <zorder>merge_pushButton</zorder>
+    <zorder>lineEdit_37</zorder>
+    <zorder>pushButton_29</zorder>
+    <zorder>label_15</zorder>
+    <zorder>gtCircles_checkBox</zorder>
+    <zorder>rose_checkBox</zorder>
+    <zorder>stereonet_pushButton</zorder>
+    <zorder>linPlanes_checkBox</zorder>
+    <zorder>contours_checkBox</zorder>
+    <zorder>kinematics_checkBox</zorder>
+    <zorder>merge_layers_pushButton</zorder>
+    <zorder>line_10</zorder>
+    <zorder>label_24</zorder>
+    <zorder>stereonet_pushButton_2</zorder>
+    <zorder>label_13</zorder>
+    <zorder>label_18</zorder>
+    <zorder>comboBox_merge1</zorder>
+    <zorder>comboBox_merge2</zorder>
+    <zorder>label_29</zorder>
+    <zorder>label_42</zorder>
+    <zorder>label_43</zorder>
+    <zorder>label_46</zorder>
+    <zorder>kinematics_checkBox</zorder>
+    <zorder>rose_checkBox</zorder>
+    <zorder>linPlanes_checkBox</zorder>
+    <zorder>contours_checkBox</zorder>
+    <zorder>gtCircles_checkBox</zorder>
    </widget>
    <widget class="QWidget" name="Help">
     <property name="styleSheet">
@@ -3307,236 +2502,17 @@ font-weight: bold;</string>
 	background-repeat: no-repeat;
 	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
 	background-size: 100% 100%;
-	background-color: rgb(255, 125, 0, 35);
+	background-color: rgb(240, 240, 240, 0);
 }</string>
     </property>
     <attribute name="title">
      <string>Help - Roadmap</string>
     </attribute>
-    <widget class="QLineEdit" name="lineEdit_16">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>10</y>
-       <width>351</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Need some help ? Contact us !</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_19">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>60</y>
-       <width>211</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66; 
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>E-mail</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_5">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>100</y>
-       <width>511</width>
-       <height>231</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-size: 20px;
-font-family: Calibri; 
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_13">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>110</y>
-       <width>261</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial;  
-font-size: 13px;
-
-</string>
-     </property>
-     <property name="plainText">
-      <string>¤   Eliott BETEND - Developer of the WAXI plugin GUI and data import tool :  </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_14">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>190</y>
-       <width>251</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 13px;
-</string>
-     </property>
-     <property name="plainText">
-      <string>¤   Mark JESSELL - Developer of all the other tools of the plugin :   </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_15">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>270</y>
-       <width>251</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 13px;
-</string>
-     </property>
-     <property name="plainText">
-      <string>¤   Julien PERRET - Developer of the WAXI QGIS Template : </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_19">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>120</y>
-       <width>231</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-font-weight: bold;
-font-style: italic;
-</string>
-     </property>
-     <property name="plainText">
-      <string>eliott.betend@uwa.edu.au</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_20">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>200</y>
-       <width>211</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-font-weight: bold;
-font-style: italic;
-</string>
-     </property>
-     <property name="plainText">
-      <string>mark.jessell@uwa.edu.au</string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_21">
-     <property name="geometry">
-      <rect>
-       <x>300</x>
-       <y>270</y>
-       <width>241</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 14px;
-font-weight: bold;
-font-style: italic;
-</string>
-     </property>
-     <property name="plainText">
-      <string>julien.perret@uwa.edu.au</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_28">
      <property name="geometry">
       <rect>
-       <x>600</x>
-       <y>540</y>
+       <x>620</x>
+       <y>530</y>
        <width>491</width>
        <height>41</height>
       </rect>
@@ -3551,65 +2527,11 @@ font-style: italic;</string>
       <string>© 2024 West African Exploration Initiative. All Rights Reserved.</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_50">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>390</y>
-       <width>211</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66;
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Help </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_17">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>430</y>
-       <width>511</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-size: 20px;
-font-family: Calibri; 
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string/>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_54">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>440</y>
+       <x>50</x>
+       <y>170</y>
        <width>271</width>
        <height>41</height>
       </rect>
@@ -3635,156 +2557,36 @@ font-size: 13px;
 </string>
      </property>
      <property name="text">
-      <string>Assistance PDF file for the WAXI plugin :</string>
+      <string>Help file for the WAXI plugin :</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_21">
      <property name="geometry">
       <rect>
-       <x>300</x>
-       <y>440</y>
-       <width>201</width>
-       <height>41</height>
+       <x>290</x>
+       <y>180</y>
+       <width>131</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(255, 216, 169);
+background-color: rgb(240, 240, 240);
 font-weight: bold;</string>
      </property>
      <property name="text">
-      <string>Assistance PDF file</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_17">
-     <property name="geometry">
-      <rect>
-       <x>670</x>
-       <y>10</y>
-       <width>341</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-  	font-size: 13px;
-	border-radius: 10px;
-	font-family: Arial; 
-	qproperty-alignment: 'AlignCenter';  
-	background-color: rgb(255, 177, 153);
-	border: 1px solid #000000; 
-}
-</string>
-     </property>
-     <property name="text">
-      <string>Plugin Roadmap</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_20">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>60</y>
-       <width>241</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66; 
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Upcoming plugin development </string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_29">
-     <property name="geometry">
-      <rect>
-       <x>730</x>
-       <y>420</y>
-       <width>241</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>Arial</family>
-       <pointsize>-1</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {
-   	font-size: 13px;
-	border-radius: 12px;		
-	background-color: rgb(255, 200, 122);
-	qproperty-alignment: 'AlignCenter';  
-	font-family: Arial; 
-	border: 1px solid #FF8C66; 
-}
-
-
-</string>
-     </property>
-     <property name="text">
-      <string>Any ideas ? </string>
-     </property>
-    </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_23">
-     <property name="geometry">
-      <rect>
-       <x>600</x>
-       <y>470</y>
-       <width>491</width>
-       <height>61</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">border-radius: 18px;
-background-color: rgb(255, 240, 217);
-font-family: Arial; 
-font-size: 13px;
-border: 1px solid #999999;</string>
-     </property>
-     <property name="plainText">
-      <string/>
+      <string>Help  file</string>
      </property>
     </widget>
     <widget class="QTableWidget" name="tableWidget4">
      <property name="geometry">
       <rect>
-       <x>590</x>
-       <y>100</y>
-       <width>521</width>
-       <height>301</height>
+       <x>610</x>
+       <y>50</y>
+       <width>471</width>
+       <height>271</height>
       </rect>
      </property>
      <property name="autoFillBackground">
@@ -3958,27 +2760,391 @@ border: 1px solid #999999;</string>
       </property>
      </item>
     </widget>
-    <widget class="QPlainTextEdit" name="plainTextEdit_22">
+    <widget class="QPushButton" name="pushButton_34">
      <property name="geometry">
       <rect>
-       <x>630</x>
-       <y>480</y>
-       <width>431</width>
-       <height>41</height>
+       <x>330</x>
+       <y>290</y>
+       <width>151</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 10px;	
-background: transparent;
-qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 13px;
-</string>
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;</string>
      </property>
-     <property name="plainText">
-      <string>If you have any ideas for improvements or tools you'd like to add to this plugin, please contact Mark JESSELL at mark.jessell@uwa.edu.au ! </string>
+     <property name="text">
+      <string>Zenodo page </string>
      </property>
     </widget>
+    <widget class="QPushButton" name="pushButton_37">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>290</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>CET website</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_38">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>360</y>
+       <width>211</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;
+
+</string>
+     </property>
+     <property name="text">
+      <string>Publications by WAXI Team</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_39">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>360</y>
+       <width>211</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;
+
+</string>
+     </property>
+     <property name="text">
+      <string>Theses by WAXI Team</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_40">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>250</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string>AMIRA website</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_41">
+     <property name="geometry">
+      <rect>
+       <x>110</x>
+       <y>250</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 14px;
+font-style: italic;
+background-color: rgb(240, 240, 240);
+font-weight: bold;</string>
+     </property>
+     <property name="text">
+      <string> WAXI website</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_13">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>20</y>
+       <width>521</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Need some help ? Contact us !</string>
+     </property>
+     <widget class="QPlainTextEdit" name="plainTextEdit_8">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>501</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>8</pointsize>
+       </font>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string>¤   Eliott BETEND - Developer of the plugin GUI and data import tool :  eliott.betend@uwa.edu.au
+
+¤   Mark JESSELL - Developer of all the other tools of the plugin :   mark.jessell@uwa.edu.au
+
+¤   Julien PERRET - Developer of the WAXI QGIS Template :  julien.perret@uwa.edu.au</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_14">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>160</y>
+       <width>521</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Help File</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_29">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>230</y>
+       <width>521</width>
+       <height>101</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Websites</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_30">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>360</y>
+       <width>521</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Any ideas ? </string>
+     </property>
+     <widget class="QPlainTextEdit" name="plainTextEdit_9">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>30</y>
+        <width>461</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string>If you have any ideas for improvements or tools you'd like to add to this plugin, please submit them to the github issues page: 
+
+https://github.com/swaxi/WAXI_QF/issues </string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_32">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>340</y>
+       <width>521</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>WAXI Resources</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_31">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>420</y>
+       <width>521</width>
+       <height>121</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>WAXI Project</string>
+     </property>
+     <widget class="QPlainTextEdit" name="plainTextEdit_5">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>30</y>
+        <width>451</width>
+        <height>81</height>
+       </rect>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string>The AMIRA West African Exploration Initiative (WAXI), in French l'Initiative d'Exploration d'Ouest Africaine (IXOA), is an ambitious research and training program based on the cooperation between most of the major stakeholders in the West African minerals sector : research institutions, geological surveys, governements and the minerals industry. </string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_33">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>20</y>
+       <width>521</width>
+       <height>331</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Plugin Roadmap</string>
+     </property>
+    </widget>
+    <zorder>groupBox_30</zorder>
+    <zorder>groupBox_33</zorder>
+    <zorder>groupBox_31</zorder>
+    <zorder>groupBox_14</zorder>
+    <zorder>groupBox_29</zorder>
+    <zorder>groupBox_32</zorder>
+    <zorder>groupBox_13</zorder>
+    <zorder>label_28</zorder>
+    <zorder>lineEdit_54</zorder>
+    <zorder>pushButton_21</zorder>
+    <zorder>tableWidget4</zorder>
+    <zorder>pushButton_34</zorder>
+    <zorder>pushButton_37</zorder>
+    <zorder>pushButton_38</zorder>
+    <zorder>pushButton_39</zorder>
+    <zorder>pushButton_40</zorder>
+    <zorder>pushButton_41</zorder>
    </widget>
   </widget>
  </widget>

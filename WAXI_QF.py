@@ -2958,12 +2958,12 @@ class WAXI_QF:
         stereonet_tooltip= 'Select Checkbox to control Display behaviour for Stereonet Plugin'
 
         # Titles
-        self.dlg.lineEdit_34.setToolTip(Clip_tooltip)
-        self.dlg.lineEdit_99.setToolTip(Add_item_tooltip)
-        self.dlg.lineEdit_35.setToolTip(Export_tooltip)
-        self.dlg.lineEdit_32.setToolTip(Update_tooltip)
-        self.dlg.lineEdit_52.setToolTip(Virtualstop_tooltip)
-        self.dlg.lineEdit_51.setToolTip(Autoincrement_tooltip)
+        self.dlg.groupBox_4.setToolTip(Clip_tooltip)
+        self.dlg.label_37.setToolTip(Add_item_tooltip)
+        self.dlg.groupBox_10.setToolTip(Export_tooltip)
+        self.dlg.groupBox_6.setToolTip(Update_tooltip)
+        self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
+        self.dlg.groupBox_7.setToolTip(Autoincrement_tooltip)
         
         
         # Project Parameters 
@@ -3010,13 +3010,13 @@ class WAXI_QF:
         
         
         # Help 
-        self.dlg.pushButton_33.setToolTip("Click here to access to WAXI website")
-        self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
-        self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
-        self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
+        #self.dlg.pushButton_33.setToolTip("Click here to access to WAXI website")
+        #self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
+        #self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
+        #self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
         
-        self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
-        self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
+        #self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
+        #self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
         
         
         # RadioButtons
@@ -3094,67 +3094,67 @@ class WAXI_QF:
                 
                 ### LineEdit read-only, not user-modifiable
                 
-                self.dlg.lineEdit_14.setReadOnly(True)
-                self.dlg.lineEdit_22.setReadOnly(True)
-                self.dlg.plainTextEdit_2.setReadOnly(True)
-                self.dlg.lineEdit_23.setReadOnly(True)
-                self.dlg.plainTextEdit_3.setReadOnly(True)
-                self.dlg.plainTextEdit_7.setReadOnly(True)
-                self.dlg.plainTextEdit_8.setReadOnly(True)
+                #self.dlg.lineEdit_14.setReadOnly(True)
+                #self.dlg.lineEdit_22.setReadOnly(True)
+                #self.dlg.plainTextEdit_2.setReadOnly(True)
+                #self.dlg.lineEdit_23.setReadOnly(True)
+                #self.dlg.plainTextEdit_3.setReadOnly(True)
+                #self.dlg.plainTextEdit_7.setReadOnly(True)
+                #self.dlg.plainTextEdit_8.setReadOnly(True)
                 
-                self.dlg.lineEdit_24.setReadOnly(True)
-                self.dlg.lineEdit_28.setReadOnly(True)
+                #self.dlg.lineEdit_24.setReadOnly(True)
+                #self.dlg.lineEdit_28.setReadOnly(True)
                 
-                self.dlg.lineEdit_21.setReadOnly(True)
-                self.dlg.lineEdit_32.setReadOnly(True)
-                self.dlg.lineEdit_33.setReadOnly(True)
-                self.dlg.lineEdit_34.setReadOnly(True)
+                #self.dlg.lineEdit_21.setReadOnly(True)
+                #self.dlg.lineEdit_32.setReadOnly(True)
+                #self.dlg.lineEdit_33.setReadOnly(True)
+                #self.dlg.lineEdit_34.setReadOnly(True)
                 
-                self.dlg.lineEdit_12.setReadOnly(True)
-                self.dlg.lineEdit_15.setReadOnly(True)
-                self.dlg.lineEdit_18.setReadOnly(True)
-                self.dlg.plainTextEdit.setReadOnly(True)
-                self.dlg.plainTextEdit_16.setReadOnly(True)
+                #self.dlg.lineEdit_12.setReadOnly(True)
+                #self.dlg.lineEdit_15.setReadOnly(True)
+                #self.dlg.lineEdit_18.setReadOnly(True)
+                #self.dlg.plainTextEdit.setReadOnly(True)
+                #self.dlg.plainTextEdit_16.setReadOnly(True)
                 
-                self.dlg.lineEdit_25.setReadOnly(True)
-                self.dlg.lineEdit_35.setReadOnly(True)
+                #self.dlg.lineEdit_25.setReadOnly(True)
+                #self.dlg.lineEdit_35.setReadOnly(True)
                 
-                self.dlg.lineEdit_36.setReadOnly(True)
-                self.dlg.lineEdit_51.setReadOnly(True)
+                #self.dlg.lineEdit_36.setReadOnly(True)
+                #self.dlg.lineEdit_51.setReadOnly(True)
                 
             
-                self.dlg.lineEdit_99.setReadOnly(True)
-                self.dlg.lineEdit_16.setReadOnly(True)
-                self.dlg.plainTextEdit_5.setReadOnly(True)
-                self.dlg.plainTextEdit_13.setReadOnly(True)
-                self.dlg.plainTextEdit_14.setReadOnly(True)
-                self.dlg.plainTextEdit_15.setReadOnly(True)
-                self.dlg.lineEdit_19.setReadOnly(True)
+                #self.dlg.lineEdit_99.setReadOnly(True)
+                #self.dlg.lineEdit_16.setReadOnly(True)
+                #self.dlg.plainTextEdit_5.setReadOnly(True)
+                #self.dlg.plainTextEdit_13.setReadOnly(True)
+                #self.dlg.plainTextEdit_14.setReadOnly(True)
+                #self.dlg.plainTextEdit_15.setReadOnly(True)
+                #self.dlg.lineEdit_19.setReadOnly(True)
                  
-                self.dlg.plainTextEdit_19.setReadOnly(True)
-                self.dlg.plainTextEdit_20.setReadOnly(True)
-                self.dlg.plainTextEdit_21.setReadOnly(True)
+                #self.dlg.plainTextEdit_19.setReadOnly(True)
+                #self.dlg.plainTextEdit_20.setReadOnly(True)
+                #self.dlg.plainTextEdit_21.setReadOnly(True)
                 
-                self.dlg.lineEdit_49.setReadOnly(True)
-                self.dlg.lineEdit_100.setReadOnly(True)
-                self.dlg.lineEdit_52.setReadOnly(True)
+                #self.dlg.lineEdit_49.setReadOnly(True)
+                #self.dlg.lineEdit_100.setReadOnly(True)
+                #self.dlg.lineEdit_52.setReadOnly(True)
                 
-                self.dlg.lineEdit_50.setReadOnly(True)
-                self.dlg.lineEdit_54.setReadOnly(True)
-                self.dlg.plainTextEdit_17.setReadOnly(True)
+                #self.dlg.lineEdit_50.setReadOnly(True)
+                #self.dlg.lineEdit_54.setReadOnly(True)
+                #self.dlg.plainTextEdit_17.setReadOnly(True)
                 
-                self.dlg.lineEdit_56.setReadOnly(True)
-                self.dlg.lineEdit_56.setReadOnly(True)
-                self.dlg.lineEdit_57.setReadOnly(True)
-                self.dlg.lineEdit_58.setReadOnly(True)
-                self.dlg.lineEdit_59.setReadOnly(True)
-                self.dlg.lineEdit_47.setReadOnly(True)
-                self.dlg.plainTextEdit_7.setReadOnly(True)
-                self.dlg.plainTextEdit_8.setReadOnly(True)
-                self.dlg.lineEdit_20.setReadOnly(True)
-                self.dlg.lineEdit_29.setReadOnly(True)
-                self.dlg.plainTextEdit_22.setReadOnly(True)
-                self.dlg.plainTextEdit_23.setReadOnly(True)
+                #self.dlg.lineEdit_56.setReadOnly(True)
+                #self.dlg.lineEdit_56.setReadOnly(True)
+                #self.dlg.lineEdit_57.setReadOnly(True)
+                #self.dlg.lineEdit_58.setReadOnly(True)
+                #self.dlg.lineEdit_59.setReadOnly(True)
+                #self.dlg.lineEdit_47.setReadOnly(True)
+                #self.dlg.plainTextEdit_7.setReadOnly(True)
+                #self.dlg.plainTextEdit_8.setReadOnly(True)
+                #self.dlg.lineEdit_20.setReadOnly(True)
+                #self.dlg.lineEdit_29.setReadOnly(True)
+                #self.dlg.plainTextEdit_22.setReadOnly(True)
+                #self.dlg.plainTextEdit_23.setReadOnly(True)
                 
            
                 ### Connection of PushButtons ### 
@@ -3201,17 +3201,17 @@ class WAXI_QF:
                 self.dlg.tableWidget4.setColumnWidth(0, 350) 
                 self.dlg.tableWidget4.setColumnWidth(1, 171)
                 
-                self.dlg.tableWidget4.item(0, 0).setBackground(QColor.fromHsv(60, 130, 250))
-                self.dlg.tableWidget4.item(0, 1).setBackground(QColor.fromHsv(60, 130, 250))
+                self.dlg.tableWidget4.item(0, 0).setBackground(QColor.fromHsv(0, 0, 240))
+                self.dlg.tableWidget4.item(0, 1).setBackground(QColor.fromHsv(0, 0, 240))
                 
-                self.dlg.tableWidget4.item(1, 0).setBackground(QColor.fromHsv(80, 130, 250))
-                self.dlg.tableWidget4.item(1, 1).setBackground(QColor.fromHsv(80, 130, 250))
+                self.dlg.tableWidget4.item(1, 0).setBackground(QColor.fromHsv(0, 0, 220))
+                self.dlg.tableWidget4.item(1, 1).setBackground(QColor.fromHsv(0, 0, 220))
                 
-                self.dlg.tableWidget4.item(2, 0).setBackground(QColor.fromHsv(60, 130, 250))
-                self.dlg.tableWidget4.item(2, 1).setBackground(QColor.fromHsv(60, 130, 250))
+                self.dlg.tableWidget4.item(2, 0).setBackground(QColor.fromHsv(0, 0, 240))
+                self.dlg.tableWidget4.item(2, 1).setBackground(QColor.fromHsv(0, 0, 240))
                 
-                self.dlg.tableWidget4.item(3, 0).setBackground(QColor.fromHsv(80, 130, 250))
-                self.dlg.tableWidget4.item(3, 1).setBackground(QColor.fromHsv(80, 130, 250))
+                self.dlg.tableWidget4.item(3, 0).setBackground(QColor.fromHsv(0, 0, 220))
+                self.dlg.tableWidget4.item(3, 1).setBackground(QColor.fromHsv(0, 0, 220))
                 
                 self.dlg.tableWidget4.horizontalHeader().setVisible(True)
                 self.dlg.tableWidget4.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -3220,20 +3220,20 @@ class WAXI_QF:
                 # Home Page 
                 
                 # Connection to the WAXI site  : https://waxi4.org/
-                self.dlg.pushButton_33.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
+                self.dlg.pushButton_41.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
                 
                 #  Connection to the AMIRA site : https://amira.global/
-                self.dlg.pushButton_30.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://amira.global/")))
+                self.dlg.pushButton_40.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://amira.global/")))
                 
                 #  Connection to the CET site : https://www.cet.edu.au/
-                self.dlg.pushButton_32.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/")))
+                self.dlg.pushButton_37.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/")))
             
                 #  Connection to the Zenodo site : https://zenodo.org/records/10147786
-                self.dlg.pushButton_31.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://zenodo.org/records/10692516")))
+                self.dlg.pushButton_34.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://zenodo.org/records/10692516")))
             
                 #  Connection to the WAXI articles : 
-                self.dlg.pushButton_35.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/journal-articles/")))
-                self.dlg.pushButton_36.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/theses/")))
+                self.dlg.pushButton_38.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/journal-articles/")))
+                self.dlg.pushButton_39.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/theses/")))
           
              
                 # PushButtons to search for files on the computer
