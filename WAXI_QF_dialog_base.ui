@@ -2092,6 +2092,9 @@ font-size: 12px;
      </property>
     </widget>
     <widget class="QCheckBox" name="kinematics_checkBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>740</x>
