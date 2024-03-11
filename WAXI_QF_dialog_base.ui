@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>2</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -740,7 +740,7 @@ font-style: italic;</string>
        <x>10</x>
        <y>10</y>
        <width>211</width>
-       <height>16</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="font">
@@ -2004,7 +2004,7 @@ font-size: 13px;
       <rect>
        <x>630</x>
        <y>400</y>
-       <width>297</width>
+       <width>91</width>
        <height>19</height>
       </rect>
      </property>
@@ -2022,7 +2022,7 @@ font-size: 12px;
       <rect>
        <x>630</x>
        <y>440</y>
-       <width>195</width>
+       <width>101</width>
        <height>19</height>
       </rect>
      </property>
@@ -2078,7 +2078,7 @@ font-size: 12px;
       <rect>
        <x>740</x>
        <y>400</y>
-       <width>145</width>
+       <width>81</width>
        <height>19</height>
       </rect>
      </property>
@@ -2471,12 +2471,7 @@ font-weight: bold;</string>
     <zorder>lineEdit_37</zorder>
     <zorder>pushButton_29</zorder>
     <zorder>label_15</zorder>
-    <zorder>gtCircles_checkBox</zorder>
-    <zorder>rose_checkBox</zorder>
     <zorder>stereonet_pushButton</zorder>
-    <zorder>linPlanes_checkBox</zorder>
-    <zorder>contours_checkBox</zorder>
-    <zorder>kinematics_checkBox</zorder>
     <zorder>merge_layers_pushButton</zorder>
     <zorder>line_10</zorder>
     <zorder>label_24</zorder>
