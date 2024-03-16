@@ -55,9 +55,9 @@
 }
 
 QTabBar::tab {
-    min-width: 224px; 
+    min-width: 280px; 
     min-height: 30px;
-	background-color: rgb(240, 240, 240);
+	background-color: rgb(220, 220, 220,255);
   	border-radius: 2px;	
 	border: 1px solid #000000; 
 	font-family: Arial; 
@@ -66,7 +66,7 @@ QTabBar::tab {
 
 
 QTabBar::tab:selected {
-   background-color : rgb(225, 225, 225);
+   background-color : rgb(190, 190, 190);
 }
 
 
@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -90,7 +90,7 @@ QTabBar::tab:hover {
 	background-repeat: no-repeat;
 	background-attachment: fixed; 
 	background-size: 100% 100%;
-	background-color: rgb(240, 240, 240, 0);
+	background-color: rgb(240, 240, 240,255);
 }</string>
     </property>
     <attribute name="title">
@@ -111,7 +111,9 @@ QTabBar::tab:hover {
      <property name="styleSheet">
       <string notr="true">QLineEdit {
     border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -119,6 +121,9 @@ QTabBar::tab:hover {
       <string/>
      </property>
      <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
       <string/>
      </property>
     </widget>
@@ -138,7 +143,7 @@ QTabBar::tab:hover {
       <string/>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -154,7 +159,7 @@ QTabBar::tab:hover {
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial;  
@@ -181,7 +186,7 @@ font-size: 12px;</string>
 QTabBar::tab {
     min-width: 200px; 
     min-height: 25px;
-	background-color: rgb(240, 240, 240);
+	background-color: rgb(220, 220, 220);
   	border-radius: 2px;	
 	font-weight: bold;
 	font-size: 11px;
@@ -192,7 +197,7 @@ border: 1px solid #000000;
 
 
 QTabBar::tab:selected {
-   background-color : rgb(225, 225, 225);
+   background-color : rgb(190, 190, 190);
 }
 
 
@@ -209,11 +214,11 @@ QTabBar::tab:hover {
      <widget class="QWidget" name="Step2">
       <property name="styleSheet">
        <string notr="true"># Step_2_Check_columns_match {
-	background-color: rgb(240, 240, 240);
+	background-color: rgb(220, 220, 220);
 }</string>
       </property>
       <attribute name="title">
-       <string>Step 3 : Check Columns match</string>
+       <string>Step 2 : Check Columns match</string>
       </attribute>
       <widget class="QTableWidget" name="tableWidget1">
        <property name="geometry">
@@ -325,7 +330,7 @@ QTabBar::tab:hover {
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -345,7 +350,7 @@ font-size: 12px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -470,7 +475,7 @@ font-size: 13px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -490,7 +495,7 @@ font-size: 12px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -535,7 +540,7 @@ font-size: 13px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -555,7 +560,7 @@ font-size: 12px;</string>
         </rect>
        </property>
        <property name="styleSheet">
-        <string notr="true">background-color: rgb(240, 240, 240);
+        <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -682,7 +687,7 @@ font-size: 13px;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -702,7 +707,7 @@ font-size: 12px;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -768,6 +773,12 @@ font-style: italic;</string>
      </property>
      <property name="acceptDrops">
       <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">#plainTextEdit_7{
+
+	background-color: rgb(240, 240, 240, 255);
+}</string>
      </property>
      <property name="inputMethodHints">
       <set>Qt::ImhNone</set>
@@ -885,13 +896,10 @@ font-style: italic;</string>
      <string notr="true">#Fieldwork_preparation {
 	background-position: center;
 	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
-	background-size: 150% 150%;
-	background-color: rgb(240, 240, 240, 0);
-}
-
-
-</string>
+	background-attachment: fixed; 
+	background-size: 100% 100%;
+	background-color: rgb(240, 240, 240,255);
+}</string>
     </property>
     <attribute name="title">
      <string>Fieldwork preparation</string>
@@ -906,7 +914,7 @@ font-style: italic;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -952,8 +960,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -989,9 +999,11 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+      <string notr="true">QLineEdit{
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1006,7 +1018,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1072,8 +1084,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1089,8 +1103,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1105,7 +1121,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1121,7 +1137,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1156,7 +1172,7 @@ font-style: italic;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1193,7 +1209,7 @@ font-size: 12px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1249,8 +1265,10 @@ font-size: 15px;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1308,8 +1326,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1324,7 +1344,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-size: 12px;
@@ -1422,7 +1442,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-size: 12px;
@@ -1438,7 +1458,7 @@ font-family: Arial; </string>
        <x>170</x>
        <y>10</y>
        <width>201</width>
-       <height>16</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="font">
@@ -1495,10 +1515,10 @@ font-family: Arial; </string>
     <widget class="QLabel" name="label_39">
      <property name="geometry">
       <rect>
-       <x>720</x>
-       <y>20</y>
+       <x>740</x>
+       <y>10</y>
        <width>181</width>
-       <height>16</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="font">
@@ -1632,12 +1652,12 @@ font-family: Arial; </string>
    </widget>
    <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
-     <string notr="true">#Data_management {
+     <string notr="true">#Data_management  {
 	background-position: center;
 	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
+	background-attachment: fixed; 
 	background-size: 100% 100%;
-	background-color: rgb(240, 240, 240, 0);
+	background-color: rgb(240, 240, 240,255);
 }</string>
     </property>
     <attribute name="title">
@@ -1653,7 +1673,7 @@ font-family: Arial; </string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1695,9 +1715,12 @@ font-size: 12px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
+
 </string>
      </property>
     </widget>
@@ -1711,7 +1734,7 @@ font-size: 12px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1746,7 +1769,7 @@ font-style: italic;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1767,8 +1790,10 @@ font-family: Arial;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1783,7 +1808,7 @@ font-family: Arial;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1846,8 +1871,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1862,7 +1889,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1878,7 +1905,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -1916,8 +1943,10 @@ font-size: 13px;
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1932,7 +1961,7 @@ font-size: 13px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -1953,8 +1982,10 @@ font-size: 12px;</string>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
-    border-radius: 0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
 }
 </string>
      </property>
@@ -1969,7 +2000,7 @@ font-size: 12px;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240, 0);</string>
+      <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
      </property>
      <property name="text">
       <string>...</string>
@@ -2045,7 +2076,7 @@ font-size: 12px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2122,7 +2153,7 @@ font-size: 12px;
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2181,7 +2212,7 @@ font-weight: bold;</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(240, 240, 240);
+      <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
 font-family: Arial; 
@@ -2302,7 +2333,7 @@ font-weight: bold;</string>
        <x>770</x>
        <y>10</y>
        <width>201</width>
-       <height>16</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="font">
@@ -2498,9 +2529,9 @@ font-weight: bold;</string>
      <string notr="true">#Help {
 	background-position: center;
 	background-repeat: no-repeat;
-	background-attachment: fixed; /* Facultatif : pour que l'image reste fixe lors du défilement */
+	background-attachment: fixed; 
 	background-size: 100% 100%;
-	background-color: rgb(240, 240, 240, 0);
+	background-color: rgb(240, 240, 240,255);
 }</string>
     </property>
     <attribute name="title">
@@ -2571,7 +2602,7 @@ font-size: 13px;
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
@@ -2771,7 +2802,7 @@ font-weight: bold;</string>
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
@@ -2791,7 +2822,7 @@ font-weight: bold;</string>
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
@@ -2811,7 +2842,7 @@ font-weight: bold;</string>
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;
 
 </string>
@@ -2833,7 +2864,7 @@ font-weight: bold;
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;
 
 </string>
@@ -2855,7 +2886,7 @@ font-weight: bold;
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
@@ -2875,7 +2906,7 @@ font-weight: bold;</string>
       <string notr="true">font-family: Arial; 
 font-size: 14px;
 font-style: italic;
-background-color: rgb(240, 240, 240);
+background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
@@ -2921,6 +2952,15 @@ font-weight: bold;</string>
       <property name="acceptDrops">
        <bool>false</bool>
       </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">#plainTextEdit_8{
+
+	background-color: rgb(240, 240, 240, 255);
+}</string>
+      </property>
       <property name="inputMethodHints">
        <set>Qt::ImhNone</set>
       </property>
@@ -2939,6 +2979,9 @@ font-weight: bold;</string>
 ¤   Mark JESSELL - Developer of all the other tools of the plugin :   mark.jessell@uwa.edu.au
 
 ¤   Julien PERRET - Developer of the WAXI QGIS Template :  julien.perret@uwa.edu.au</string>
+      </property>
+      <property name="backgroundVisible">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
@@ -3016,6 +3059,12 @@ font-weight: bold;</string>
       <property name="acceptDrops">
        <bool>false</bool>
       </property>
+      <property name="styleSheet">
+       <string notr="true">#plainTextEdit_9{
+
+	background-color: rgb(240, 240, 240, 255);
+}</string>
+      </property>
       <property name="inputMethodHints">
        <set>Qt::ImhNone</set>
       </property>
@@ -3088,6 +3137,12 @@ https://github.com/swaxi/WAXI_QF/issues </string>
       </property>
       <property name="acceptDrops">
        <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">#plainTextEdit_5{
+
+	background-color: rgb(240, 240, 240, 255);
+}</string>
       </property>
       <property name="inputMethodHints">
        <set>Qt::ImhNone</set>
