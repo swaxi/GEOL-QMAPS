@@ -209,7 +209,7 @@ QTabBar::tab:hover {
 </string>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="Step2">
       <property name="styleSheet">
@@ -469,9 +469,9 @@ font-size: 13px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>470</y>
+         <y>480</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -489,9 +489,9 @@ font-size: 12px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>410</y>
+         <y>440</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -534,9 +534,9 @@ font-size: 13px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>410</y>
+         <y>440</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -554,9 +554,9 @@ font-size: 12px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>470</y>
+         <y>480</y>
          <width>101</width>
-         <height>41</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -2622,7 +2622,10 @@ font-weight: bold;</string>
       <bool>false</bool>
      </property>
      <property name="styleSheet">
-      <string notr="true">border-radius: 18px;</string>
+      <string notr="true">#tableWidget4 {
+border-radius: 18px;
+backround-color: (220,220,220);
+}</string>
      </property>
      <property name="showGrid">
       <bool>true</bool>
@@ -2652,7 +2655,7 @@ font-weight: bold;</string>
       <number>50</number>
      </attribute>
      <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>253</number>
+      <number>100</number>
      </attribute>
      <attribute name="horizontalHeaderHighlightSections">
       <bool>true</bool>
