@@ -2150,121 +2150,109 @@ class WAXI_QF:
         
         if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
 
-            dirs=["STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","STRUCTURES","LITHOLOGY","GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
             e = self.iface.mapCanvas().extent()  
             extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
             shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
-            #csv_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
     
             shps=read_csv(shp_list,names=['name','dir_code'])
             shps=shps.set_index("name")
             
-            #csvs=read_csv(csv_list,names=['name'])
     
             geom = QgsGeometry().fromRect(extent)
     
             ftr = QgsFeature()
             ftr.setGeometry(geom)
     
+            project = QgsProject.instance()
+            crs = project.crs()            
+            clip_layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
+    
+            with edit(clip_layer):
+                clip_layer.addFeature(ftr)
+
+            proj_file_path = project.fileName()
+            head_tail = os.path.split(proj_file_path)
+            chemin_geopackage_in=head_tail[0]+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            output_dir=self.mynormpath(self.dlg.lineEdit_3.text()).strip()
+            chemin_geopackage_out=output_dir+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            print('gpkg loc',chemin_geopackage_out)
+
+            dirs=[output_dir,output_dir+'/0. FIELD DATA',output_dir+'/99. COMMAND FILES - PLUGIN']
+
+            for dirpath in dirs:
+                if(not os.path.exists(self.mynormpath(dirpath))):
+                    os.mkdir(self.mynormpath(dirpath))
+
             #Define your Coordinate Reference System here
-            project = QgsProject.instance()
-            crs = project.crs()
-    
-            layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
-    
-            with edit(layer):
-                layer.addFeature(ftr)
-    
-    
-            # Specify the output file path for the shapefile 
-    
-            output_path = self.mynormpath(self.dlg.lineEdit_3.text()).strip()
-            chemin_geopackage = output_path + "/0. FIELD DATA/CURRENT MISSION.gpkg"
+
             
-            if(not os.path.exists(self.mynormpath(output_path))):
-                os.mkdir(self.mynormpath(output_path))
-            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA"))):
-                os.mkdir(self.mynormpath(output_path+"/0. FIELD DATA"))
-                
-            if(not os.path.exists(self.mynormpath(chemin_geopackage))):
-                os.mkdir(self.mynormpath(chemin_geopackage))
-                
- 
-            # Prepare the output shapefile parameters
-    
-    
-            options = QgsVectorFileWriter.SaveVectorOptions()
-            options.driverName = "ESRI Shapefile"
-            #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-            options.fileEncoding="UTF8"
-    
-            # Create the vector file writer instance
-            if(os.path.exists(self.dlg.lineEdit_8.text())):
-                overlay_path = self.dlg.lineEdit_8.text()
-            elif( self.dlg.lineEdit_8.text() and not os.path.exists( self.dlg.lineEdit_8.text())):
-                self.iface.messageBar().pushMessage("Layer Failed to load clip polygon: "+ self.dlg.lineEdit_8.text() , level=Qgis.Warning, duration=15)
-                return
-            else:
-                overlay_path = self.mynormpath(chemin_geopackage +"|layername=cliprect")  # Path to clip rectangle in memory
-                writer = QgsVectorFileWriter.writeAsVectorFormatV3 (layer,overlay_path, QgsProject.instance().transformContext(), options )
-    
-                if writer[0] != QgsVectorFileWriter.NoError:
-                    print("Error occurred while creating shapefile:", writer.errorMessage())
-                """
-                else:
-                    # Write features to the shapefile
-                    for feature in layer.getFeatures():
-                        writer.addFeature(feature)
-    
-                    # Finish writing and close the shapefile
-                """
-                del writer
             
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-                if layer.name() in shps.index.tolist():   
-                    # Get the file path of the layer
-    
-                    input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-                    output_path_2 = self.mynormpath("/99. COMMAND FILES - PLUGIN")
-                   
-                    ### REDO output_path as output_dir + input_filename.shp
-                    processing.run("native:clip", {   
-                        'INPUT': input_path,   
-                        'OUTPUT': self.mynormpath(output_path + output_path_2 +'/'+layer.name()),   
-                        'OVERLAY': overlay_path   
-                    })  
-    
-                    qml_input_path = input_path.replace(".shp",".qml")
-                    qml_output_path_2 = output_path + output_path_2 +'/'+layer.name()+".shp".replace(".shp",".qml")
-                    shutil.copyfile(qml_input_path,qml_output_path_2)
-            
-            project = QgsProject.instance()
             proj_file_path=project.fileName()
             head_tail = os.path.split(proj_file_path)
             
             qml_input_path = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
             
-            qml_output_path_2 = output_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
+            qml_output_path_2 = output_dir+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
             shutil.copyfile(qml_input_path,qml_output_path_2)
             
             qml_input_path = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            
-            qml_output_path_2 = output_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
+            qml_output_path_2 = output_dir+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
             shutil.copyfile(qml_input_path,qml_output_path_2)
     
-            if(not os.path.exists(self.mynormpath(output_path+"/0. FIELD DATA/"+dirs[4]))):
-                src_path=os.path.split(self.mynormpath(input_path))
-                src_path=self.mynormpath(src_path[0]+"/../"+dirs[4])
-                dst_path=self.mynormpath(output_path+"/0. FIELD DATA/"+dirs[4]+"/")
+            src_path=head_tail[0]+'/0. FIELD DATA/99. CSV FILES'
+            dst_path=self.mynormpath(output_dir+"/0. FIELD DATA/99. CSV FILES/")
     
-                shutil.copytree(src_path, dst_path)
+            shutil.copytree(src_path, dst_path)
+
+            src_path=head_tail[0]+"/1. GEOGRAPHY"
+            dst_path=self.mynormpath(output_dir+"/1. GEOGRAPHY/")
+            shutil.copytree(src_path, dst_path)
+
+            shutil.copyfile(proj_file_path, output_dir+'/'+head_tail[1].replace('.qgz','_clip.qgz'))
+
+            src_path=head_tail[0]+"/0. FIELD DATA/DCIM/"
+            dst_path=self.mynormpath(output_dir+"/0. FIELD DATA/DCIM/")
+            shutil.copytree(src_path, dst_path)
+
+            qlr_input_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            qlr_output_path_2 = output_dir+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(qlr_input_path,qlr_output_path_2)
     
-            #proj_file_path=project.fileName()
-            #head_tail = os.path.split(proj_file_path)
-            #shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(output_path+'/'+head_tail[1]))
+            # Specify the output file path for the shapefile 
+            in_pref=head_tail[0]+'/99. COMMAND FILES - PLUGIN/'
+            out_pref=output_dir+'/99. COMMAND FILES - PLUGIN/'
+            copies=[[chemin_geopackage_in,chemin_geopackage_out],
+                    [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
+                    [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
+                    [in_pref+'stereonet.json',out_pref+'stereonet.json'],
+                    [in_pref+'Stops_PT.qml',out_pref+'Stops_PT.qml'],
+                    [in_pref+'Stops_PT_autoinc.qml',out_pref+'Stops_PT_autoinc.qml'],
+                    [in_pref+'Stops_PT_no_autoinc.qml',out_pref+'Stops_PT_no_autoinc.qml'],
+                    ]
+            
+            for pairs in copies:
+                shutil.copyfile(pairs[0],pairs[1])
+            
+            # Prepare the output shapefile parameters
+            
+            
+            for layer in project.mapLayers().values():
+                # Check if the layer name matches the target name
+                if layer.name() in shps.index.tolist():  
+                    if(not '_PG' in layer.name()): 
+                        # Get the file path of the layer
+        
+                        input_path=self.mynormpath(layer.dataProvider().dataSourceUri())
+
+                        output_path_gpkg=self.mynormpath(chemin_geopackage_out)
+                        print(output_path_gpkg)
+                        processing.run("native:clip", 
+                            {'INPUT':input_path,
+                                'OVERLAY':clip_layer,
+                                'OUTPUT':'ogr:dbname=\''+output_path_gpkg+'\' table="'+layer.name()+'" (geom)'})         
     
-            self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_path, level=Qgis.Success, duration=5)
+    
+            self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_dir, level=Qgis.Success, duration=5)
 
 
         else:
@@ -3077,86 +3065,18 @@ class WAXI_QF:
         
         geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
 
-        test_layers = fiona.listlayers(geopackage_path)
-        
-        if('Stops_PT' not in test_layers):
-                self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
-        
-        else:
+        try:
+            test_layers = fiona.listlayers(geopackage_path)
             
             if self.first_start == True:
                 self.first_start = False
                 
-                 
+                    
                 ### Accessing the main window : QDialog
                 self.dlg = WAXI_QFDialog()   
                 self.dlg.setFixedSize(1131, 600)
                 
-                ### LineEdit read-only, not user-modifiable
-                
-                #self.dlg.lineEdit_14.setReadOnly(True)
-                #self.dlg.lineEdit_22.setReadOnly(True)
-                #self.dlg.plainTextEdit_2.setReadOnly(True)
-                #self.dlg.lineEdit_23.setReadOnly(True)
-                #self.dlg.plainTextEdit_3.setReadOnly(True)
-                #self.dlg.plainTextEdit_7.setReadOnly(True)
-                #self.dlg.plainTextEdit_8.setReadOnly(True)
-                
-                #self.dlg.lineEdit_24.setReadOnly(True)
-                #self.dlg.lineEdit_28.setReadOnly(True)
-                
-                #self.dlg.lineEdit_21.setReadOnly(True)
-                #self.dlg.lineEdit_32.setReadOnly(True)
-                #self.dlg.lineEdit_33.setReadOnly(True)
-                #self.dlg.lineEdit_34.setReadOnly(True)
-                
-                #self.dlg.lineEdit_12.setReadOnly(True)
-                #self.dlg.lineEdit_15.setReadOnly(True)
-                #self.dlg.lineEdit_18.setReadOnly(True)
-                #self.dlg.plainTextEdit.setReadOnly(True)
-                #self.dlg.plainTextEdit_16.setReadOnly(True)
-                
-                #self.dlg.lineEdit_25.setReadOnly(True)
-                #self.dlg.lineEdit_35.setReadOnly(True)
-                
-                #self.dlg.lineEdit_36.setReadOnly(True)
-                #self.dlg.lineEdit_51.setReadOnly(True)
-                
             
-                #self.dlg.lineEdit_99.setReadOnly(True)
-                #self.dlg.lineEdit_16.setReadOnly(True)
-                #self.dlg.plainTextEdit_5.setReadOnly(True)
-                #self.dlg.plainTextEdit_13.setReadOnly(True)
-                #self.dlg.plainTextEdit_14.setReadOnly(True)
-                #self.dlg.plainTextEdit_15.setReadOnly(True)
-                #self.dlg.lineEdit_19.setReadOnly(True)
-                 
-                #self.dlg.plainTextEdit_19.setReadOnly(True)
-                #self.dlg.plainTextEdit_20.setReadOnly(True)
-                #self.dlg.plainTextEdit_21.setReadOnly(True)
-                
-                #self.dlg.lineEdit_49.setReadOnly(True)
-                #self.dlg.lineEdit_100.setReadOnly(True)
-                #self.dlg.lineEdit_52.setReadOnly(True)
-                
-                #self.dlg.lineEdit_50.setReadOnly(True)
-                #self.dlg.lineEdit_54.setReadOnly(True)
-                #self.dlg.plainTextEdit_17.setReadOnly(True)
-                
-                #self.dlg.lineEdit_56.setReadOnly(True)
-                #self.dlg.lineEdit_56.setReadOnly(True)
-                #self.dlg.lineEdit_57.setReadOnly(True)
-                #self.dlg.lineEdit_58.setReadOnly(True)
-                #self.dlg.lineEdit_59.setReadOnly(True)
-                #self.dlg.lineEdit_47.setReadOnly(True)
-                #self.dlg.plainTextEdit_7.setReadOnly(True)
-                #self.dlg.plainTextEdit_8.setReadOnly(True)
-                #self.dlg.lineEdit_20.setReadOnly(True)
-                #self.dlg.lineEdit_29.setReadOnly(True)
-                #self.dlg.plainTextEdit_22.setReadOnly(True)
-                #self.dlg.plainTextEdit_23.setReadOnly(True)
-                
-           
                 ### Connection of PushButtons ### 
                 
                 # Project_parameters
@@ -3166,15 +3086,15 @@ class WAXI_QF:
 
                 self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
                 self.dlg.pushButton_19.clicked.connect(self.resetWindow_fieldwork_preparation)
-               
+                
                 # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
-              
+                
                 self.dlg.pushButton_8.clicked.connect(self.click_import_data)  
                 self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                 self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                 self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
                 self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
-   
+
                 
                 # Export_data
                 self.dlg.export_pushButton.clicked.connect(self.exportData)
@@ -3184,8 +3104,8 @@ class WAXI_QF:
                 # Stop 
                 self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
                 self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
-    
-    
+
+
                 # Stereo             
                 self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
                 self.dlg.stereonet_pushButton_2.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/swaxi/qgis-stereonet")))
@@ -3216,7 +3136,7 @@ class WAXI_QF:
                 self.dlg.tableWidget4.horizontalHeader().setVisible(True)
                 self.dlg.tableWidget4.setEditTriggers(QTableWidget.NoEditTriggers)
 
-              
+                
                 # Home Page 
                 
                 # Connection to the WAXI site  : https://waxi4.org/
@@ -3234,8 +3154,8 @@ class WAXI_QF:
                 #  Connection to the WAXI articles : 
                 self.dlg.pushButton_38.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/journal-articles/")))
                 self.dlg.pushButton_39.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/publications/theses/")))
-          
-             
+            
+                
                 # PushButtons to search for files on the computer
             
                 self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
@@ -3273,7 +3193,13 @@ class WAXI_QF:
             
                
                     
-                    
+        except:
+
+        #if('Stops_PT' not in test_layers):
+            self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+        
+        #else:
+                   
                     
                     
 

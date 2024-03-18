@@ -102,7 +102,7 @@ QTabBar::tab:hover {
        <x>90</x>
        <y>70</y>
        <width>271</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="autoFillBackground">
@@ -132,8 +132,8 @@ border-style: solid;border-width: 1px;border-color: black
       <rect>
        <x>370</x>
        <y>70</y>
-       <width>41</width>
-       <height>31</height>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="toolTip">
@@ -155,7 +155,7 @@ border-style: solid;border-width: 1px;border-color: black
        <x>90</x>
        <y>160</y>
        <width>111</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -534,9 +534,9 @@ font-size: 13px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>440</y>
+         <y>450</y>
          <width>101</width>
-         <height>31</height>
+         <height>21</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -554,9 +554,9 @@ font-size: 12px;</string>
        <property name="geometry">
         <rect>
          <x>500</x>
-         <y>480</y>
+         <y>490</y>
          <width>101</width>
-         <height>31</height>
+         <height>21</height>
         </rect>
        </property>
        <property name="styleSheet">
@@ -683,7 +683,7 @@ font-size: 13px;</string>
        <x>10</x>
        <y>500</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -703,7 +703,7 @@ font-size: 12px;</string>
        <x>90</x>
        <y>320</y>
        <width>201</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -907,10 +907,10 @@ font-style: italic;</string>
     <widget class="QPushButton" name="projName_pushButton">
      <property name="geometry">
       <rect>
-       <x>980</x>
-       <y>190</y>
-       <width>111</width>
-       <height>31</height>
+       <x>1010</x>
+       <y>200</y>
+       <width>81</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -931,7 +931,7 @@ font-size: 12px;
        <x>620</x>
        <y>90</y>
        <width>61</width>
-       <height>51</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -955,7 +955,7 @@ font-size: 13px;
        <x>690</x>
        <y>90</y>
        <width>331</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -972,9 +972,9 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>620</x>
-       <y>150</y>
+       <y>130</y>
        <width>61</width>
-       <height>41</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -993,9 +993,9 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>150</y>
+       <y>130</y>
        <width>331</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1011,10 +1011,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="clip_pushButton">
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>460</x>
        <y>170</y>
-       <width>101</width>
-       <height>31</height>
+       <width>51</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1053,7 +1053,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>120</y>
+       <y>110</y>
        <width>121</width>
        <height>51</height>
       </rect>
@@ -1079,7 +1079,7 @@ font-size: 13px;
        <x>180</x>
        <y>90</y>
        <width>271</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1098,7 +1098,7 @@ border-style: solid;border-width: 1px;border-color: black
        <x>180</x>
        <y>130</y>
        <width>271</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1114,10 +1114,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton">
      <property name="geometry">
       <rect>
-       <x>470</x>
+       <x>460</x>
        <y>90</y>
-       <width>41</width>
-       <height>31</height>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1130,10 +1130,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton_6">
      <property name="geometry">
       <rect>
-       <x>470</x>
+       <x>460</x>
        <y>130</y>
-       <width>41</width>
-       <height>31</height>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1166,9 +1166,9 @@ font-style: italic;</string>
      <property name="geometry">
       <rect>
        <x>940</x>
-       <y>530</y>
+       <y>540</y>
        <width>161</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1203,9 +1203,9 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>930</x>
-       <y>310</y>
+       <y>320</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1260,7 +1260,7 @@ font-size: 15px;</string>
        <x>110</x>
        <y>410</y>
        <width>211</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1279,7 +1279,7 @@ border-style: solid;border-width: 1px;border-color: black
        <x>10</x>
        <y>410</y>
        <width>91</width>
-       <height>41</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1319,9 +1319,9 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>360</y>
+       <y>370</y>
        <width>211</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1340,7 +1340,7 @@ border-style: solid;border-width: 1px;border-color: black
        <x>180</x>
        <y>450</y>
        <width>141</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1360,7 +1360,7 @@ font-family: Arial; </string>
        <x>110</x>
        <y>280</y>
        <width>421</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
     </widget>
@@ -1368,9 +1368,9 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>40</x>
-       <y>360</y>
+       <y>370</y>
        <width>61</width>
-       <height>41</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1428,7 +1428,7 @@ font-size: 13px;
        <x>340</x>
        <y>380</y>
        <width>181</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
     </widget>
@@ -1438,7 +1438,7 @@ font-size: 13px;
        <x>380</x>
        <y>450</y>
        <width>141</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1666,10 +1666,10 @@ font-family: Arial; </string>
     <widget class="QPushButton" name="export_pushButton">
      <property name="geometry">
       <rect>
-       <x>960</x>
-       <y>110</y>
-       <width>141</width>
-       <height>31</height>
+       <x>980</x>
+       <y>120</y>
+       <width>121</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1689,7 +1689,7 @@ font-size: 12px;</string>
        <x>610</x>
        <y>70</y>
        <width>121</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1710,7 +1710,7 @@ font-size: 12px;
        <x>740</x>
        <y>70</y>
        <width>251</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1727,10 +1727,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton_5">
      <property name="geometry">
       <rect>
-       <x>1010</x>
+       <x>1000</x>
        <y>70</y>
-       <width>41</width>
-       <height>31</height>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1762,10 +1762,10 @@ font-style: italic;</string>
     <widget class="QPushButton" name="pushButton_22">
      <property name="geometry">
       <rect>
-       <x>950</x>
-       <y>520</y>
-       <width>161</width>
-       <height>41</height>
+       <x>960</x>
+       <y>540</y>
+       <width>151</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1785,7 +1785,7 @@ font-family: Arial;
        <x>780</x>
        <y>190</y>
        <width>211</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1802,9 +1802,9 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>960</x>
-       <y>230</y>
+       <y>240</y>
        <width>141</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1824,7 +1824,7 @@ font-size: 12px;</string>
        <x>600</x>
        <y>180</y>
        <width>171</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1843,9 +1843,9 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>60</x>
-       <y>110</y>
+       <y>100</y>
        <width>101</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1866,7 +1866,7 @@ font-size: 13px;
        <x>180</x>
        <y>70</y>
        <width>241</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1882,10 +1882,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton_20">
      <property name="geometry">
       <rect>
-       <x>440</x>
-       <y>120</y>
-       <width>41</width>
-       <height>31</height>
+       <x>430</x>
+       <y>110</y>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1898,10 +1898,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton_27">
      <property name="geometry">
       <rect>
-       <x>440</x>
-       <y>170</y>
-       <width>41</width>
-       <height>31</height>
+       <x>430</x>
+       <y>150</y>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1936,9 +1936,9 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>120</y>
+       <y>110</y>
        <width>241</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1955,9 +1955,9 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>400</x>
-       <y>210</y>
+       <y>220</y>
        <width>131</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1975,9 +1975,9 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>170</y>
+       <y>150</y>
        <width>241</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -1993,10 +1993,10 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="pushButton_29">
      <property name="geometry">
       <rect>
-       <x>440</x>
+       <x>430</x>
        <y>70</y>
-       <width>41</width>
-       <height>31</height>
+       <width>31</width>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2013,7 +2013,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>160</y>
+       <y>140</y>
        <width>111</width>
        <height>41</height>
       </rect>
@@ -2070,9 +2070,9 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>960</x>
-       <y>450</y>
+       <y>460</y>
        <width>141</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2147,9 +2147,9 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>400</x>
-       <y>450</y>
+       <y>460</y>
        <width>131</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2206,9 +2206,9 @@ font-weight: bold;</string>
      <property name="geometry">
       <rect>
        <x>960</x>
-       <y>350</y>
+       <y>360</y>
        <width>141</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2228,7 +2228,7 @@ font-size: 12px;</string>
        <x>20</x>
        <y>300</y>
        <width>111</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2249,7 +2249,7 @@ font-size: 13px;
        <x>30</x>
        <y>350</y>
        <width>101</width>
-       <height>51</height>
+       <height>41</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2270,7 +2270,7 @@ font-size: 13px;
        <x>140</x>
        <y>310</y>
        <width>301</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
     </widget>
@@ -2280,7 +2280,7 @@ font-size: 13px;
        <x>140</x>
        <y>360</y>
        <width>301</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
     </widget>
@@ -2595,7 +2595,7 @@ font-size: 13px;
        <x>290</x>
        <y>180</y>
        <width>131</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2798,7 +2798,7 @@ backround-color: (220,220,220);
        <x>330</x>
        <y>290</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2818,7 +2818,7 @@ font-weight: bold;</string>
        <x>110</x>
        <y>290</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2838,7 +2838,7 @@ font-weight: bold;</string>
        <x>90</x>
        <y>360</y>
        <width>211</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2860,7 +2860,7 @@ font-weight: bold;
        <x>310</x>
        <y>360</y>
        <width>211</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2882,7 +2882,7 @@ font-weight: bold;
        <x>330</x>
        <y>250</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -2902,7 +2902,7 @@ font-weight: bold;</string>
        <x>110</x>
        <y>250</y>
        <width>151</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <property name="styleSheet">
