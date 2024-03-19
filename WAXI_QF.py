@@ -2149,79 +2149,73 @@ class WAXI_QF:
     # saves out layers in a new directory
         
         if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
+            
+            # set up paths
+            project = QgsProject.instance()
+            proj_file_path = project.fileName()
+            head_tail = os.path.split(proj_file_path)
 
+            oldProjPath=head_tail[0]
+            oldGpkgPath=oldProjPath+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            newProjPath=self.mynormpath(self.dlg.lineEdit_3.text()).strip()
+            newGpkgPath=newProjPath+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+            
+            # clipping rectangle from Canvas
             e = self.iface.mapCanvas().extent()  
             extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
-            shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
-    
             shps=read_csv(shp_list,names=['name','dir_code'])
-            shps=shps.set_index("name")
-            
-    
+            shps=shps.set_index("name")   
             geom = QgsGeometry().fromRect(extent)
-    
             ftr = QgsFeature()
-            ftr.setGeometry(geom)
-    
+            ftr.setGeometry(geom)    
             project = QgsProject.instance()
             crs = project.crs()            
-            clip_layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')
-    
+            clip_layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')    
             with edit(clip_layer):
                 clip_layer.addFeature(ftr)
 
-            proj_file_path = project.fileName()
-            head_tail = os.path.split(proj_file_path)
-            chemin_geopackage_in=head_tail[0]+'/0. FIELD DATA/CURRENT MISSION.gpkg'
-            output_dir=self.mynormpath(self.dlg.lineEdit_3.text()).strip()
-            chemin_geopackage_out=output_dir+'/0. FIELD DATA/CURRENT MISSION.gpkg'
-            print('gpkg loc',chemin_geopackage_out)
-
-            dirs=[output_dir,output_dir+'/0. FIELD DATA',output_dir+'/99. COMMAND FILES - PLUGIN']
+            # create directory structure
+                
+            dirs=[newProjPath,newProjPath+'/0. FIELD DATA',newProjPath+'/99. COMMAND FILES - PLUGIN']
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
                     os.mkdir(self.mynormpath(dirpath))
-
-            #Define your Coordinate Reference System here
-
             
             
-            proj_file_path=project.fileName()
-            head_tail = os.path.split(proj_file_path)
+            # copy over files that are not clipped
+            qml_input_path = oldProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
             
-            qml_input_path = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
-            
-            qml_output_path_2 = output_dir+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
+            qml_output_path_2 = newProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
             shutil.copyfile(qml_input_path,qml_output_path_2)
             
-            qml_input_path = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            qml_output_path_2 = output_dir+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
+            qml_input_path = oldProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
+            qml_output_path_2 = newProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
             shutil.copyfile(qml_input_path,qml_output_path_2)
     
-            src_path=head_tail[0]+'/0. FIELD DATA/99. CSV FILES'
-            dst_path=self.mynormpath(output_dir+"/0. FIELD DATA/99. CSV FILES/")
+            src_path=oldProjPath+'/0. FIELD DATA/99. CSV FILES'
+            dst_path=self.mynormpath(newProjPath+"/0. FIELD DATA/99. CSV FILES/")
     
             shutil.copytree(src_path, dst_path)
 
-            src_path=head_tail[0]+"/1. GEOGRAPHY"
-            dst_path=self.mynormpath(output_dir+"/1. GEOGRAPHY/")
+            src_path=oldProjPath+"/1. GEOGRAPHY"
+            dst_path=self.mynormpath(newProjPath+"/1. GEOGRAPHY/")
             shutil.copytree(src_path, dst_path)
 
-            shutil.copyfile(proj_file_path, output_dir+'/'+head_tail[1].replace('.qgz','_clip.qgz'))
+            shutil.copyfile(proj_file_path, newProjPath+'/'+head_tail[1].replace('.qgz','_clip.qgz'))
 
-            src_path=head_tail[0]+"/0. FIELD DATA/DCIM/"
-            dst_path=self.mynormpath(output_dir+"/0. FIELD DATA/DCIM/")
+            src_path=oldProjPath+"/0. FIELD DATA/DCIM/"
+            dst_path=self.mynormpath(newProjPath+"/0. FIELD DATA/DCIM/")
             shutil.copytree(src_path, dst_path)
 
-            qlr_input_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
-            qlr_output_path_2 = output_dir+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            qlr_input_path = oldProjPath+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            qlr_output_path_2 = newProjPath+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
             shutil.copyfile(qlr_input_path,qlr_output_path_2)
     
-            # Specify the output file path for the shapefile 
-            in_pref=head_tail[0]+'/99. COMMAND FILES - PLUGIN/'
-            out_pref=output_dir+'/99. COMMAND FILES - PLUGIN/'
-            copies=[[chemin_geopackage_in,chemin_geopackage_out],
+            in_pref=oldProjPath+'/99. COMMAND FILES - PLUGIN/'
+            out_pref=newProjPath+'/99. COMMAND FILES - PLUGIN/'
+            copies=[[oldGpkgPath,newGpkgPath],
                     [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
                     [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
                     [in_pref+'stereonet.json',out_pref+'stereonet.json'],
@@ -2233,8 +2227,7 @@ class WAXI_QF:
             for pairs in copies:
                 shutil.copyfile(pairs[0],pairs[1])
             
-            # Prepare the output shapefile parameters
-            
+            # Prepare the output shapefile parameters for clipping
             
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
@@ -2244,7 +2237,7 @@ class WAXI_QF:
         
                         input_path=self.mynormpath(layer.dataProvider().dataSourceUri())
 
-                        output_path_gpkg=self.mynormpath(chemin_geopackage_out)
+                        output_path_gpkg=self.mynormpath(newGpkgPath)
                         print(output_path_gpkg)
                         processing.run("native:clip", 
                             {'INPUT':input_path,
@@ -2252,7 +2245,7 @@ class WAXI_QF:
                                 'OUTPUT':'ogr:dbname=\''+output_path_gpkg+'\' table="'+layer.name()+'" (geom)'})         
     
     
-            self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + output_dir, level=Qgis.Success, duration=5)
+            self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + newProjPath, level=Qgis.Success, duration=5)
 
 
         else:
@@ -2380,7 +2373,15 @@ class WAXI_QF:
 
 
     ### Merge Projects ### to modifie with the new architecture of the plugin 
-
+    
+    def list_csv_files(directory):
+        files = []
+        for filename in os.listdir(directory):
+            path = os.path.join(directory, filename)
+            if (os.path.isfile(path) and path.split('.')[-1]=='csv'):
+                files.append(filename)
+        return files
+   
     def mergeProjects(self):
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
@@ -2390,6 +2391,8 @@ class WAXI_QF:
             os.path.exists(self.mynormpath(self.dlg.lineEdit_37.text()))):
             
             
+            project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use copy stored in plugin?
+
             # set up directory structure and load filename lists
             dirs=["STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","STRUCTURES","LITHOLOGY","GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
             shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
@@ -2401,76 +2404,115 @@ class WAXI_QF:
             main_project_path =  self.dlg.lineEdit_11.text()
             sub_project_path =  self.dlg.lineEdit_26.text()
             merge_project_path =  self.dlg.lineEdit_37.text()
+            mainGpkgPath=main_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            subGpkgPath=sub_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            mergeGpkgPath=merge_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+
+            # create new directory structure
+            dirs=[merge_project_path,merge_project_path+'/0. FIELD DATA',merge_project_path+'/99. COMMAND FILES - PLUGIN']
+
+            for dirpath in dirs:
+                if(not os.path.exists(self.mynormpath(dirpath))):
+                    os.mkdir(self.mynormpath(dirpath))
     
-            if(not os.path.exists(self.mynormpath(merge_project_path))):
-                os.mkdir(self.mynormpath(merge_project_path))
-            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA"))):
-                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA"))
-            if(not os.path.exists(self.mynormpath(merge_project_path+"/0. FIELD DATA/CURRENT MISSION.gpkg"))):
-                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/CURRENT MISSION.gpkg"))      
-            if(not os.path.exists(merge_project_path+"/0. FIELD DATA/"+dirs[4])):
-                os.mkdir(self.mynormpath(merge_project_path+"/0. FIELD DATA/"+dirs[4]))
+            # copy over files that are not clipped
+            qml_input_path = main_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
+            
+            qml_output_path_2 = merge_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
+            shutil.copyfile(qml_input_path,qml_output_path_2)
+            
+            qml_input_path = main_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
+            qml_output_path_2 = merge_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
+            shutil.copyfile(qml_input_path,qml_output_path_2)
     
-            project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use coty stored in plugin?
-            proj_file_path=project.fileName()
-            head_tail = os.path.split(proj_file_path)
-            shutil.copyfile(self.mynormpath(proj_file_path), self.mynormpath(merge_project_path+'/'+head_tail[1]))
-            for layer in shps.index.to_list():
+            src_path=main_project_path+'/0. FIELD DATA/99. CSV FILES'
+            dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/99. CSV FILES/")
     
-                main_layer_path = self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
-                sub_layer_path = self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
-                merge_layer_path = self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[int(shps.loc[layer].dir_code)]+"/"+layer+".shp")
+            shutil.copytree(src_path, dst_path)
+
+            src_path=main_project_path+"/1. GEOGRAPHY"
+            dst_path=self.mynormpath(merge_project_path+"/1. GEOGRAPHY/")
+            shutil.copytree(src_path, dst_path)
+
+            src_path=main_project_path+"/0. FIELD DATA/DCIM/"
+            dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/DCIM/")
+            shutil.copytree(src_path, dst_path)
+
+            qlr_input_path = main_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            qlr_output_path_2 = merge_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(qlr_input_path,qlr_output_path_2)
+            shutil.copyfile(project.fileName(), merge_project_path+'/WAXI4 - Mission ID - Date.qgz')
+    
+            in_pref=main_project_path+'/99. COMMAND FILES - PLUGIN/'
+            out_pref=merge_project_path+'/99. COMMAND FILES - PLUGIN/'
+            copies=[[mainGpkgPath,mergeGpkgPath],
+                    [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
+                    [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
+                    [in_pref+'stereonet.json',out_pref+'stereonet.json'],
+                    [in_pref+'Stops_PT.qml',out_pref+'Stops_PT.qml'],
+                    [in_pref+'Stops_PT_autoinc.qml',out_pref+'Stops_PT_autoinc.qml'],
+                    [in_pref+'Stops_PT_no_autoinc.qml',out_pref+'Stops_PT_no_autoinc.qml'],
+                    ]
+            
+            for pairs in copies:
+                shutil.copyfile(pairs[0],pairs[1])
+            
+            for layer in project.mapLayers().values():
+                # Check if the layer name matches the target name
+                if layer.name() in shps.index.tolist():  
+    
+                    main_layer_path=mainGpkgPath+'|layername='+layer.name()
+                    sub_layer_path=subGpkgPath+'|layername='+layer.name()
+                    merge_layer_path='ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
+
+                    # merge two shapefiles
+                    params = {
+                    'LAYERS': [main_layer_path, sub_layer_path],
+                    'OUTPUT': 'memory:'
+                    }
+        
+                    merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+                    
+                    # extract geometries of merged file
+                    params = { 
+                    'CALC_METHOD' : 0, 
+                    'INPUT' :  merged_layers, 
+                    'OUTPUT' : 'memory:' 
+                    }
+        
+                    added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
+        
+                    # remove duplicate rows
+                    params = { 
+                    'FIELDS' : ['Date','User','xcoord','ycoord'], 
+                    'INPUT' : added_geom, 
+                    'OUTPUT' : 'memory:' 
+                    }
+        
+                    removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
+        
+                    # remove generated coordinate columns
+                    params = {
+                    'INPUT':removed_dups,
+                    'COLUMN':['xcoord','ycoord'],
+                    'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
+                    }
+        
+                    processing.run("native:deletecolumn", params)        
+                            
+                # merge and de-duplicate csv files
+                for file in csvs.name:
+                    main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
+                    sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
+                    merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
+        
+                    main=read_csv(main_path,sep=";",encoding="latin_1")
+                    sub=read_csv(sub_path,sep=";",encoding="latin_1")
+                    merge=concat([main,sub])
+                    merge=merge.drop_duplicates()
+                    merge.to_csv(merge_path,index=False,sep=";")
                 
-                # merge two shapefiles
-                params = {
-                'LAYERS': [main_layer_path, sub_layer_path],
-                'OUTPUT': 'memory:'
-                }
-    
-                merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-                
-                # extract geometries of merged file
-                params = { 
-                'CALC_METHOD' : 0, 
-                'INPUT' :  merged_layers, 
-                'OUTPUT' : 'memory:' 
-                }
-    
-                added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
-    
-                # remove duplicate rows
-                params = { 
-                'FIELDS' : ['Date','User','xcoord','ycoord'], 
-                'INPUT' : added_geom, 
-                'OUTPUT' : 'memory:' 
-                }
-    
-                removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
-    
-                # remove generated coordinate columns
-                params = {
-                'INPUT':removed_dups,
-                'COLUMN':['xcoord','ycoord'],
-                'OUTPUT':merge_layer_path
-                }
-    
-                processing.run("native:deletecolumn", params)        
-                
-                qml_input_path = sub_layer_path.replace(".shp",".qml")
-                qml_output_path_2 = merge_layer_path.replace(".shp",".qml")
-                shutil.copyfile(qml_input_path,qml_output_path_2)
-    
-            # merge and de-duplicate csv files
-            for file in csvs.name:
-                main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-                sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-                merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/0. CURRENT MISSION/"+dirs[4]+'/'+file+'.csv')
-    
-                main=read_csv(main_path,sep=";",encoding="latin_1")
-                sub=read_csv(sub_path,sep=";",encoding="latin_1")
-                merge=concat([main,sub])
-                merge=merge.drop_duplicates()
-                merge.to_csv(merge_path,index=False,sep=";")
+            
             self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
 
