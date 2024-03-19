@@ -10,7 +10,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 **An existing WAXI QFIELD project must be open when you run this plugin, otherwise the Dialog will not display.**
 
 ## Functionality
-- **Import Layers** Convert pre-existing data into a WAXI QF Template ready for merging, uses fuuzy logic to suggest best choices for lithology labels.   
+- **Import Layers** Convert pre-existing data into a WAXI QF Template ready for merging, uses fuzzy logic to suggest best choices for lithology labels.   
 
 ![dialog1](dialog1.png)
 
