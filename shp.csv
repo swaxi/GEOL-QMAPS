@@ -1,5 +1,4 @@
-﻿Bedding_PT,1
-Brecciated zones_PG,1
+﻿Brecciated zones_PG,1
 Cataclastic zones_PG,1
 Dikes-Sills_PT,1
 Fold and crenulation axial planes_PT,1
@@ -25,3 +24,12 @@ Stops_PT,0
 Supergene lithologies_PT,2
 Volcanic lithologies_PT,2
 Volcanoclastic lithologies_PT,2
+Bedding-Lava flow-S0_PT,1
+Igneous extrusive lithologies_PT,2
+Igneous intrusive lithologies_PT,2
+Lithological contacts_LN,2
+Lithological contacts_PT,2
+Lithology zones_PG,2
+Photographs_PT,0
+Shear zones and faults_PT,1
+Veins_PT,1
