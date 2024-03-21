@@ -387,11 +387,11 @@ class WAXI_QF:
         column_reference = read_excel(emplacement_files_WAXI_columns)
      
         
-        # Exctration of column names in file 1 
+        # Extraction of column names in file 1 
         list_column_input = input_file.columns.tolist()
         
         
-        # Exctration of column names in file 2
+        # Extraction of column names in file 2
         list_column_reference = column_reference.columns.tolist()
     
     
@@ -553,11 +553,11 @@ class WAXI_QF:
                 
                 btn_modifier = QPushButton("Edit", button_widget)
                 btn_modifier.clicked.connect(lambda state, row=k: self.button_edit1(row))
-                btn_modifier.setMinimumHeight(15)
+                btn_modifier.setMinimumHeight(17)
       
                 btn_supprimer = QPushButton("Delete", button_widget)
                 btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete1(row))
-                btn_supprimer.setMinimumHeight(15)
+                btn_supprimer.setMinimumHeight(17)
 
                 layout = QHBoxLayout(button_widget)
                 layout.addWidget(btn_modifier)
@@ -683,7 +683,7 @@ class WAXI_QF:
             self.row_edit_status[row] = True
                   
        
-        # CASE 3 : f the button is clicked for the 2sd time  
+        # CASE 3 : f the button is clicked for the 2nd time  
         else:
             combo_box = self.dlg.tableWidget1.cellWidget(row, 1)
             item = self.dlg.tableWidget1.item(row, 1)
@@ -1006,11 +1006,11 @@ class WAXI_QF:
             
             btn_modifier = QPushButton("Edit", button_widget)
             btn_modifier.clicked.connect(lambda state, row=k: self.button_edit2(row))
-            btn_modifier.setMinimumHeight(15)
+            btn_modifier.setMinimumHeight(17)
       
             btn_supprimer = QPushButton("Delete", button_widget)
             btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete2(row))
-            btn_supprimer.setMinimumHeight(15)
+            btn_supprimer.setMinimumHeight(17)
             
             layout = QHBoxLayout(button_widget)
             layout.addWidget(btn_modifier)
@@ -1587,11 +1587,11 @@ class WAXI_QF:
             
             btn_modifier = QPushButton("Edit", button_widget)
             btn_modifier.clicked.connect(lambda state, row=k: self.button_edit3(row))
-            btn_modifier.setMinimumHeight(15)
+            btn_modifier.setMinimumHeight(17)
        
             btn_supprimer = QPushButton("Delete", button_widget)
             btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete3(row))
-            btn_supprimer.setMinimumHeight(15)
+            btn_supprimer.setMinimumHeight(17)
 
             layout = QHBoxLayout(button_widget)
             layout.addWidget(btn_modifier)
@@ -2399,11 +2399,16 @@ class WAXI_QF:
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
             shps=read_csv(shp_list,names=['name','dir_code'])
             shps=shps.set_index("name")
-            csvs=read_csv(csv_list,names=['name'])
-    
-            main_project_path =  self.dlg.lineEdit_11.text()
-            sub_project_path =  self.dlg.lineEdit_26.text()
+            csvs=read_csv(csv_list,names=['name'])            
+
             merge_project_path =  self.dlg.lineEdit_37.text()
+
+            head_tail_main = os.path.split(self.dlg.lineEdit_11.text())
+            head_tail_sub = os.path.split(self.dlg.lineEdit_26.text())
+            
+            main_project_path=head_tail_main[0]
+            sub_project_path=head_tail_sub[0]
+                       
             mainGpkgPath=main_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
             subGpkgPath=sub_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
             mergeGpkgPath=merge_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
@@ -2441,7 +2446,7 @@ class WAXI_QF:
             qlr_input_path = main_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
             qlr_output_path_2 = merge_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
             shutil.copyfile(qlr_input_path,qlr_output_path_2)
-            shutil.copyfile(project.fileName(), merge_project_path+'/WAXI4 - Mission ID - Date.qgz')
+            shutil.copyfile(self.dlg.lineEdit_11.text(), merge_project_path+'/WAXI4 - Mission ID - Date.qgz')
     
             in_pref=main_project_path+'/99. COMMAND FILES - PLUGIN/'
             out_pref=merge_project_path+'/99. COMMAND FILES - PLUGIN/'
@@ -2788,8 +2793,8 @@ class WAXI_QF:
         
     def merge_2_layers (self):
         
-        couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1.currentText()))[0]
-        couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2.currentText()))[0]
+        couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1_2.currentText()))[0]
+        couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2_2.currentText()))[0]
         
         if couche1 != couche2 :
             
@@ -2877,13 +2882,13 @@ class WAXI_QF:
 
         widget.setText(filename)
 
-    def select_main_directory(self):
-        filename = QFileDialog.getExistingDirectory(None, "Select Main Project Folder")
+    def select_main_project(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Select Main Project File")
 
         self.dlg.lineEdit_11.setText(filename)
     
-    def select_sub_directory(self):
-        filename = QFileDialog.getExistingDirectory(None, "Select Sub-Project Folder")
+    def select_sub_project(self):
+        filename, _filter = QFileDialog.getOpenFileName(None, "Select Sub-Project File")
 
         self.dlg.lineEdit_26.setText(filename)
     
@@ -2935,16 +2940,16 @@ class WAXI_QF:
         
         
     def fill_ComboBox(self):
-        self.dlg.comboBox_merge1.clear()
-        self.dlg.comboBox_merge2.clear()
+        self.dlg.comboBox_merge1_2.clear()
+        self.dlg.comboBox_merge2_2.clear()
         
 
         # List of the QGIS layers 
         couches = QgsProject.instance().mapLayers()
 
         for coucheId, couche in couches.items():
-            self.dlg.comboBox_merge1.addItem(couche.name(), coucheId)
-            self.dlg.comboBox_merge2.addItem(couche.name(), coucheId)
+            self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
+            self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
     
     
     def update_ComboBox (self):
@@ -2999,7 +3004,7 @@ class WAXI_QF:
         # Project Parameters 
         self.dlg.projName_pushButton.setToolTip("Update project name")
         self.dlg.merge_pushButton.setToolTip("Merge projects")
-        self.dlg.merge_layers_pushButton.setToolTip("Merge two QGIS layers")
+        self.dlg.merge_layers_pushButton_2.setToolTip("Merge two QGIS layers")
         self.dlg.clip_pushButton.setToolTip("Clip to current canvas")
         self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
         self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
@@ -3124,7 +3129,7 @@ class WAXI_QF:
                 # Project_parameters
                 self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
                 self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
-                self.dlg.merge_layers_pushButton.clicked.connect(self.merge_2_layers)
+                self.dlg.merge_layers_pushButton_2.clicked.connect(self.merge_2_layers)
 
                 self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
                 self.dlg.pushButton_19.clicked.connect(self.resetWindow_fieldwork_preparation)
@@ -3203,8 +3208,8 @@ class WAXI_QF:
                 self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
                 self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
                 self.dlg.pushButton.clicked.connect(self.select_dst_directory)
-                self.dlg.pushButton_29.clicked.connect(self.select_main_directory)
-                self.dlg.pushButton_20.clicked.connect(self.select_sub_directory)
+                self.dlg.pushButton_29.clicked.connect(self.select_main_project)
+                self.dlg.pushButton_20.clicked.connect(self.select_sub_project)
                 self.dlg.pushButton_27.clicked.connect(self.select_merged_directory)
                 self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
                 
