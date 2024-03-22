@@ -2468,43 +2468,61 @@ class WAXI_QF:
     
                     main_layer_path=mainGpkgPath+'|layername='+layer.name()
                     sub_layer_path=subGpkgPath+'|layername='+layer.name()
-                    merge_layer_path='ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
+                    #merge_layer_path=mergeGpkgPath+'|layername='+layer.name()
 
-                    # merge two shapefiles
-                    params = {
-                    'LAYERS': [main_layer_path, sub_layer_path],
-                    'OUTPUT': 'memory:'
-                    }
         
-                    merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-                    
-                    # extract geometries of merged file
-                    params = { 
-                    'CALC_METHOD' : 0, 
-                    'INPUT' :  merged_layers, 
-                    'OUTPUT' : 'memory:' 
-                    }
+
+                    if(layer.name()=='Sampling_PT'): #can't add coordinates when alias and cooments present
+
+                        # merge two shapefiles
+                        params = { 
+                        'LAYERS': [main_layer_path, sub_layer_path],
+                        'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
+                        }
+            
+                        processing.run("native:mergevectorlayers", params )
+
+
+                    else:
+                        # merge two shapefiles
+                        params = {
+                        'LAYERS': [main_layer_path, sub_layer_path],
+                        'OUTPUT': 'memory:'
+                        }
+                        merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
+
+                       # extract geometries of merged file
+                        params = { 
+                        'CALC_METHOD' : 0, 
+                        'INPUT' :  merged_layers, 
+                        'OUTPUT' : 'memory:' 
+                        }
+            
+                        added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
         
-                    added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
-        
-                    # remove duplicate rows
-                    params = { 
-                    'FIELDS' : ['Date','User','xcoord','ycoord'], 
-                    'INPUT' : added_geom, 
-                    'OUTPUT' : 'memory:' 
-                    }
-        
-                    removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
-        
-                    # remove generated coordinate columns
-                    params = {
-                    'INPUT':removed_dups,
-                    'COLUMN':['xcoord','ycoord'],
-                    'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
-                    }
-        
-                    processing.run("native:deletecolumn", params)        
-                            
+                        # remove duplicate rows
+                        params = { 
+                        'FIELDS' : ['Date','User','xcoord','ycoord','SampleID'], 
+                        'INPUT' : added_geom, 
+                        'OUTPUT' : 'memory:' 
+                        }
+            
+                        removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
+            
+                        # remove generated coordinate columns
+                        params = {
+                        'INPUT':removed_dups,
+                        'COLUMN':['xcoord','ycoord'],
+                        'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
+                        }
+            
+                        processing.run("native:deletecolumn", params) 
+                        
+                '''
+                else:
+                    print("xxx",layer.name()) 
+                print(shps.index.tolist())  
+                '''         
                 # merge and de-duplicate csv files
                 for file in csvs.name:
                     main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
@@ -2791,8 +2809,34 @@ class WAXI_QF:
     
     ### Merge 2 layers ###
         
+    def merge_2_layers_ (self):
+
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+
+        couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1_2.currentText()))[0]
+        couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2_2.currentText()))[0]
+    
+        # Run the merge algorithm
+        merged = processing.run("qgis:mergevectorlayers", {
+            'LAYERS': [couche1, couche2],
+            'CRS': couche1.crs(),  # Change the CRS as needed
+            'OUTPUT': 'memory:'  # Output to memory (temporary layer)
+        })['OUTPUT']
+
+        # remove duplicate rows
+        params = { 
+        'FIELDS' : ['Date','User','xcoord','ycoord'], 
+        'INPUT' : merged, 
+        'OUTPUT' : 'ogr:dbname=\''+self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg")+'\' table="'+couche2.name()+'" (geom)' 
+        }
+
+        processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
+
+
+            
     def merge_2_layers (self):
-        
         couche1 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge1_2.currentText()))[0]
         couche2 = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_merge2_2.currentText()))[0]
         
@@ -2801,15 +2845,17 @@ class WAXI_QF:
             colonnes_couche1 = [field.name() for field in couche1.fields()]
             colonnes_couche2 = [field.name() for field in couche2.fields()]
             
+            '''
             if set(colonnes_couche1) != set(colonnes_couche2):
                 
                 colonnes_manquantes = set(colonnes_couche2) - set(colonnes_couche1)
 
                 for nom_colonne in colonnes_manquantes:
+                    print(nom_colonne)
                     type_donnee = couche2.fields().field(nom_colonne).typeName()
                     couche1.addAttribute(QgsField(nom_colonne, type_donnee))
                 couche1.updateFields()
-               
+            '''   
    
             ## Loop on first layer entities
             
@@ -2827,6 +2873,7 @@ class WAXI_QF:
                 couche2.dataProvider().addFeatures([nouvelle_entite])
         
             # Refinishing the second layer
+            couche2.updateFields()
             couche2.triggerRepaint()
         
             # Removing the first layer
