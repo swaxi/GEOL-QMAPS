@@ -2984,20 +2984,18 @@ class WAXI_QF:
         
         self.dlg.comboBox_delete.addItems(list_combobox_delete)
         
-        
-        
     def fill_ComboBox(self):
         self.dlg.comboBox_merge1_2.clear()
         self.dlg.comboBox_merge2_2.clear()
-        
 
-        # List of the QGIS layers 
+        # List of the QGIS layers
         couches = QgsProject.instance().mapLayers()
 
         for coucheId, couche in couches.items():
-            self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
-            self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
-    
+            if isinstance(couche, QgsVectorLayer) and not couche.dataProvider().dataSourceUri().lower().endswith('.csv') and couche.name() !="African borders_PG" :
+                self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
+        
     
     def update_ComboBox (self):
         self.fill_ComboBox()
