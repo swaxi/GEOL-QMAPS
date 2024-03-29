@@ -10,6 +10,10 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 **An existing WAXI QFIELD project must be open when you run this plugin, otherwise the Dialog will not display.**
 
 ## Functionality
+
+See <a href='./Manual_Eliott_BETEND v2.pdf' target='_blank'>Manual</a> for detailed usage   
+   
+   
 - **Import Layers** Convert pre-existing data into a WAXI QF Template ready for merging, uses fuzzy logic to suggest best choices for lithology labels.   
 
 ![dialog1](dialog1.png)

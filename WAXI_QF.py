@@ -2984,18 +2984,20 @@ class WAXI_QF:
         
         self.dlg.comboBox_delete.addItems(list_combobox_delete)
         
+        
+        
     def fill_ComboBox(self):
         self.dlg.comboBox_merge1_2.clear()
         self.dlg.comboBox_merge2_2.clear()
+        
 
-        # List of the QGIS layers
+        # List of the QGIS layers 
         couches = QgsProject.instance().mapLayers()
 
         for coucheId, couche in couches.items():
-            if isinstance(couche, QgsVectorLayer) and not couche.dataProvider().dataSourceUri().lower().endswith('.csv') and couche.name() !="African borders_PG" :
-                self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
-                self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
-        
+            self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
+            self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
+    
     
     def update_ComboBox (self):
         self.fill_ComboBox()
@@ -3233,6 +3235,9 @@ class WAXI_QF:
                 
                 # Connection to the WAXI site  : https://waxi4.org/
                 self.dlg.pushButton_41.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
+
+                # Connection to the help file  : https://waxi4.org/
+                self.dlg.pushButton_21.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
                 
                 #  Connection to the AMIRA site : https://amira.global/
                 self.dlg.pushButton_40.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://amira.global/")))
