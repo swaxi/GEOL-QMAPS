@@ -11,7 +11,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 
 ## Functionality
 
-See <a href='https://github.com/swaxi/WAXI_QF/blob/main/Manual_Eliott_BETEND%20v2.pd' target='_blank'>Manual</a> for detailed usage   
+See <a href='https://github.com/swaxi/WAXI_QF/blob/main/Manual_Eliott_BETEND%20v2.pdf' target='_blank'>Manual</a> for detailed usage   
    
    
 - **Import Layers** Convert pre-existing data into a WAXI QF Template ready for merging, uses fuzzy logic to suggest best choices for lithology labels.   
