@@ -3233,6 +3233,9 @@ class WAXI_QF:
                 
                 # Home Page 
                 
+                # Connection to the Github issues apge site  : https://github.com/swaxi/WAXI_QF/issues/
+                self.dlg.pushButton_23.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/swaxi/WAXI_QF/issues/")))
+
                 # Connection to the WAXI site  : https://waxi4.org/
                 self.dlg.pushButton_41.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
 
