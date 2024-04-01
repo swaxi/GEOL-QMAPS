@@ -3236,7 +3236,7 @@ class WAXI_QF:
                 # Connection to the WAXI site  : https://waxi4.org/
                 self.dlg.pushButton_41.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/")))
 
-                # Connection to the help file  : http://13.210.3.244/manual_qfield_plugin//
+                # Connection to the help file  : http://13.210.3.244/manual_qfield_plugin/
                 self.dlg.pushButton_21.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("http://13.210.3.244/manual_qfield_plugin/")))
                 
                 #  Connection to the AMIRA site : https://amira.global/
