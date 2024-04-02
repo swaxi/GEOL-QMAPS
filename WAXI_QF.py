@@ -3437,12 +3437,8 @@ class WAXI_QF:
         head_tail = os.path.split(proj_file_path)
         
         geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
-
-        test_layers = fiona.listlayers(geopackage_path)
-        if('Stops_PT' not in test_layers):
-                self.iface.messageBar().pushMessage("ERROR: A WAXI nn Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
-                print(test_layers)
-        else:
+        
+        if os.path.exists(geopackage_path):
             
             if self.first_start == True:
                 self.first_start = False
@@ -3589,7 +3585,11 @@ class WAXI_QF:
                 self.dlg.show()
                 
             result = self.dlg.exec_()
-            
+
+        else:
+
+            self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+
                
                     
                         
