@@ -27,7 +27,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 - **Create Virtual Stops**: Select checkbox and define clustering distance to add a cluster code to all diferent types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called *Virtual_Stops_datestamp*.  This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.   
 - **Export layers to common themes**: Select checkbox and define directory to export all point, polygon and polyline which are combined to three  shapefiles for zones, structures and lithologies.    
 - **Stereonet Control**: Select Stereonet checkbox to control WAXI fork of Stereonet plugin display (https://github.com/swaxi/qgis-stereonet) .  
-- **Save new *.qlr file**: Allows a custom style file to be created for template. Users suppplies direcotry path.   
+- **Save new .qlr file**: Allows a custom style file to be created for template. Users suppplies direcotry path.   
      
 
 
