@@ -43,3 +43,4 @@ Add centroids of polygon and line features when creating virtual stop layer.
 Plugin construction - Eliott Betend GUI and Import Tool    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
 QFIELD Template - Julien Perret    
+Manual - Eliott Betend   
