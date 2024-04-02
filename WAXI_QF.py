@@ -28,8 +28,8 @@ from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt, QThread, pyqtSignal, QUrl
 from qgis.PyQt.QtGui import QIcon, QColor,QBrush, QDesktopServices, QFont, QStandardItemModel, QStandardItem
 from qgis.PyQt import QtWidgets 
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox, QGroupBox, QStyledItemDelegate, QListView
-from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint, QgsRectangle, QgsGeometry, QgsField, QgsFeature, QgsExpression, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsApplication
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QDialog, QProgressBar, QApplication, QMainWindow, QDockWidget,QVBoxLayout, QHBoxLayout, QTabWidget, QLabel, QSizePolicy, QTableWidget, QTableWidgetItem, QPushButton, QTableWidget, QWidget, QComboBox, QGroupBox, QStyledItemDelegate, QListView,QButtonGroup
+from qgis.core import Qgis, QgsProject, QgsVectorLayer, QgsPoint, QgsRectangle, QgsGeometry, QgsField, QgsFeature, QgsExpression, QgsCoordinateTransform, QgsCoordinateReferenceSystem, QgsApplication, QgsLayerTreeGroup, QgsLayerTreeLayer,QgsDefaultValue
 from qgis.PyQt.QtCore import QVariant, QUrl
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
@@ -44,6 +44,7 @@ import sys
 import numpy as np
 import shutil
 import json
+from xml.etree import ElementTree as ET #ADD 
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -2365,6 +2366,98 @@ class WAXI_QF:
         layer.loadNamedStyle(head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT.qml")
         layer.triggerRepaint()
 
+    ### Set user by default ###                   #ADD
+    
+    def set_user_by_default (self) :
+        
+        from fuzzywuzzy import fuzz
+        
+        if(self.dlg.lineEdit_39.text()):
+            
+            default_value_user_csv = str(self.dlg.lineEdit_39.text())
+            
+            ## User.csv file location 
+            WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+            emplacement_User_file = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/User list.csv")
+            user_file = read_csv(emplacement_User_file, sep=';', encoding='latin-1')
+            
+            
+            ## Test if the user name is already present in the User.csv file 
+            list_score =[]
+            liste_users = list(user_file['Valeur'])
+
+            for test in liste_users :
+                new_score = fuzz.token_set_ratio(str(test),  default_value_user_csv)
+                list_score.append(new_score)
+            
+            # If the user name is not in the CSV file, we add it:
+            if 100 not in list_score :  
+                new_row = {'Valeur': default_value_user_csv, 'Description':  default_value_user_csv}
+                user_file = concat([user_file, DataFrame([new_row])], ignore_index=True)
+                user_file.sort_values(by='Valeur', inplace=True)
+                
+                # Rewrites the CSV file with the added line
+                user_file.to_csv(emplacement_User_file, encoding="latin_1", sep=";", index=False)
+                
+                # Updates the layer in QGIS
+                couche_user = QgsProject.instance().mapLayersByName('User list')[0]
+                couche_user.dataProvider().forceReload()
+                
+                default_value_user = "'"+str(self.dlg.lineEdit_39.text())+"'"
+            
+            # If the user name is in the CSV file, we choose it:
+            else : 
+                for test in liste_users :
+                    new_score = fuzz.token_set_ratio(str(test),  default_value_user_csv)
+                    if new_score == 100 : 
+                        default_value_user = "'"+test+"'"
+                        break
+                
+
+            ## Modification of the User field in QGIS template layers 
+            self.dlg.button_group = QButtonGroup()
+            self.dlg.button_group.addButton(self.dlg.radioButton_All)
+            self.dlg.button_group.addButton(self.dlg.radioButton_Some)
+            
+            
+            # If the "Change for one layer" radiobutton is checked
+            if (self.dlg.radioButton_Some.isChecked()):
+                layer_selected = QgsProject.instance().mapLayersByName(str(self.dlg.comboBox_layers_user.currentText()))[0]
+
+                # Find 'User' field index
+                field_index =  layer_selected.fields().indexFromName('User')
+            
+                # Create default value 
+                default_value = QgsDefaultValue(default_value_user)
+            
+                # Update default field value
+                layer_selected.setDefaultValueDefinition(field_index, default_value)
+                QgsProject.instance().write()
+                
+                self.iface.messageBar().pushMessage(str(default_value_user) + " is now the default user for " + str(self.dlg.comboBox_layers_user.currentText()), level=Qgis.Success, duration=15)
+                    
+            
+            # If the "Change for all layers" radiobutton is checked
+            if (self.dlg.radioButton_All.isChecked()):
+                
+                layers = QgsProject.instance().mapLayers()
+
+                for layerId, layer in layers.items():
+                    
+                    # Select all non CSV layers of the QGIS project 
+                    if isinstance(layer, QgsVectorLayer) and not layer.dataProvider().dataSourceUri().lower().endswith('.csv'):
+                    
+                        # Find 'User' field index
+                        field_index = layer.fields().indexFromName('User')
+                    
+                        # Create default value 
+                        default_value = QgsDefaultValue(default_value_user)
+                    
+                        # Update default field value
+                        layer.setDefaultValueDefinition(field_index, default_value)
+                        QgsProject.instance().write()
+
+                self.iface.messageBar().pushMessage(str(default_value_user) + " is now the default user for ALL the layers in the project", level=Qgis.Success, duration=15)
 
 
     ###############################################################################
@@ -2879,6 +2972,169 @@ class WAXI_QF:
             # Removing the first layer
             QgsProject.instance().removeMapLayer(couche1.id())
 
+    ### Update the source path of pictures in Photographs_PT and Sampling_PT layers ###         
+    
+    def update_source_photo (self):       #ADD
+    
+        new_source_path = str(self.dlg.lineEdit_14.text())
+        
+        if os.path.exists(self.mynormpath(new_source_path)):
+            
+            ### Update Photographs_PT layer : 
+            if (self.dlg.photographs_PT_ckeckbox.isChecked()) :
+                
+                layer_photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]
+                source_field_index = layer_photographs_PT.fields().indexFromName("Source")
+                
+                ## Option 1 
+                if (self.dlg.option1_ckeckbox.isChecked()) :
+                    
+                    layer_photographs_PT.startEditing()
+    
+                    for entite in layer_photographs_PT.getFeatures():
+                        entite.setAttribute(source_field_index, new_source_path)
+                        layer_photographs_PT.updateFeature(entite)
+                        
+                    layer_photographs_PT.commitChanges()
+                    
+                    self.iface.messageBar().pushMessage((new_source_path + " is now the source for the pictures of Photographs_PT"), level=Qgis.Success, duration=15)
+                    
+                ## Option 2
+                if (self.dlg.option2_ckeckbox.isChecked()) :
+    
+                    # Create default value 
+                    new_source_path_default = "'"+str(new_source_path)+"'"
+                    default_value = QgsDefaultValue(new_source_path_default)
+                
+                    # Update default field value
+                    layer_photographs_PT.setDefaultValueDefinition(source_field_index, default_value)
+                    QgsProject.instance().write()
+                    
+                    self.dlg.lineEdit_15.setText(self.get_value_default(layer_photographs_PT,"Source"))
+                     
+                    self.iface.messageBar().pushMessage((new_source_path + " is now the default user for the pictures of Photographs_PT"), level=Qgis.Success, duration=15)
+                    
+                
+                
+            ### Update Sampling_PT layer : 
+            if (self.dlg.sampling_PT_checkbox.isChecked()) :
+                
+                layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
+                source_field_index = layer_sampling_PT.fields().indexFromName("Source")
+                
+                ## Option 1 
+                if (self.dlg.option1_ckeckbox.isChecked()) :
+    
+                    layer_sampling_PT.startEditing()
+                    
+                    for entite in layer_sampling_PT.getFeatures():
+                        entite.setAttribute(source_field_index, new_source_path)
+                        layer_sampling_PT.updateFeature(entite)
+                        
+                    layer_sampling_PT.commitChanges()
+                    
+                    self.iface.messageBar().pushMessage((new_source_path + " is now the source for the pictures of Sampling_PT"), level=Qgis.Success, duration=15)
+            
+            
+                ## Option 2
+                if (self.dlg.option2_ckeckbox.isChecked()) :
+                    
+                    # Create default value 
+                    new_source_path_default = "'"+str(new_source_path)+"'"
+                    default_value = QgsDefaultValue(new_source_path_default)
+                
+                    # Update default field value
+                    layer_sampling_PT.setDefaultValueDefinition(source_field_index, default_value)
+                    QgsProject.instance().write()
+                    
+                    self.dlg.lineEdit_16.setText(self.get_value_default(layer_sampling_PT,"Source"))
+                    
+        
+                    self.iface.messageBar().pushMessage((new_source_path + " is now the default user for the pictures of Sampling_PT"), level=Qgis.Success, duration=15)
+        
+        else :
+            self.iface.messageBar().pushMessage("The path doesn't exist", level=Qgis.Warning, duration=45)
+            
+    
+ 
+    def get_value_default (self, layer, field) :  #ADD
+        field_index = layer.fields().indexFromName(str(field))
+        value = layer.defaultValueDefinition(field_index)
+        defaut_value = value.expression()
+        
+        return defaut_value
+
+
+
+    ### Save a new CURRENT MISSION + CSV FILES.qlr file ###         
+    
+    def save_template_style (self):       #ADD    
+         
+         if os.path.exists(self.mynormpath(self.dlg.lineEdit_18.text())):
+          
+            # Retrieve project layer tree
+            arbre_couches = QgsProject.instance().layerTreeRoot()
+            
+            # Search for "FIELD DATA" group
+            groupe_field_data = None
+            for enfant in arbre_couches.children():
+                if enfant.name() == "FIELD DATA" and isinstance(enfant, QgsLayerTreeGroup):
+                    groupe_field_data = enfant
+                    break
+
+            # Create an XML structure for the layer tree
+            xml_root = ET.Element("qlr")
+            layer_tree_group = ET.SubElement(xml_root, "layer-tree-group")
+            layer_tree_group.set("expanded", "1")
+            layer_tree_group.set("checked", "Qt::Checked")
+            layer_tree_group.set("groupLayer", "")
+            layer_tree_group.set("name", "")
+            
+            custom_properties = ET.SubElement(layer_tree_group, "customproperties")
+            option = ET.SubElement(custom_properties, "Option")
+            
+            if groupe_field_data:
+                for child in groupe_field_data.children():
+                    self.build_layer_tree_xml(child, layer_tree_group)
+        
+                # Save XML to a file
+                chemin_qlr = self.mynormpath(self.dlg.lineEdit_18.text())
+                chemin_complet = os.path.join(chemin_qlr, 'CURRENT MISSION+CSV FILES.qlr')
+                xml_tree = ET.ElementTree(xml_root)
+                xml_tree.write(chemin_complet, encoding="utf-8", xml_declaration=True)
+                
+            self.iface.messageBar().pushMessage(("A new CURRENT MISSION + CSV FILES.qlr file was saved in " + chemin_qlr), level=Qgis.Success, duration=15)
+        
+             
+    # Builds the XML structure of the layer tree recursively
+    def build_layer_tree_xml(self, layer, parent_element):    #ADD    
+    
+        # If it's a group :
+        if isinstance(layer, QgsLayerTreeGroup):
+            group_element = ET.SubElement(parent_element, "layer-tree-group")
+            group_element.set("expanded", "1")
+            group_element.set("checked", "Qt::Checked")
+            group_element.set("groupLayer", "")
+            group_element.set("name", layer.name())
+            custom_properties = ET.SubElement(group_element, "customproperties")
+            option = ET.SubElement(custom_properties, "Option")
+            for child in layer.children():
+                self.build_layer_tree_xml(child, group_element)
+        
+        # If it's a layer :
+        elif isinstance(layer, QgsLayerTreeLayer):
+            layer_element = ET.SubElement(parent_element, "layer-tree-layer")
+            layer_element.set("providerKey", "ogr")
+            layer_element.set("expanded", "1")
+            layer_element.set("checked", "Qt::Checked")
+            layer_element.set("id", layer.layerId())
+            layer_element.set("patch_size", "-1,-1")
+            layer_element.set("legend_split_behavior", "0")
+            layer_element.set("name", layer.name())
+            layer_element.set("source", layer.layer().source())
+            layer_element.set("legend_exp", "")
+            custom_properties = ET.SubElement(layer_element, "customproperties")
+            option = ET.SubElement(custom_properties, "Option")
                 
     
     
@@ -2901,7 +3157,7 @@ class WAXI_QF:
         self.dlg.lineEdit_27.clear()
         self.dlg.lineEdit_9.clear()
         self.dlg.lineEdit_10.clear()
-        
+        self.dlg.lineEdit_39.clear()        
         
         
     def resetWindow_data_management (self) :
@@ -2953,7 +3209,17 @@ class WAXI_QF:
         filename = QFileDialog.getExistingDirectory(None, "Select Export Folder")
     
         self.dlg.lineEdit_7.setText(filename)
+
+    def select_file_source_path_photo(self):       #ADD
+        filename = QFileDialog.getExistingDirectory(None, "Select source path of your field pictures")
         
+        self.dlg.lineEdit_14.setText(filename)
+        
+    def select_file_export_template_style(self):       #ADD
+        filename = QFileDialog.getExistingDirectory(None, "Select export path of your new project style template")
+        
+        self.dlg.lineEdit_18.setText(filename)    
+
   
     def select_clip_poly(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Clip Polygon")
@@ -2984,9 +3250,7 @@ class WAXI_QF:
         
         self.dlg.comboBox_delete.addItems(list_combobox_delete)
         
-        
-        
-    def fill_ComboBox(self):
+    def fill_ComboBox(self): 
         self.dlg.comboBox_merge1_2.clear()
         self.dlg.comboBox_merge2_2.clear()
         
@@ -2995,12 +3259,27 @@ class WAXI_QF:
         couches = QgsProject.instance().mapLayers()
 
         for coucheId, couche in couches.items():
-            self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
-            self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
+            if isinstance(couche, QgsVectorLayer) and not couche.dataProvider().dataSourceUri().lower().endswith('.csv') and couche.name() !="African borders_PG" : 
+                self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
     
+    
+    def fill_ComboBox_layers_user(self): #ADD
+        self.dlg.comboBox_layers_user.clear()
+
+        # List of the QGIS layers 
+        couches = QgsProject.instance().mapLayers()
+
+        for coucheId, couche in couches.items():
+            
+            # Select all non CSV layers of the QGIS project 
+            if isinstance(couche, QgsVectorLayer) and not couche.dataProvider().dataSourceUri().lower().endswith('.csv') and couche.name() !="African borders_PG" :     
+                self.dlg.comboBox_layers_user.addItem(couche.name(), coucheId)
+            
     
     def update_ComboBox (self):
         self.fill_ComboBox()
+        self.fill_ComboBox_layers_user() #ADD
 
 
     ###############################################################################
@@ -3159,8 +3438,11 @@ class WAXI_QF:
         
         geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
 
-        try:
-            test_layers = fiona.listlayers(geopackage_path)
+        test_layers = fiona.listlayers(geopackage_path)
+        if('Stops_PT' not in test_layers):
+                self.iface.messageBar().pushMessage("ERROR: A WAXI nn Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
+                print(test_layers)
+        else:
             
             if self.first_start == True:
                 self.first_start = False
@@ -3189,6 +3471,22 @@ class WAXI_QF:
                 self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
                 self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
 
+                self.dlg.pushButton_user_default.clicked.connect(self.set_user_by_default) #ADD
+                self.fill_ComboBox_layers_user() #ADD
+                
+                self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo) #ADD
+                
+                
+                # Update the repository path for pictures tool (show current defaut_value)
+                Photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]  #ADD
+                self.dlg.lineEdit_15.setText(self.get_value_default(Photographs_PT,"Source"))  #ADD
+                
+                Sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]  #ADD
+                self.dlg.lineEdit_16.setText(self.get_value_default(Sampling_PT,"Source"))  #ADD
+                
+                
+                # Save a new CURRENT MISSION+CSV FILES.qlr file
+                self.dlg.pushButton_save__project_template_style_2.clicked.connect(self.save_template_style)  #ADD
                 
                 # Export_data
                 self.dlg.export_pushButton.clicked.connect(self.exportData)
@@ -3265,7 +3563,8 @@ class WAXI_QF:
                 self.dlg.pushButton_20.clicked.connect(self.select_sub_project)
                 self.dlg.pushButton_27.clicked.connect(self.select_merged_directory)
                 self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-                
+                self.dlg.pushButton_15.clicked.connect(self.select_file_source_path_photo) # ADD
+                self.dlg.pushButton_17.clicked.connect(self.select_file_export_template_style) # ADD                
                 
                 self.dlg.comboBox.currentIndexChanged.connect(self.update_combobox_delete)
 
@@ -3293,13 +3592,7 @@ class WAXI_QF:
             
                
                     
-        except:
-
-        #if('Stops_PT' not in test_layers):
-            self.iface.messageBar().pushMessage("ERROR: A WAXI Template Should be Loaded before using this plugin", level=Qgis.Critical, duration=45)
-        
-        #else:
-                   
+                        
                     
                     
 

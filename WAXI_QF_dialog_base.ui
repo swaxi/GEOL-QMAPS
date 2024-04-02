@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1131</width>
-    <height>629</height>
+    <width>1324</width>
+    <height>940</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -31,7 +31,7 @@
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>0</x>
+     <x>-10</x>
      <y>0</y>
      <width>1131</width>
      <height>611</height>
@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>2</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -1016,7 +1016,7 @@ WINDOW</string>
      <property name="geometry">
       <rect>
        <x>1010</x>
-       <y>200</y>
+       <y>140</y>
        <width>81</width>
        <height>21</height>
       </rect>
@@ -1037,7 +1037,7 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>620</x>
-       <y>90</y>
+       <y>70</y>
        <width>61</width>
        <height>21</height>
       </rect>
@@ -1061,7 +1061,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>90</y>
+       <y>70</y>
        <width>331</width>
        <height>21</height>
       </rect>
@@ -1080,7 +1080,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>620</x>
-       <y>130</y>
+       <y>110</y>
        <width>61</width>
        <height>21</height>
       </rect>
@@ -1101,7 +1101,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>690</x>
-       <y>130</y>
+       <y>110</y>
        <width>331</width>
        <height>21</height>
       </rect>
@@ -1119,8 +1119,8 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QPushButton" name="clip_pushButton">
      <property name="geometry">
       <rect>
-       <x>460</x>
-       <y>170</y>
+       <x>470</x>
+       <y>130</y>
        <width>51</width>
        <height>21</height>
       </rect>
@@ -1140,7 +1140,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>80</y>
+       <y>50</y>
        <width>141</width>
        <height>41</height>
       </rect>
@@ -1161,7 +1161,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>110</y>
+       <y>80</y>
        <width>121</width>
        <height>51</height>
       </rect>
@@ -1185,7 +1185,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>90</y>
+       <y>60</y>
        <width>271</width>
        <height>21</height>
       </rect>
@@ -1204,7 +1204,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>130</y>
+       <y>100</y>
        <width>271</width>
        <height>21</height>
       </rect>
@@ -1223,7 +1223,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>460</x>
-       <y>90</y>
+       <y>60</y>
        <width>31</width>
        <height>21</height>
       </rect>
@@ -1239,7 +1239,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>460</x>
-       <y>130</y>
+       <y>100</y>
        <width>31</width>
        <height>21</height>
       </rect>
@@ -1254,9 +1254,9 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QLabel" name="label_31">
      <property name="geometry">
       <rect>
-       <x>340</x>
+       <x>600</x>
        <y>540</y>
-       <width>431</width>
+       <width>341</width>
        <height>31</height>
       </rect>
      </property>
@@ -1307,66 +1307,11 @@ font-size: 12px;
       <enum>Qt::Vertical</enum>
      </property>
     </widget>
-    <widget class="QPushButton" name="autoinc_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>930</x>
-       <y>320</y>
-       <width>151</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-     </property>
-     <property name="text">
-      <string>Toggle behaviour</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOn">
-     <property name="geometry">
-      <rect>
-       <x>620</x>
-       <y>280</y>
-       <width>61</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 15px;
-</string>
-     </property>
-     <property name="text">
-      <string>On</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOff">
-     <property name="geometry">
-      <rect>
-       <x>670</x>
-       <y>280</y>
-       <width>51</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-family: Arial; 
-font-size: 15px;</string>
-     </property>
-     <property name="text">
-      <string>Off</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_27">
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>410</y>
+       <y>290</y>
        <width>211</width>
        <height>21</height>
       </rect>
@@ -1385,7 +1330,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>410</y>
+       <y>280</y>
        <width>91</width>
        <height>21</height>
       </rect>
@@ -1406,7 +1351,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>270</y>
+       <y>180</y>
        <width>81</width>
        <height>41</height>
       </rect>
@@ -1427,7 +1372,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>370</y>
+       <y>260</y>
        <width>211</width>
        <height>21</height>
       </rect>
@@ -1446,7 +1391,7 @@ border-style: solid;border-width: 1px;border-color: black
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>450</y>
+       <y>320</y>
        <width>141</width>
        <height>21</height>
       </rect>
@@ -1466,7 +1411,7 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>280</y>
+       <y>200</y>
        <width>421</width>
        <height>21</height>
       </rect>
@@ -1476,7 +1421,7 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>40</x>
-       <y>370</y>
+       <y>250</y>
        <width>61</width>
        <height>21</height>
       </rect>
@@ -1497,9 +1442,9 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>330</y>
+       <y>230</y>
        <width>43</width>
-       <height>161</height>
+       <height>121</height>
       </rect>
      </property>
      <property name="lineWidth">
@@ -1513,7 +1458,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>340</x>
-       <y>340</y>
+       <y>240</y>
        <width>91</width>
        <height>51</height>
       </rect>
@@ -1534,7 +1479,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>340</x>
-       <y>380</y>
+       <y>280</y>
        <width>181</width>
        <height>21</height>
       </rect>
@@ -1544,7 +1489,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>380</x>
-       <y>450</y>
+       <y>320</y>
        <width>141</width>
        <height>21</height>
       </rect>
@@ -1584,7 +1529,7 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>330</y>
+       <y>230</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -1604,7 +1549,7 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>350</x>
-       <y>330</y>
+       <y>230</y>
        <width>201</width>
        <height>16</height>
       </rect>
@@ -1644,9 +1589,9 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>60</y>
+       <y>30</y>
        <width>521</width>
-       <height>151</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="font">
@@ -1664,9 +1609,9 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>240</y>
+       <y>170</y>
        <width>521</width>
-       <height>281</height>
+       <height>191</height>
       </rect>
      </property>
      <property name="font">
@@ -1684,9 +1629,9 @@ font-family: Arial; </string>
      <property name="geometry">
       <rect>
        <x>580</x>
-       <y>60</y>
+       <y>40</y>
        <width>521</width>
-       <height>171</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="font">
@@ -1700,13 +1645,13 @@ font-family: Arial; </string>
       <string>Update project name and region</string>
      </property>
     </widget>
-    <widget class="QGroupBox" name="groupBox_7">
+    <widget class="QGroupBox" name="groupBox_16">
      <property name="geometry">
       <rect>
        <x>580</x>
-       <y>260</y>
-       <width>521</width>
-       <height>101</height>
+       <y>190</y>
+       <width>641</width>
+       <height>341</height>
       </rect>
      </property>
      <property name="font">
@@ -1717,10 +1662,482 @@ font-family: Arial; </string>
       </font>
      </property>
      <property name="title">
-      <string>Toggle Auto-Increment of Stop numbers</string>
+      <string>Update the repository path for pictures</string>
      </property>
+     <widget class="QCheckBox" name="photographs_PT_ckeckbox">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>50</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>Photographs_PT</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_update_source_photo">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>300</y>
+        <width>121</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>Update repository</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="sampling_PT_checkbox">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>50</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>Sampling_PT</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>20</y>
+        <width>461</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string>Step 1: Which layers you want to update the repository of pictures attached to </string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>80</y>
+        <width>231</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string>Step 2: New repository of field pictures</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_15">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>90</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Choose your Main Project </string>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_14">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>90</y>
+        <width>251</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>120</y>
+        <width>331</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string>Step 3 : choose one or both options to update repository: </string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="option2_ckeckbox">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>160</y>
+        <width>321</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>By default for new entity entry</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="option1_ckeckbox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>160</y>
+        <width>161</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string> For existing entities only</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_22">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>190</y>
+        <width>351</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>For your information, the current repository value by default is : </string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_15">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>230</y>
+        <width>351</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
+}
+</string>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_16">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>260</y>
+        <width>351</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(220, 220, 220, 100);
+}
+</string>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_25">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>210</y>
+        <width>141</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>For Photographs_PT :</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_30">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>240</y>
+        <width>111</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+      </property>
+      <property name="text">
+       <string>For Sampling_PT :</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
     </widget>
-    <zorder>groupBox_7</zorder>
+    <widget class="QGroupBox" name="groupBox_18">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>380</y>
+       <width>521</width>
+       <height>161</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>  Set User by default </string>
+     </property>
+     <widget class="QLabel" name="label_29">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>131</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string>New or existing user :</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_39">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>30</y>
+        <width>201</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioButton_All">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>100</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string> Change for all layers</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioButton_Some">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>151</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string> Change for one layer :</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="comboBox_layers_user">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>70</y>
+        <width>241</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_user_default">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>120</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-size: 12px;
+font-family: Arial; </string>
+      </property>
+      <property name="text">
+       <string>  Set User by default </string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_40">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>120</y>
+        <width>271</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 11px;
+font-weight: bold;
+font-style: italic;
+</string>
+      </property>
+      <property name="text">
+       <string>(It could take 1 or 2 min to process all the layers)</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </widget>
     <zorder>groupBox_6</zorder>
     <zorder>groupBox_4</zorder>
     <zorder>groupBox_5</zorder>
@@ -1739,9 +2156,6 @@ font-family: Arial; </string>
     <zorder>label_31</zorder>
     <zorder>pushButton_19</zorder>
     <zorder>line_6</zorder>
-    <zorder>autoinc_pushButton</zorder>
-    <zorder>radioButtonOn</zorder>
-    <zorder>radioButtonOff</zorder>
     <zorder>lineEdit_27</zorder>
     <zorder>label_7</zorder>
     <zorder>label_26</zorder>
@@ -1757,6 +2171,8 @@ font-family: Arial; </string>
     <zorder>label_37</zorder>
     <zorder>label_38</zorder>
     <zorder>label_39</zorder>
+    <zorder>groupBox_16</zorder>
+    <zorder>groupBox_18</zorder>
    </widget>
    <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
@@ -1851,7 +2267,7 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QLabel" name="label_32">
      <property name="geometry">
       <rect>
-       <x>340</x>
+       <x>30</x>
        <y>530</y>
        <width>451</width>
        <height>41</height>
@@ -2141,8 +2557,8 @@ font-size: 13px;
     <widget class="QCheckBox" name="gtCircles_checkBox">
      <property name="geometry">
       <rect>
-       <x>390</x>
-       <y>400</y>
+       <x>90</x>
+       <y>420</y>
        <width>91</width>
        <height>19</height>
       </rect>
@@ -2159,8 +2575,8 @@ font-size: 12px;
     <widget class="QCheckBox" name="rose_checkBox">
      <property name="geometry">
       <rect>
-       <x>390</x>
-       <y>440</y>
+       <x>90</x>
+       <y>460</y>
        <width>101</width>
        <height>19</height>
       </rect>
@@ -2177,7 +2593,7 @@ font-size: 12px;
     <widget class="QPushButton" name="stereonet_pushButton">
      <property name="geometry">
       <rect>
-       <x>700</x>
+       <x>390</x>
        <y>460</y>
        <width>141</width>
        <height>21</height>
@@ -2197,8 +2613,8 @@ font-size: 12px;</string>
     <widget class="QCheckBox" name="linPlanes_checkBox">
      <property name="geometry">
       <rect>
-       <x>590</x>
-       <y>400</y>
+       <x>280</x>
+       <y>420</y>
        <width>116</width>
        <height>19</height>
       </rect>
@@ -2215,8 +2631,8 @@ font-size: 12px;
     <widget class="QCheckBox" name="contours_checkBox">
      <property name="geometry">
       <rect>
-       <x>500</x>
-       <y>400</y>
+       <x>190</x>
+       <y>420</y>
        <width>81</width>
        <height>19</height>
       </rect>
@@ -2236,8 +2652,8 @@ font-size: 12px;
      </property>
      <property name="geometry">
       <rect>
-       <x>500</x>
-       <y>440</y>
+       <x>200</x>
+       <y>460</y>
        <width>85</width>
        <height>19</height>
       </rect>
@@ -2257,7 +2673,7 @@ font-size: 12px;
        <x>540</x>
        <y>20</y>
        <width>43</width>
-       <height>271</height>
+       <height>541</height>
       </rect>
      </property>
      <property name="lineWidth">
@@ -2265,49 +2681,6 @@ font-size: 12px;
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_24">
-     <property name="geometry">
-      <rect>
-       <x>350</x>
-       <y>340</y>
-       <width>351</width>
-       <height>51</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
-font-size: 12px;
-font-style: italic;
-font-weight: bold;</string>
-     </property>
-     <property name="text">
-      <string>This tool is related to the qgis-stereonet plugin, available here: </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="stereonet_pushButton_2">
-     <property name="geometry">
-      <rect>
-       <x>700</x>
-       <y>360</y>
-       <width>141</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-     </property>
-     <property name="text">
-      <string>QGIS-stereonet plugin </string>
      </property>
     </widget>
     <widget class="QLabel" name="label_42">
@@ -2353,7 +2726,7 @@ font-size: 12px;</string>
     <widget class="QLabel" name="label_46">
      <property name="geometry">
       <rect>
-       <x>460</x>
+       <x>150</x>
        <y>300</y>
        <width>311</width>
        <height>21</height>
@@ -2433,9 +2806,9 @@ font-size: 12px;</string>
     <widget class="QGroupBox" name="groupBox_12">
      <property name="geometry">
       <rect>
-       <x>320</x>
+       <x>20</x>
        <y>330</y>
-       <width>531</width>
+       <width>521</width>
        <height>161</height>
       </rect>
      </property>
@@ -2449,6 +2822,49 @@ font-size: 12px;</string>
      <property name="title">
       <string>Stereographic projection settings</string>
      </property>
+     <widget class="QLabel" name="label_24">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>10</y>
+        <width>371</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">qproperty-alignment: 'AlignCenter';  
+font-family: Arial; 
+font-size: 12px;
+font-style: italic;
+font-weight: bold;</string>
+      </property>
+      <property name="text">
+       <string>This tool is related to the qgis-stereonet plugin, available here: </string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="stereonet_pushButton_2">
+      <property name="geometry">
+       <rect>
+        <x>360</x>
+        <y>50</y>
+        <width>141</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+      </property>
+      <property name="text">
+       <string>QGIS-stereonet plugin </string>
+      </property>
+     </widget>
     </widget>
     <widget class="Line" name="line">
      <property name="geometry">
@@ -2463,6 +2879,193 @@ font-size: 12px;</string>
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
+    <widget class="QGroupBox" name="groupBox_17">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>310</y>
+       <width>531</width>
+       <height>131</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Save a new CURRENT MISSION+CSV FILES.qlr file</string>
+     </property>
+     <widget class="QPushButton" name="pushButton_save__project_template_style_2">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>100</y>
+        <width>181</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+      </property>
+      <property name="text">
+       <string>Save a new template style</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_36">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>361</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 13px;
+</string>
+      </property>
+      <property name="text">
+       <string>Where do you want to store your new QGIS Layer Definition  :</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_17">
+      <property name="geometry">
+       <rect>
+        <x>420</x>
+        <y>60</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Choose your Main Project </string>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="lineEdit_18">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>60</y>
+        <width>371</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="autoinc_pushButton">
+     <property name="geometry">
+      <rect>
+       <x>930</x>
+       <y>490</y>
+       <width>151</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+     </property>
+     <property name="text">
+      <string>Toggle behaviour</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButtonOff">
+     <property name="geometry">
+      <rect>
+       <x>700</x>
+       <y>490</y>
+       <width>51</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 15px;</string>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="radioButtonOn">
+     <property name="geometry">
+      <rect>
+       <x>620</x>
+       <y>490</y>
+       <width>61</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-family: Arial; 
+font-size: 15px;
+</string>
+     </property>
+     <property name="text">
+      <string>On</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_7">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>460</y>
+       <width>531</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Toggle Auto-Increment of Stop numbers</string>
+     </property>
+    </widget>
+    <zorder>groupBox_7</zorder>
     <zorder>line</zorder>
     <zorder>groupBox_11</zorder>
     <zorder>groupBox_12</zorder>
@@ -2489,8 +3092,6 @@ font-size: 12px;</string>
     <zorder>label_15</zorder>
     <zorder>stereonet_pushButton</zorder>
     <zorder>line_10</zorder>
-    <zorder>label_24</zorder>
-    <zorder>stereonet_pushButton_2</zorder>
     <zorder>label_42</zorder>
     <zorder>label_43</zorder>
     <zorder>label_46</zorder>
@@ -2499,6 +3100,10 @@ font-size: 12px;</string>
     <zorder>linPlanes_checkBox</zorder>
     <zorder>contours_checkBox</zorder>
     <zorder>gtCircles_checkBox</zorder>
+    <zorder>groupBox_17</zorder>
+    <zorder>autoinc_pushButton</zorder>
+    <zorder>radioButtonOff</zorder>
+    <zorder>radioButtonOn</zorder>
    </widget>
    <widget class="QWidget" name="Help">
     <property name="styleSheet">
@@ -2536,7 +3141,7 @@ font-style: italic;</string>
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>170</y>
+       <y>180</y>
        <width>271</width>
        <height>41</height>
       </rect>
@@ -2569,7 +3174,7 @@ font-size: 13px;
      <property name="geometry">
       <rect>
        <x>290</x>
-       <y>180</y>
+       <y>190</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -2772,7 +3377,7 @@ backround-color: (220,220,220);
      <property name="geometry">
       <rect>
        <x>330</x>
-       <y>290</y>
+       <y>300</y>
        <width>151</width>
        <height>21</height>
       </rect>
@@ -2792,7 +3397,7 @@ font-weight: bold;</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>290</y>
+       <y>300</y>
        <width>151</width>
        <height>21</height>
       </rect>
@@ -2812,7 +3417,7 @@ font-weight: bold;</string>
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>360</y>
+       <y>370</y>
        <width>211</width>
        <height>21</height>
       </rect>
@@ -2834,7 +3439,7 @@ font-weight: bold;
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>360</y>
+       <y>370</y>
        <width>211</width>
        <height>21</height>
       </rect>
@@ -2856,7 +3461,7 @@ font-weight: bold;
      <property name="geometry">
       <rect>
        <x>330</x>
-       <y>250</y>
+       <y>260</y>
        <width>151</width>
        <height>21</height>
       </rect>
@@ -2876,7 +3481,7 @@ font-weight: bold;</string>
      <property name="geometry">
       <rect>
        <x>110</x>
-       <y>250</y>
+       <y>260</y>
        <width>151</width>
        <height>21</height>
       </rect>
@@ -3010,7 +3615,7 @@ font-weight: bold;</string>
        <x>580</x>
        <y>360</y>
        <width>521</width>
-       <height>111</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="font">
@@ -3032,7 +3637,7 @@ font-weight: bold;</string>
         <x>40</x>
         <y>30</y>
         <width>461</width>
-        <height>61</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="acceptDrops">
@@ -3057,17 +3662,16 @@ font-weight: bold;</string>
        <bool>true</bool>
       </property>
       <property name="plainText">
-       <string>If you have any ideas for improvements or tools you'd like to add to this plugin, please submit them to the github issues page: 
-</string>
+       <string>If you have any ideas for improvements or tools you'd like to add to this plugin, please submit them to the github issues page:</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_23">
       <property name="geometry">
        <rect>
-        <x>350</x>
+        <x>260</x>
         <y>70</y>
         <width>131</width>
-        <height>31</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -3078,7 +3682,7 @@ background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
       </property>
       <property name="text">
-       <string>Bug Reports</string>
+       <string>Bug Report</string>
       </property>
      </widget>
     </widget>
