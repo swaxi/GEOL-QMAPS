@@ -1,5 +1,5 @@
 # WAXI_QF
- QGIS Plugin to help QFIELD usage related to the latest WAXI QFIELD Template (ctrl click on the link to access latest template): https://doi.org/10.5281/zenodo.7834717
+ QGIS Plugin to help QFIELD usage related to the latest WAXI QFIELD Template (ctrl + click on the link to access latest template): https://doi.org/10.5281/zenodo.7834717
  
 ## Install
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
@@ -7,7 +7,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Usage
 **Select the plugin using the WAXI logo**   ![waxi_icon](icon.png)   
 
-**An existing WAXI QFIELD project must be open when you run this plugin, otherwise the Dialog will not display.**
+**An existing WAXI QFIELD project must be open to run this plugin, otherwise the Dialog will not display.**
 
 ## Functionality
 - **Import Layers** Convert pre-existing data into a WAXI QF Template ready for merging, uses fuzzy logic to suggest best choices for lithology labels.   
@@ -41,6 +41,6 @@ Add centroids of polygon and line features when creating virtual stop layer.
    
 ## Credits    
 Plugin construction - Eliott Betend GUI and Import Tool    
-Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin    
-QFIELD Template - Julien Perret    
-Manual - Eliott Betend   
+Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin     
+Manual - Eliott Betend and Mark Jessell   
+QGIS digital mapping tool - Julien Perret 
