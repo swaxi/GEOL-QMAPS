@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1324</width>
-    <height>940</height>
+    <height>927</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -1254,7 +1254,7 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QLabel" name="label_31">
      <property name="geometry">
       <rect>
-       <x>600</x>
+       <x>390</x>
        <y>540</y>
        <width>341</width>
        <height>31</height>
@@ -1505,26 +1505,6 @@ font-family: Arial; </string>
       <string>Delete this item</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_34">
-     <property name="geometry">
-      <rect>
-       <x>170</x>
-       <y>10</y>
-       <width>201</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Database management</string>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_37">
      <property name="geometry">
       <rect>
@@ -1565,26 +1545,6 @@ font-family: Arial; </string>
       <string>Delete items from CSV file</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_39">
-     <property name="geometry">
-      <rect>
-       <x>740</x>
-       <y>10</y>
-       <width>181</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Project customisation </string>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">
       <rect>
@@ -1622,7 +1582,7 @@ font-family: Arial; </string>
       </font>
      </property>
      <property name="title">
-      <string>Add or delete items in List file</string>
+      <string>Edit Items in Dictionaries</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_6">
@@ -1650,8 +1610,8 @@ font-family: Arial; </string>
       <rect>
        <x>580</x>
        <y>190</y>
-       <width>641</width>
-       <height>341</height>
+       <width>521</width>
+       <height>251</height>
       </rect>
      </property>
      <property name="font">
@@ -1662,31 +1622,13 @@ font-family: Arial; </string>
       </font>
      </property>
      <property name="title">
-      <string>Update the repository path for pictures</string>
+      <string>Picture storage</string>
      </property>
-     <widget class="QCheckBox" name="photographs_PT_ckeckbox">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>50</y>
-        <width>161</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-      </property>
-      <property name="text">
-       <string>Photographs_PT</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushButton_update_source_photo">
       <property name="geometry">
        <rect>
         <x>380</x>
-        <y>300</y>
+        <y>210</y>
         <width>121</width>
         <height>21</height>
        </rect>
@@ -1703,50 +1645,11 @@ font-size: 12px;
        <string>Update repository</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="sampling_PT_checkbox">
-      <property name="geometry">
-       <rect>
-        <x>180</x>
-        <y>50</y>
-        <width>161</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-      </property>
-      <property name="text">
-       <string>Sampling_PT</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>20</y>
-        <width>461</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 13px;
-</string>
-      </property>
-      <property name="text">
-       <string>Step 1: Which layers you want to update the repository of pictures attached to </string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
      <widget class="QLabel" name="label_5">
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>80</y>
+        <y>20</y>
         <width>231</width>
         <height>41</height>
        </rect>
@@ -1760,7 +1663,7 @@ font-size: 13px;
 </string>
       </property>
       <property name="text">
-       <string>Step 2: New repository of field pictures</string>
+       <string>Step 1: New repository of field pictures</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1769,8 +1672,8 @@ font-size: 13px;
      <widget class="QPushButton" name="pushButton_15">
       <property name="geometry">
        <rect>
-        <x>500</x>
-        <y>90</y>
+        <x>470</x>
+        <y>30</y>
         <width>31</width>
         <height>21</height>
        </rect>
@@ -1792,8 +1695,8 @@ font-size: 13px;
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>90</y>
-        <width>251</width>
+        <y>30</y>
+        <width>211</width>
         <height>21</height>
        </rect>
       </property>
@@ -1819,9 +1722,9 @@ border-style: solid;border-width: 1px;border-color: black
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>120</y>
-        <width>331</width>
+        <x>0</x>
+        <y>60</y>
+        <width>341</width>
         <height>41</height>
        </rect>
       </property>
@@ -1831,7 +1734,7 @@ font-size: 13px;
 </string>
       </property>
       <property name="text">
-       <string>Step 3 : choose one or both options to update repository: </string>
+       <string>Step 2 : choose one or both options to update repository: </string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1841,7 +1744,7 @@ font-size: 13px;
       <property name="geometry">
        <rect>
         <x>220</x>
-        <y>160</y>
+        <y>100</y>
         <width>321</width>
         <height>31</height>
        </rect>
@@ -1859,7 +1762,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>160</y>
+        <y>100</y>
         <width>161</width>
         <height>31</height>
        </rect>
@@ -1877,7 +1780,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>190</y>
+        <y>130</y>
         <width>351</width>
         <height>41</height>
        </rect>
@@ -1894,37 +1797,11 @@ font-size: 12px;
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_15">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>230</y>
-        <width>351</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLineEdit {
-    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
-}
-</string>
-      </property>
-      <property name="inputMask">
-       <string/>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
      <widget class="QLineEdit" name="lineEdit_16">
       <property name="geometry">
        <rect>
-        <x>170</x>
-        <y>260</y>
+        <x>130</x>
+        <y>170</y>
         <width>351</width>
         <height>21</height>
        </rect>
@@ -1944,48 +1821,6 @@ font-size: 12px;
       </property>
       <property name="text">
        <string/>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_25">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>210</y>
-        <width>141</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-      </property>
-      <property name="text">
-       <string>For Photographs_PT :</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_30">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>240</y>
-        <width>111</width>
-        <height>51</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-      </property>
-      <property name="text">
-       <string>For Sampling_PT :</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </widget>
@@ -2167,10 +2002,8 @@ font-style: italic;
     <zorder>label_9</zorder>
     <zorder>comboBox_delete</zorder>
     <zorder>csv_pushButton_2</zorder>
-    <zorder>label_34</zorder>
     <zorder>label_37</zorder>
     <zorder>label_38</zorder>
-    <zorder>label_39</zorder>
     <zorder>groupBox_16</zorder>
     <zorder>groupBox_18</zorder>
    </widget>
@@ -2723,26 +2556,6 @@ font-size: 12px;
       <string>Export data</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_46">
-     <property name="geometry">
-      <rect>
-       <x>150</x>
-       <y>300</y>
-       <width>311</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>12</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Stereographic projections</string>
-     </property>
-    </widget>
     <widget class="QGroupBox" name="groupBox_8">
      <property name="geometry">
       <rect>
@@ -2896,7 +2709,7 @@ font-size: 12px;</string>
       </font>
      </property>
      <property name="title">
-      <string>Save a new CURRENT MISSION+CSV FILES.qlr file</string>
+      <string>Export a layer definition file for field data layers and dictionaries</string>
      </property>
      <widget class="QPushButton" name="pushButton_save__project_template_style_2">
       <property name="geometry">
@@ -3094,7 +2907,6 @@ font-size: 15px;
     <zorder>line_10</zorder>
     <zorder>label_42</zorder>
     <zorder>label_43</zorder>
-    <zorder>label_46</zorder>
     <zorder>kinematics_checkBox</zorder>
     <zorder>rose_checkBox</zorder>
     <zorder>linPlanes_checkBox</zorder>

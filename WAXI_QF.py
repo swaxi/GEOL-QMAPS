@@ -2980,77 +2980,58 @@ class WAXI_QF:
         
         if os.path.exists(self.mynormpath(new_source_path)):
             
-            ### Update Photographs_PT layer : 
-            if (self.dlg.photographs_PT_ckeckbox.isChecked()) :
+
                 
-                layer_photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]
-                source_field_index = layer_photographs_PT.fields().indexFromName("Source")
-                
-                ## Option 1 
-                if (self.dlg.option1_ckeckbox.isChecked()) :
-                    
-                    layer_photographs_PT.startEditing()
-    
-                    for entite in layer_photographs_PT.getFeatures():
-                        entite.setAttribute(source_field_index, new_source_path)
-                        layer_photographs_PT.updateFeature(entite)
-                        
-                    layer_photographs_PT.commitChanges()
-                    
-                    self.iface.messageBar().pushMessage((new_source_path + " is now the source for the pictures of Photographs_PT"), level=Qgis.Success, duration=15)
-                    
-                ## Option 2
-                if (self.dlg.option2_ckeckbox.isChecked()) :
-    
-                    # Create default value 
-                    new_source_path_default = "'"+str(new_source_path)+"'"
-                    default_value = QgsDefaultValue(new_source_path_default)
-                
-                    # Update default field value
-                    layer_photographs_PT.setDefaultValueDefinition(source_field_index, default_value)
-                    QgsProject.instance().write()
-                    
-                    self.dlg.lineEdit_15.setText(self.get_value_default(layer_photographs_PT,"Source"))
-                     
-                    self.iface.messageBar().pushMessage((new_source_path + " is now the default user for the pictures of Photographs_PT"), level=Qgis.Success, duration=15)
-                    
-                
-                
-            ### Update Sampling_PT layer : 
-            if (self.dlg.sampling_PT_checkbox.isChecked()) :
-                
-                layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
-                source_field_index = layer_sampling_PT.fields().indexFromName("Source")
-                
-                ## Option 1 
-                if (self.dlg.option1_ckeckbox.isChecked()) :
-    
-                    layer_sampling_PT.startEditing()
-                    
-                    for entite in layer_sampling_PT.getFeatures():
-                        entite.setAttribute(source_field_index, new_source_path)
-                        layer_sampling_PT.updateFeature(entite)
-                        
-                    layer_sampling_PT.commitChanges()
-                    
-                    self.iface.messageBar().pushMessage((new_source_path + " is now the source for the pictures of Sampling_PT"), level=Qgis.Success, duration=15)
+            layer_photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]
+            layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
+            source_field_index_photo = layer_photographs_PT.fields().indexFromName("Source")
+            source_field_index_sampling = layer_photographs_PT.fields().indexFromName("Source")
             
-            
-                ## Option 2
-                if (self.dlg.option2_ckeckbox.isChecked()) :
-                    
-                    # Create default value 
-                    new_source_path_default = "'"+str(new_source_path)+"'"
-                    default_value = QgsDefaultValue(new_source_path_default)
+            ## Option 1 
+            if (self.dlg.option1_ckeckbox.isChecked()) :
                 
-                    # Update default field value
-                    layer_sampling_PT.setDefaultValueDefinition(source_field_index, default_value)
-                    QgsProject.instance().write()
+                layer_photographs_PT.startEditing()
+
+                for entite in layer_photographs_PT.getFeatures():
+                    entite.setAttribute(source_field_index_photo, new_source_path)
+                    layer_photographs_PT.updateFeature(entite)
                     
-                    self.dlg.lineEdit_16.setText(self.get_value_default(layer_sampling_PT,"Source"))
+                layer_photographs_PT.commitChanges()
+                
+                layer_sampling_PT.startEditing()
+                
+                for entite in layer_sampling_PT.getFeatures():
+                    entite.setAttribute(source_field_index_sampling, new_source_path)
+                    layer_sampling_PT.updateFeature(entite)
                     
-        
-                    self.iface.messageBar().pushMessage((new_source_path + " is now the default user for the pictures of Sampling_PT"), level=Qgis.Success, duration=15)
+                layer_sampling_PT.commitChanges()
+                
+            ## Option 2
+            if (self.dlg.option2_ckeckbox.isChecked()) :
+
+                # Create default value 
+                new_source_path_default = "'"+str(new_source_path)+"'"
+                default_value = QgsDefaultValue(new_source_path_default)
+            
+                # Update default field value
+                layer_photographs_PT.setDefaultValueDefinition(source_field_index_photo, default_value)
+                QgsProject.instance().write()
+                
+                #layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
+                #source_field_index = layer_sampling_PT.fields().indexFromName("Source")
+                
+                # Create default value 
+                new_source_path_default = "'"+str(new_source_path)+"'"
+                default_value = QgsDefaultValue(new_source_path_default)
+            
+                # Update default field value
+                layer_sampling_PT.setDefaultValueDefinition(source_field_index_sampling, default_value)
+                QgsProject.instance().write()
+                
+            self.dlg.lineEdit_16.setText(new_source_path)
+                
+    
+            self.iface.messageBar().pushMessage((new_source_path + " is now the default directory for pictures"), level=Qgis.Success, duration=15)
         
         else :
             self.iface.messageBar().pushMessage("The path doesn't exist", level=Qgis.Warning, duration=45)
@@ -3474,11 +3455,10 @@ class WAXI_QF:
                 
                 
                 # Update the repository path for pictures tool (show current defaut_value)
-                Photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]  #ADD
-                self.dlg.lineEdit_15.setText(self.get_value_default(Photographs_PT,"Source"))  #ADD
+
                 
                 Sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]  #ADD
-                self.dlg.lineEdit_16.setText(self.get_value_default(Sampling_PT,"Source"))  #ADD
+                self.dlg.lineEdit_16.setText('./0. FIELD DATA/DCIM/')  #ADD
                 
                 
                 # Save a new CURRENT MISSION+CSV FILES.qlr file
