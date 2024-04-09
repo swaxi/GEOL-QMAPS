@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1324</width>
-    <height>724</height>
+    <width>1145</width>
+    <height>626</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>2</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -2672,7 +2672,7 @@ font-size: 12px;</string>
        <x>580</x>
        <y>300</y>
        <width>521</width>
-       <height>231</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="font">
@@ -2689,7 +2689,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>380</x>
-        <y>200</y>
+        <y>140</y>
         <width>121</width>
         <height>21</height>
        </rect>
@@ -2835,53 +2835,6 @@ font-size: 12px;
       </property>
       <property name="text">
        <string> For existing entities only</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_22">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>130</y>
-        <width>351</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-      </property>
-      <property name="text">
-       <string>For your information, the current repository value by default is : </string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="lineEdit_16">
-      <property name="geometry">
-       <rect>
-        <x>130</x>
-        <y>170</y>
-        <width>351</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLineEdit {
-    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
-    background-color: rgb(220, 220, 220, 100);
-}
-</string>
-      </property>
-      <property name="inputMask">
-       <string/>
-      </property>
-      <property name="text">
-       <string/>
       </property>
      </widget>
     </widget>

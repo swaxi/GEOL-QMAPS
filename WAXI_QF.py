@@ -2985,7 +2985,7 @@ class WAXI_QF:
             layer_photographs_PT = QgsProject.instance().mapLayersByName("Photographs_PT")[0]
             layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
             source_field_index_photo = layer_photographs_PT.fields().indexFromName("Source")
-            source_field_index_sampling = layer_photographs_PT.fields().indexFromName("Source")
+            source_field_index_sampling = layer_sampling_PT.fields().indexFromName("Source")
             
             ## Option 1 
             if (self.dlg.option1_ckeckbox.isChecked()) :
@@ -3016,19 +3016,12 @@ class WAXI_QF:
                 # Update default field value
                 layer_photographs_PT.setDefaultValueDefinition(source_field_index_photo, default_value)
                 QgsProject.instance().write()
-                
-                #layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
-                #source_field_index = layer_sampling_PT.fields().indexFromName("Source")
-                
-                # Create default value 
-                new_source_path_default = "'"+str(new_source_path)+"'"
-                default_value = QgsDefaultValue(new_source_path_default)
+    
             
                 # Update default field value
                 layer_sampling_PT.setDefaultValueDefinition(source_field_index_sampling, default_value)
                 QgsProject.instance().write()
                 
-            self.dlg.lineEdit_16.setText(new_source_path)
                 
     
             self.iface.messageBar().pushMessage((new_source_path + " is now the default directory for pictures"), level=Qgis.Success, duration=15)
@@ -3457,8 +3450,8 @@ class WAXI_QF:
                 # Update the repository path for pictures tool (show current defaut_value)
 
                 
-                Sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]  #ADD
-                self.dlg.lineEdit_16.setText('./0. FIELD DATA/DCIM/')  #ADD
+                #Sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]  #ADD
+                #self.dlg.lineEdit_16.setText('./0. FIELD DATA/DCIM/')  #ADD
                 
                 
                 # Save a new CURRENT MISSION+CSV FILES.qlr file
