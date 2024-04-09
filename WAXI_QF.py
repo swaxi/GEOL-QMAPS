@@ -3413,7 +3413,31 @@ class WAXI_QF:
         geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
         
         if os.path.exists(geopackage_path):
+            plugin_version=template_version='3.0.5'
+            template_version_file=open(head_tail[0]+'/99. COMMAND FILES - PLUGIN/Version.txt')
+            version=template_version_file.readline()
+            template_version=version[1:].split('.')
             
+            metadata_path = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/metadata.txt")
+            plugin_version_file=open(metadata_path)
+            metadata=plugin_version_file.readlines()
+            for line in metadata:
+                parts=line.split("=")
+                if(len(parts)==2 and parts[0]=='version'):
+                    plugin_version=parts[1].split('.')
+            print(plugin_version,template_version)
+
+            if(template_version[0]>plugin_version[0] or
+               ((template_version[0] == plugin_version[0]) and template_version[1]>plugin_version[1])):
+                self.iface.messageBar().pushMessage("ERROR: Template newer than plugin, please update plugin NOW!", level=Qgis.Critical, duration=45)
+            elif(template_version[0]<plugin_version[0] or
+                ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
+                self.iface.messageBar().pushMessage("WARNING: Plugin newer than template, uncertain behaviour!", level=Qgis.Warning, duration=45)
+            else:
+                self.iface.messageBar().pushMessage("SUCCESS: Plugin and template are compatible!!", level=Qgis.Success, duration=45)
+
+
+
             if self.first_start == True:
                 self.first_start = False
                 

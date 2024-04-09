@@ -4,9 +4,9 @@
 
 [general]
 name=WAXI_QF
-qgisMinimumVersion=3.28
+qgisMinimumVersion=3.36
 description=The WAXI_QF Plugin allows you to import or export data from or in the WAXI QGIS template. It also supports QField usage by the WAXI Team. 
-version=2.0
+version=3.0.5
 author=Mark Jessell and Eliott Betend UWA
 email=mark.jessell@uwa.edu.au
 
