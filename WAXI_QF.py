@@ -3425,6 +3425,7 @@ class WAXI_QF:
                 parts=line.split("=")
                 if(len(parts)==2 and parts[0]=='version'):
                     plugin_version=parts[1].split('.')
+            plugin_version[2]=plugin_version[2].strip()
             print(plugin_version,template_version)
 
             if(template_version[0]>plugin_version[0] or
