@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -1329,8 +1329,8 @@ border-style: solid;border-width: 1px;border-color: black
     <widget class="QLabel" name="label_7">
      <property name="geometry">
       <rect>
-       <x>10</x>
-       <y>280</y>
+       <x>20</x>
+       <y>290</y>
        <width>91</width>
        <height>21</height>
       </rect>
@@ -1670,7 +1670,7 @@ border-style: solid;border-width: 1px;border-color: black
         <x>20</x>
         <y>100</y>
         <width>181</width>
-        <height>41</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1686,9 +1686,9 @@ font-size: 13px;
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>60</y>
+        <y>70</y>
         <width>151</width>
-        <height>51</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -1734,9 +1734,9 @@ font-family: Arial; </string>
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>120</y>
+        <y>130</y>
         <width>271</width>
-        <height>51</height>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">

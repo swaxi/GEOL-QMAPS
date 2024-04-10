@@ -2769,7 +2769,7 @@ class WAXI_QF:
         from .dbscan import Basic_DBSCAN
         from datetime import datetime
         
-        if(self.dlg.lineEdit_11.text()):
+        if(self.dlg.lineEdit_53.text()):
             
             # Defines pseudo stop numbers based on proximity
             project = QgsProject.instance()
@@ -2778,27 +2778,28 @@ class WAXI_QF:
     
             file=[]
     
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Bedding_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Dikes-Sills_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold and crenulation axial planes_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold axes_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Foliation-cleavage_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fractures_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Lineations_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold axes_PT"))        
+
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Bedding-Lava flow-S0_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Foliation-cleavage_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Shear zones and faults_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold and crenulation axial planes_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fractures_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Veins_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Metamorphic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Plutonic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Sedimentary lithologies_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Dikes-Sills_PT"))
+
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Local lithologies_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Supergene lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Volcanic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Volcanoclastic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Metamorphic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Plutonic lithologies_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Sedimentary lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Supergene lithologies_PT"))
             file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Volcanoclastic lithologies_PT"))
-            
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous extrusive lithologies_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous intrusive lithologies_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Metamorphic lithologies_PT"))
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Lithological contacts_PT"))
+
+            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Magnetic susceptibility_PT"))
+
             # Merge two shapefiles
             params = {
             'LAYERS': [file[0],file[1]],
@@ -2872,26 +2873,27 @@ class WAXI_QF:
                     print("Layer failed to build!")
                 else:
                     QgsProject.instance().addMapLayer(merged_layers,False)
+                    output_path = QgsProject.instance().readPath("./")
+                    datestamp=datetime.now().strftime('%d-%b-%Y_%H_%M_%S')
+                    params = {'INPUT': merged_layers,
+                            'OPTIONS':'-update -nln '+"Virtual_Stops_" + datestamp,
+                            'OUTPUT':output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg"}
+                    processing.run("gdal:convertformat", params)
+                    '''
                     options = QgsVectorFileWriter.SaveVectorOptions()
-                    options.driverName = "ESRI Shapefile"
+                    options.driverName = "GPKG"
                     #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
                     options.fileEncoding="UTF8"
     
-                    output_path = QgsProject.instance().readPath("./")
-                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datetime.now().strftime('%d-%b-%Y_%H_%M_%S')+".shp" ) # Path to clip rectangle in memory
                     writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
-    
+                    print(writer[0],writer,virtual_path)
                     if writer[0] != QgsVectorFileWriter.NoError:
-                        print("Error occurred while creating shapefile:", writer.errorMessage())
-                    """
-                    else:
-                        # Write features to the shapefile
-                        for feature in layer.getFeatures():
-                            writer.addFeature(feature)
-    
-                        # Finish writing and close the shapefile
-                    """
+                        self.iface.messageBar().pushMessage("Error occurred while creating shapefile: "+ writer[1], level=Qgis.Warning, duration=15)
+                        return
+
                     del writer
+                    '''
+                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datestamp ) # Path to clip rectangle in memory
                     self.iface.addVectorLayer(virtual_path, '', 'ogr')
                     self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
             else:
@@ -3453,6 +3455,7 @@ class WAXI_QF:
             self.iface.messageBar().pushMessage("SUCCESS: Plugin and template are compatible!!", level=Qgis.Success, duration=45)
 
         template_version_file.close()
+        plugin_version_file.close()
 
     def run(self):
         """Run method that performs all the real work"""
