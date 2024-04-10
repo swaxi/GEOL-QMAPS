@@ -3435,12 +3435,12 @@ class WAXI_QF:
         tv='.'.join(template_version)
         if(template_version[0]>plugin_version[0] or
             ((template_version[0] == plugin_version[0]) and template_version[1]>plugin_version[1])):
-            self.iface.messageBar().pushMessage("ERROR: Template {} newer than plugin {}, please update plugin NOW!".format(pv,tv), level=Qgis.Critical, duration=45)
+            self.iface.messageBar().pushMessage("ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(pv,tv), level=Qgis.Critical, duration=45)
         elif(template_version[0]<plugin_version[0] or
             ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
-            self.iface.messageBar().pushMessage("WARNING: Plugin {} newer than template {}, uncertain behaviour!".format(ppv,tv), level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage("WARNING: Plugin {} newer than Template {}, uncertain behaviour!".format(ppv,tv), level=Qgis.Warning, duration=45)
         else:
-            self.iface.messageBar().pushMessage("SUCCESS: Plugin {} and template {} are compatible!!".format(pv,tv), level=Qgis.Success, duration=45)
+            self.iface.messageBar().pushMessage("SUCCESS: Plugin {} and Template {} are compatible!!".format(pv,tv), level=Qgis.Success, duration=45)
 
         template_version_file.close()
         plugin_version_file.close()
