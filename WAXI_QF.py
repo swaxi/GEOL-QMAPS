@@ -2879,21 +2879,8 @@ class WAXI_QF:
                             'OPTIONS':'-update -nln '+"Virtual_Stops_" + datestamp,
                             'OUTPUT':output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg"}
                     processing.run("gdal:convertformat", params)
-                    '''
-                    options = QgsVectorFileWriter.SaveVectorOptions()
-                    options.driverName = "GPKG"
-                    #options.actionOnExistingFile = QgsVectorFileWriter.CreateOrOverwriteLayer
-                    options.fileEncoding="UTF8"
-    
-                    writer = QgsVectorFileWriter.writeAsVectorFormatV3 (merged_layers,virtual_path, QgsProject.instance().transformContext(), options )
-                    print(writer[0],writer,virtual_path)
-                    if writer[0] != QgsVectorFileWriter.NoError:
-                        self.iface.messageBar().pushMessage("Error occurred while creating shapefile: "+ writer[1], level=Qgis.Warning, duration=15)
-                        return
 
-                    del writer
-                    '''
-                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datestamp ) # Path to clip rectangle in memory
+                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datestamp )
                     self.iface.addVectorLayer(virtual_path, '', 'ogr')
                     self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
             else:
@@ -3443,16 +3430,17 @@ class WAXI_QF:
             if(len(parts)==2 and parts[0]=='version'):
                 plugin_version=parts[1].split('.')
         plugin_version[2]=plugin_version[2].strip()
-        print(plugin_version,template_version)
 
+        pv='.'.join(plugin_version)
+        tv='.'.join(template_version)
         if(template_version[0]>plugin_version[0] or
             ((template_version[0] == plugin_version[0]) and template_version[1]>plugin_version[1])):
-            self.iface.messageBar().pushMessage("ERROR: Template newer than plugin, please update plugin NOW!", level=Qgis.Critical, duration=45)
+            self.iface.messageBar().pushMessage("ERROR: Template {} newer than plugin {}, please update plugin NOW!".format(pv,tv), level=Qgis.Critical, duration=45)
         elif(template_version[0]<plugin_version[0] or
             ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
-            self.iface.messageBar().pushMessage("WARNING: Plugin newer than template, uncertain behaviour!", level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage("WARNING: Plugin {} newer than template {}, uncertain behaviour!".format(ppv,tv), level=Qgis.Warning, duration=45)
         else:
-            self.iface.messageBar().pushMessage("SUCCESS: Plugin and template are compatible!!", level=Qgis.Success, duration=45)
+            self.iface.messageBar().pushMessage("SUCCESS: Plugin {} and template {} are compatible!!".format(pv,tv), level=Qgis.Success, duration=45)
 
         template_version_file.close()
         plugin_version_file.close()
