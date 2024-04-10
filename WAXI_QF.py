@@ -2155,6 +2155,9 @@ class WAXI_QF:
             project = QgsProject.instance()
             proj_file_path = project.fileName()
             head_tail = os.path.split(proj_file_path)
+            dir_99="/99. COMMAND FILES - PLUGIN/"
+            dir_0="/0. FIELD DATA/"
+            dir_10="/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
 
             oldProjPath=head_tail[0]
             oldGpkgPath=oldProjPath+'/0. FIELD DATA/CURRENT MISSION.gpkg'
@@ -2178,7 +2181,7 @@ class WAXI_QF:
 
             # create directory structure
                 
-            dirs=[newProjPath,newProjPath+'/0. FIELD DATA',newProjPath+'/99. COMMAND FILES - PLUGIN']
+            dirs=[newProjPath,newProjPath+'/0. FIELD DATA',newProjPath+'/99. COMMAND FILES - PLUGIN',newProjPath+"/8. GEOGRAPHY/"]
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
@@ -2186,22 +2189,23 @@ class WAXI_QF:
             
             
             # copy over files that are not clipped
-            qml_input_path = oldProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
-            
-            qml_output_path_2 = newProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
-            shutil.copyfile(qml_input_path,qml_output_path_2)
-            
-            qml_input_path = oldProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            qml_output_path_2 = newProjPath+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            shutil.copyfile(qml_input_path,qml_output_path_2)
-    
-            src_path=oldProjPath+'/0. FIELD DATA/99. CSV FILES'
-            dst_path=self.mynormpath(newProjPath+"/0. FIELD DATA/99. CSV FILES/")
-    
-            shutil.copytree(src_path, dst_path)
+            src_path = oldProjPath+dir_99+"/Stops_PT_autoinc.qml"            
+            dst_path = newProjPath+dir_99+"/Stops_PT_autoinc.qml"
+            shutil.copyfile(src_path,dst_path)
 
-            src_path=oldProjPath+"/1. GEOGRAPHY"
-            dst_path=self.mynormpath(newProjPath+"/1. GEOGRAPHY/")
+            '''
+            src_file = oldProjPath+dir_99+"/Version.txt"            
+            dst_file = newProjPath+dir_99+"/Version.txt"
+            shutil.copyfile(src_file,dst_file)
+            '''
+
+            src_path = oldProjPath+dir_99+"/Stops_PT_no_autoinc.qml"
+            dst_path = newProjPath+dir_99+"/Stops_PT_no_autoinc.qml"
+            shutil.copyfile(src_path,dst_path)
+    
+            src_path=oldProjPath+dir_0+"/99. CSV FILES"
+            dst_path=self.mynormpath(newProjPath+dir_0+"/99. CSV FILES/")
+    
             shutil.copytree(src_path, dst_path)
 
             shutil.copyfile(proj_file_path, newProjPath+'/'+head_tail[1].replace('.qgz','_clip.qgz'))
@@ -2210,12 +2214,31 @@ class WAXI_QF:
             dst_path=self.mynormpath(newProjPath+"/0. FIELD DATA/DCIM/")
             shutil.copytree(src_path, dst_path)
 
-            qlr_input_path = oldProjPath+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
-            qlr_output_path_2 = newProjPath+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
-            shutil.copyfile(qlr_input_path,qlr_output_path_2)
+            src_path=oldProjPath+"/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY"
+            dst_path=self.mynormpath(newProjPath+"/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY")
+            shutil.copytree(src_path, dst_path)
+
+            src_path = oldProjPath+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            dst_path = newProjPath+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(src_path,dst_path)
+
+            src_path = oldProjPath+dir_10+"/GoogleSatellite_5km_compressed.tif"
+            dst_path = newProjPath+dir_10+"/GoogleSatellite_5km_compressed.tif"
+            shutil.copyfile(src_path,dst_path)
+
+            '''
+            src_file = oldProjPath+dir_99+"/columns_reference_WAXI4.xlsx"
+            dst_file = newProjPath+dir_99+"/columns_reference_WAXI4.xlsx"
+            shutil.copyfile(src_file,dst_file)
+    
+            src_file = oldProjPath+dir_99+"/columns_types_structures_WAXI4.xlsx"
+            dst_file = newProjPath+dir_99+"/columns_types_structures_WAXI4.xlsx"
+            shutil.copyfile(src_file,dst_file)
+            '''
     
             in_pref=oldProjPath+'/99. COMMAND FILES - PLUGIN/'
             out_pref=newProjPath+'/99. COMMAND FILES - PLUGIN/'
+
             copies=[[oldGpkgPath,newGpkgPath],
                     [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
                     [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
@@ -2223,6 +2246,7 @@ class WAXI_QF:
                     [in_pref+'Stops_PT.qml',out_pref+'Stops_PT.qml'],
                     [in_pref+'Stops_PT_autoinc.qml',out_pref+'Stops_PT_autoinc.qml'],
                     [in_pref+'Stops_PT_no_autoinc.qml',out_pref+'Stops_PT_no_autoinc.qml'],
+                    [in_pref+'Version.txt',out_pref+'Version.txt']
                     ]
             
             for pairs in copies:
@@ -2245,7 +2269,8 @@ class WAXI_QF:
                                 'OVERLAY':clip_layer,
                                 'OUTPUT':'ogr:dbname=\''+output_path_gpkg+'\' table="'+layer.name()+'" (geom)'})         
     
-    
+                    else:
+                        print(layer.name())
             self.iface.messageBar().pushMessage("Files clipped to current extent, saved in directory" + newProjPath, level=Qgis.Success, duration=5)
 
 
@@ -2487,7 +2512,10 @@ class WAXI_QF:
             project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use copy stored in plugin?
 
             # set up directory structure and load filename lists
-            dirs=["STOPS-SAMPLING-PHOTOGRAPHS-COMMENTS","STRUCTURES","LITHOLOGY","GEOPHYSICAL MEASUREMENTS","99. CSV FILES"]
+            dir_99="/99. COMMAND FILES - PLUGIN/"
+            dir_0="/0. FIELD DATA/"
+            dir_10="/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
+
             shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
             shps=read_csv(shp_list,names=['name','dir_code'])
@@ -2506,53 +2534,52 @@ class WAXI_QF:
             subGpkgPath=sub_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
             mergeGpkgPath=merge_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
 
-            # create new directory structure
-            dirs=[merge_project_path,merge_project_path+'/0. FIELD DATA',merge_project_path+'/99. COMMAND FILES - PLUGIN']
+            #create new directory structures
+            dirs=[merge_project_path,merge_project_path+dir_0,merge_project_path+dir_99]
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
                     os.mkdir(self.mynormpath(dirpath))
     
             # copy over files that are not clipped
-            qml_input_path = main_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
-            
-            qml_output_path_2 = merge_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
-            shutil.copyfile(qml_input_path,qml_output_path_2)
-            
-            qml_input_path = main_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            qml_output_path_2 = merge_project_path+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-            shutil.copyfile(qml_input_path,qml_output_path_2)
     
             src_path=main_project_path+'/0. FIELD DATA/99. CSV FILES'
             dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/99. CSV FILES/")
-    
             shutil.copytree(src_path, dst_path)
 
-            src_path=main_project_path+"/1. GEOGRAPHY"
-            dst_path=self.mynormpath(merge_project_path+"/1. GEOGRAPHY/")
+            src_path=main_project_path+dir_10
+            dst_path=self.mynormpath(merge_project_path+dir_10)
+            shutil.copytree(src_path, dst_path)
+
+            src_path=main_project_path+"/8. GEOGRAPHY"
+            dst_path=self.mynormpath(merge_project_path+"/8. GEOGRAPHY/")
             shutil.copytree(src_path, dst_path)
 
             src_path=main_project_path+"/0. FIELD DATA/DCIM/"
             dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/DCIM/")
             shutil.copytree(src_path, dst_path)
 
-            qlr_input_path = main_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
-            qlr_output_path_2 = merge_project_path+"/0. FIELD DATA/CURRENT MISSION+CSV FILES.qlr"
-            shutil.copyfile(qlr_input_path,qlr_output_path_2)
+            src_file = main_project_path+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            dst_file = merge_project_path+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(src_file,dst_file)
+            
             shutil.copyfile(self.dlg.lineEdit_11.text(), merge_project_path+'/WAXI4 - Mission ID - Date.qgz')
     
-            in_pref=main_project_path+'/99. COMMAND FILES - PLUGIN/'
-            out_pref=merge_project_path+'/99. COMMAND FILES - PLUGIN/'
+            in_pref=main_project_path+dir_99
+            out_pref=merge_project_path+dir_99
             copies=[[mainGpkgPath,mergeGpkgPath],
-                    [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
+                    #[in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
+                    [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
                     [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
                     [in_pref+'stereonet.json',out_pref+'stereonet.json'],
                     [in_pref+'Stops_PT.qml',out_pref+'Stops_PT.qml'],
                     [in_pref+'Stops_PT_autoinc.qml',out_pref+'Stops_PT_autoinc.qml'],
                     [in_pref+'Stops_PT_no_autoinc.qml',out_pref+'Stops_PT_no_autoinc.qml'],
+                    [in_pref+'Version.txt',out_pref+'Version.txt'],
                     ]
             
             for pairs in copies:
+                print(pairs[0],pairs[1])
                 shutil.copyfile(pairs[0],pairs[1])
             
             for layer in project.mapLayers().values():
@@ -2618,9 +2645,9 @@ class WAXI_QF:
                 '''         
                 # merge and de-duplicate csv files
                 for file in csvs.name:
-                    main_path=self.mynormpath(main_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
-                    sub_path=self.mynormpath(sub_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
-                    merge_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/99. CSV FILES/"+file+'.csv')
+                    main_path=self.mynormpath(main_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
+                    sub_path=self.mynormpath(sub_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
+                    merge_path=self.mynormpath(merge_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
         
                     main=read_csv(main_path,sep=";",encoding="latin_1")
                     sub=read_csv(sub_path,sep=";",encoding="latin_1")
@@ -3395,7 +3422,37 @@ class WAXI_QF:
     ###############################################################################
     ####################                   RUN                   ##################
     ############################################################################### 
+    def check_version(self):
 
+        project = QgsProject.instance()
+        proj_file_path=project.fileName()
+        head_tail = os.path.split(proj_file_path)
+ 
+        plugin_version=template_version='0.0.0'
+        template_version_file=open(head_tail[0]+'/99. COMMAND FILES - PLUGIN/Version.txt')
+        version=template_version_file.readline()
+        template_version=version[1:].split('.')
+        
+        metadata_path = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/metadata.txt")
+        plugin_version_file=open(metadata_path)
+        metadata=plugin_version_file.readlines()
+        for line in metadata:
+            parts=line.split("=")
+            if(len(parts)==2 and parts[0]=='version'):
+                plugin_version=parts[1].split('.')
+        plugin_version[2]=plugin_version[2].strip()
+        print(plugin_version,template_version)
+
+        if(template_version[0]>plugin_version[0] or
+            ((template_version[0] == plugin_version[0]) and template_version[1]>plugin_version[1])):
+            self.iface.messageBar().pushMessage("ERROR: Template newer than plugin, please update plugin NOW!", level=Qgis.Critical, duration=45)
+        elif(template_version[0]<plugin_version[0] or
+            ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
+            self.iface.messageBar().pushMessage("WARNING: Plugin newer than template, uncertain behaviour!", level=Qgis.Warning, duration=45)
+        else:
+            self.iface.messageBar().pushMessage("SUCCESS: Plugin and template are compatible!!", level=Qgis.Success, duration=45)
+
+        template_version_file.close()
 
     def run(self):
         """Run method that performs all the real work"""
@@ -3405,7 +3462,8 @@ class WAXI_QF:
         
         import geopandas as gpd
         import fiona 
-        
+        self.check_version()
+
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
@@ -3413,29 +3471,6 @@ class WAXI_QF:
         geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
         
         if os.path.exists(geopackage_path):
-            plugin_version=template_version='3.0.5'
-            template_version_file=open(head_tail[0]+'/99. COMMAND FILES - PLUGIN/Version.txt')
-            version=template_version_file.readline()
-            template_version=version[1:].split('.')
-            
-            metadata_path = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/metadata.txt")
-            plugin_version_file=open(metadata_path)
-            metadata=plugin_version_file.readlines()
-            for line in metadata:
-                parts=line.split("=")
-                if(len(parts)==2 and parts[0]=='version'):
-                    plugin_version=parts[1].split('.')
-            plugin_version[2]=plugin_version[2].strip()
-            print(plugin_version,template_version)
-
-            if(template_version[0]>plugin_version[0] or
-               ((template_version[0] == plugin_version[0]) and template_version[1]>plugin_version[1])):
-                self.iface.messageBar().pushMessage("ERROR: Template newer than plugin, please update plugin NOW!", level=Qgis.Critical, duration=45)
-            elif(template_version[0]<plugin_version[0] or
-                ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
-                self.iface.messageBar().pushMessage("WARNING: Plugin newer than template, uncertain behaviour!", level=Qgis.Warning, duration=45)
-            else:
-                self.iface.messageBar().pushMessage("SUCCESS: Plugin and template are compatible!!", level=Qgis.Success, duration=45)
 
 
 
