@@ -154,6 +154,13 @@ class WAXI_QF:
         except:
             self.install_library("openpyxl")
 
+        # Library fiona
+        try:
+            import fiona
+
+        except:
+            self.install_library("fiona")
+
 
         # Library FuzzyWuzzy
         try:
@@ -383,8 +390,8 @@ class WAXI_QF:
 
         # File 2: WAXI project columns
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_reference_WAXI4.xlsx")
-        
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_reference_WAXI4.xlsx")
+        print(WAXI_projet_path,os.path.dirname(WAXI_projet_path),emplacement_files_WAXI_columns)
         column_reference = read_excel(emplacement_files_WAXI_columns)
      
         
@@ -655,7 +662,7 @@ class WAXI_QF:
         
 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_reference_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_reference_WAXI4.xlsx")
         
         column_reference = read_excel(emplacement_files_WAXI_columns)
         list_column_reference = column_reference.columns.tolist()
@@ -840,7 +847,7 @@ class WAXI_QF:
         list_lithology_input = fichier_output['Litho'].tolist()
 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         
         # Reference list of lithologies
@@ -1103,7 +1110,7 @@ class WAXI_QF:
     def button_edit2(self, row):
 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         # List Litho Metamorphic lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
@@ -1291,7 +1298,7 @@ class WAXI_QF:
         
         # Lists of reference rocks from the WAXI4 QGIS project
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         litho_local = list((read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
         litho_supergene = list((read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
@@ -1453,7 +1460,7 @@ class WAXI_QF:
         list_structure_input = fichier_output['Structure_type'].tolist()
            
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_types_structures_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
@@ -1681,7 +1688,7 @@ class WAXI_QF:
     def button_edit3(self, row):
  
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/columns_types_structures_WAXI4.xlsx")
+        emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_types_structures_WAXI4.xlsx")
         
         Dataframe = read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
@@ -2149,95 +2156,84 @@ class WAXI_QF:
     # Clips all WAXI QFIELD vector layers to current canvas and 
     # saves out layers in a new directory
         
-        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_3.text()))):
+        if(self.dlg.lineEdit_3.text()):
             
             # set up paths
             project = QgsProject.instance()
             proj_file_path = project.fileName()
             head_tail = os.path.split(proj_file_path)
-            dir_99="/99. COMMAND FILES - PLUGIN/"
-            dir_0="/0. FIELD DATA/"
-            dir_10="/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
 
-            oldProjPath=head_tail[0]
-            oldGpkgPath=oldProjPath+'/0. FIELD DATA/CURRENT MISSION.gpkg'
-            newProjPath=self.mynormpath(self.dlg.lineEdit_3.text()).strip()
-            newGpkgPath=newProjPath+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            oldProjPath=head_tail[0]+'/'
+            oldGpkgPath=oldProjPath+self.dir_0+'CURRENT MISSION.gpkg'
+            newProjPath=self.mynormpath(self.dlg.lineEdit_3.text()).strip()+'/'
+            newGpkgPath=newProjPath+self.dir_0+'CURRENT MISSION.gpkg'
             shp_list=self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
             
-            # clipping rectangle from Canvas
-            e = self.iface.mapCanvas().extent()  
-            extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
+            clip_poly_shp=self.mynormpath(self.dlg.lineEdit_8.text())
+
             shps=read_csv(shp_list,names=['name','dir_code'])
             shps=shps.set_index("name")   
-            geom = QgsGeometry().fromRect(extent)
-            ftr = QgsFeature()
-            ftr.setGeometry(geom)    
-            project = QgsProject.instance()
-            crs = project.crs()            
-            clip_layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')    
-            with edit(clip_layer):
-                clip_layer.addFeature(ftr)
+             
+            # clipping rectangle from shapefile polygon
+            if(self.dlg.lineEdit_8.text()):
+                print('clip by poly')
+                clip_layer = QgsVectorLayer(os.path.split(clip_poly_shp)[0],os.path.split(clip_poly_shp)[1], "ogr")
+            # clipping rectangle from Canvas
+            else:
+                e = self.iface.mapCanvas().extent()  
+                extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
+                geom = QgsGeometry().fromRect(extent)
+                ftr = QgsFeature()
+                ftr.setGeometry(geom)    
+                project = QgsProject.instance()
+                crs = project.crs()            
+                clip_layer = QgsVectorLayer('Polygon?{}'.format(crs), 'Test_polygon','memory')    
+                with edit(clip_layer):
+                    clip_layer.addFeature(ftr)
 
             # create directory structure
                 
-            dirs=[newProjPath,newProjPath+'/0. FIELD DATA',newProjPath+'/99. COMMAND FILES - PLUGIN',newProjPath+"/8. GEOGRAPHY/"]
+            dirs=[newProjPath,newProjPath+self.dir_0,newProjPath+self.dir_99,newProjPath+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"]
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
                     os.mkdir(self.mynormpath(dirpath))
-            
-            
+                       
             # copy over files that are not clipped
-            src_path = oldProjPath+dir_99+"/Stops_PT_autoinc.qml"            
-            dst_path = newProjPath+dir_99+"/Stops_PT_autoinc.qml"
+            src_path = oldProjPath+self.dir_99+"/Stops_PT_autoinc.qml"            
+            dst_path = newProjPath+self.dir_99+"/Stops_PT_autoinc.qml"
             shutil.copyfile(src_path,dst_path)
 
-            '''
-            src_file = oldProjPath+dir_99+"/Version.txt"            
-            dst_file = newProjPath+dir_99+"/Version.txt"
-            shutil.copyfile(src_file,dst_file)
-            '''
-
-            src_path = oldProjPath+dir_99+"/Stops_PT_no_autoinc.qml"
-            dst_path = newProjPath+dir_99+"/Stops_PT_no_autoinc.qml"
+            src_path = oldProjPath+self.dir_99+"/Stops_PT_no_autoinc.qml"
+            dst_path = newProjPath+self.dir_99+"/Stops_PT_no_autoinc.qml"
             shutil.copyfile(src_path,dst_path)
     
-            src_path=oldProjPath+dir_0+"/99. CSV FILES"
-            dst_path=self.mynormpath(newProjPath+dir_0+"/99. CSV FILES/")
+            src_path=oldProjPath+self.dir_99+"/CSV FILES"
+            dst_path=self.mynormpath(newProjPath+self.dir_99+"/CSV FILES/")
     
             shutil.copytree(src_path, dst_path)
 
             shutil.copyfile(proj_file_path, newProjPath+'/'+head_tail[1].replace('.qgz','_clip.qgz'))
 
-            src_path=oldProjPath+"/0. FIELD DATA/DCIM/"
-            dst_path=self.mynormpath(newProjPath+"/0. FIELD DATA/DCIM/")
+            src_path=oldProjPath+self.dir_0+"/DCIM/"
+            dst_path=self.mynormpath(newProjPath+self.dir_0+"/DCIM/")
             shutil.copytree(src_path, dst_path)
 
-            src_path=oldProjPath+"/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY"
-            dst_path=self.mynormpath(newProjPath+"/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY")
+            src_path=oldProjPath+self.dir_11
+            dst_path=self.mynormpath(newProjPath+self.dir_11)
             shutil.copytree(src_path, dst_path)
 
-            src_path = oldProjPath+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
-            dst_path = newProjPath+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            src_path = oldProjPath+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            dst_path = newProjPath+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
             shutil.copyfile(src_path,dst_path)
 
-            src_path = oldProjPath+dir_10+"/GoogleSatellite_5km_compressed.tif"
-            dst_path = newProjPath+dir_10+"/GoogleSatellite_5km_compressed.tif"
+            src_path = oldProjPath+self.dir_11+"/GoogleSatellite_5km_compressed.tif"
+            dst_path = newProjPath+self.dir_11+"/GoogleSatellite_5km_compressed.tif"
             shutil.copyfile(src_path,dst_path)
 
-            '''
-            src_file = oldProjPath+dir_99+"/columns_reference_WAXI4.xlsx"
-            dst_file = newProjPath+dir_99+"/columns_reference_WAXI4.xlsx"
-            shutil.copyfile(src_file,dst_file)
     
-            src_file = oldProjPath+dir_99+"/columns_types_structures_WAXI4.xlsx"
-            dst_file = newProjPath+dir_99+"/columns_types_structures_WAXI4.xlsx"
-            shutil.copyfile(src_file,dst_file)
-            '''
-    
-            in_pref=oldProjPath+'/99. COMMAND FILES - PLUGIN/'
-            out_pref=newProjPath+'/99. COMMAND FILES - PLUGIN/'
+            in_pref=oldProjPath+self.dir_99
+            out_pref=newProjPath+self.dir_99
 
             copies=[[oldGpkgPath,newGpkgPath],
                     [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
@@ -2285,7 +2281,7 @@ class WAXI_QF:
     def addCsvItem(self):
         
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         layer_name = str(self.dlg.comboBox.currentText())
         chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
@@ -2319,7 +2315,7 @@ class WAXI_QF:
     def deleteCsvItem(self):
         
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         layer_name = str(self.dlg.comboBox.currentText())
         chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
@@ -2374,11 +2370,11 @@ class WAXI_QF:
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
         
-        current_file_name = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT.qml"
+        current_file_name = head_tail[0]+'/'+self.dir_99+"/Stops_PT.qml"
         os.remove(current_file_name)
 
-        no_auto_filename = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT_autoinc.qml"
+        no_auto_filename = head_tail[0]+'/'+self.dir_99+"/Stops_PT_no_autoinc.qml"
+        auto_filename = head_tail[0]+'/'+self.dir_99+"Stops_PT_autoinc.qml"
         if( self.dlg.radioButtonOn.isChecked()):
             shutil.copy(auto_filename,current_file_name)
             self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned ON", level=Qgis.Success, duration=15)
@@ -2388,7 +2384,7 @@ class WAXI_QF:
             self.iface.messageBar().pushMessage("Auto Incrementing Stop Numbers turned OFF", level=Qgis.Success, duration=15)
         
         layer = project.mapLayersByName('Stops_PT')[0]
-        layer.loadNamedStyle(head_tail[0]+"/99. COMMAND FILES - PLUGIN/Stops_PT.qml")
+        layer.loadNamedStyle(head_tail[0]+'/'+self.dir_99+"/Stops_PT.qml")
         layer.triggerRepaint()
 
     ### Set user by default ###                   #ADD
@@ -2403,7 +2399,7 @@ class WAXI_QF:
             
             ## User.csv file location 
             WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-            emplacement_User_file = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/User list.csv")
+            emplacement_User_file = self.templateCSV_path+"/User list.csv"
             user_file = read_csv(emplacement_User_file, sep=';', encoding='latin-1')
             
             
@@ -2504,17 +2500,14 @@ class WAXI_QF:
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
         
-        if(os.path.exists(self.mynormpath(self.dlg.lineEdit_11.text())) and 
-            os.path.exists(self.mynormpath(self.dlg.lineEdit_26.text())) and 
-            os.path.exists(self.mynormpath(self.dlg.lineEdit_37.text()))):
+        if( self.dlg.lineEdit_11.text() and 
+            self.dlg.lineEdit_26.text() and 
+            self.dlg.lineEdit_37.text()):
             
             
             project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use copy stored in plugin?
 
             # set up directory structure and load filename lists
-            dir_99="/99. COMMAND FILES - PLUGIN/"
-            dir_0="/0. FIELD DATA/"
-            dir_10="/10. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
 
             shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
@@ -2522,20 +2515,20 @@ class WAXI_QF:
             shps=shps.set_index("name")
             csvs=read_csv(csv_list,names=['name'])            
 
-            merge_project_path =  self.dlg.lineEdit_37.text()
+            merge_project_path =  self.dlg.lineEdit_37.text()+'/'
 
             head_tail_main = os.path.split(self.dlg.lineEdit_11.text())
             head_tail_sub = os.path.split(self.dlg.lineEdit_26.text())
             
-            main_project_path=head_tail_main[0]
-            sub_project_path=head_tail_sub[0]
+            main_project_path=head_tail_main[0]+'/'
+            sub_project_path=head_tail_sub[0]+'/'
                        
-            mainGpkgPath=main_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
-            subGpkgPath=sub_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
-            mergeGpkgPath=merge_project_path+'/0. FIELD DATA/CURRENT MISSION.gpkg'
+            mainGpkgPath=main_project_path+self.dir_0+'CURRENT MISSION.gpkg'
+            subGpkgPath=sub_project_path+self.dir_0+'CURRENT MISSION.gpkg'
+            mergeGpkgPath=merge_project_path+self.dir_0+'CURRENT MISSION.gpkg'
 
             #create new directory structures
-            dirs=[merge_project_path,merge_project_path+dir_0,merge_project_path+dir_99]
+            dirs=[merge_project_path,merge_project_path+self.dir_0,merge_project_path+self.dir_99]
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
@@ -2543,30 +2536,30 @@ class WAXI_QF:
     
             # copy over files that are not clipped
     
-            src_path=main_project_path+'/0. FIELD DATA/99. CSV FILES'
-            dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/99. CSV FILES/")
+            src_path=main_project_path+self.dir_99+"/CSV FILES/"
+            dst_path=self.mynormpath(merge_project_path+self.dir_99+"/CSV FILES/")
             shutil.copytree(src_path, dst_path)
 
-            src_path=main_project_path+dir_10
-            dst_path=self.mynormpath(merge_project_path+dir_10)
+            src_path=main_project_path+self.dir_11
+            dst_path=self.mynormpath(merge_project_path+self.dir_11)
             shutil.copytree(src_path, dst_path)
 
-            src_path=main_project_path+"/8. GEOGRAPHY"
-            dst_path=self.mynormpath(merge_project_path+"/8. GEOGRAPHY/")
+            '''src_path=main_project_path+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
+            dst_path=self.mynormpath(merge_project_path+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/")
+            shutil.copytree(src_path, dst_path)'''
+
+            src_path=main_project_path+self.dir_0+"/DCIM/"
+            dst_path=self.mynormpath(merge_project_path+self.dir_0+"/DCIM/")
             shutil.copytree(src_path, dst_path)
 
-            src_path=main_project_path+"/0. FIELD DATA/DCIM/"
-            dst_path=self.mynormpath(merge_project_path+"/0. FIELD DATA/DCIM/")
-            shutil.copytree(src_path, dst_path)
-
-            src_file = main_project_path+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
-            dst_file = merge_project_path+dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            src_file = main_project_path+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
+            dst_file = merge_project_path+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
             shutil.copyfile(src_file,dst_file)
             
             shutil.copyfile(self.dlg.lineEdit_11.text(), merge_project_path+'/WAXI4 - Mission ID - Date.qgz')
     
-            in_pref=main_project_path+dir_99
-            out_pref=merge_project_path+dir_99
+            in_pref=main_project_path+self.dir_99
+            out_pref=merge_project_path+self.dir_99
             copies=[[mainGpkgPath,mergeGpkgPath],
                     #[in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
                     [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
@@ -2645,9 +2638,9 @@ class WAXI_QF:
                 '''         
                 # merge and de-duplicate csv files
                 for file in csvs.name:
-                    main_path=self.mynormpath(main_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
-                    sub_path=self.mynormpath(sub_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
-                    merge_path=self.mynormpath(merge_project_path+dir_0+"/99. CSV FILES/"+file+'.csv')
+                    main_path=self.mynormpath(main_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
+                    sub_path=self.mynormpath(sub_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
+                    merge_path=self.mynormpath(merge_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
         
                     main=read_csv(main_path,sep=";",encoding="latin_1")
                     sub=read_csv(sub_path,sep=";",encoding="latin_1")
@@ -2677,10 +2670,10 @@ class WAXI_QF:
             head_tail = os.path.split(proj_file_path)
             file=[]
             # merge zone data 
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fractured zones_PG"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Brecciated zones_PG"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Cataclastic zones_PG"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Alteration zones_PG"))
+            file.append(self.geopackage_file_path+"|layername=Fractured zones_PG")
+            file.append(self.geopackage_file_path+"|layername=Brecciated zones_PG")
+            file.append(self.geopackage_file_path+"|layername=Cataclastic zones_PG")
+            file.append(self.geopackage_file_path+"|layername=Alteration zones_PG")
             output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
             
             """for f in file:
@@ -2712,12 +2705,12 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params )
     
             # merge lithology data
-            file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Metamorphic lithologies_PT")
-            file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous intrusive lithologies_PT")
-            file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Sedimentary lithologies_PT")
-            file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Supergene lithologies_PT")
-            file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous extrusive lithologies_PT")
-            file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Volcanoclastic lithologies_PT")
+            file1=self.geopackage_file_path+"|layername=Metamorphic lithologies_PT"
+            file2=self.geopackage_file_path+"|layername=Igneous intrusive lithologies_PT"
+            file3=self.geopackage_file_path+"|layername=Sedimentary lithologies_PT"
+            file4=self.geopackage_file_path+"|layername=Supergene lithologies_PT"
+            file5=self.geopackage_file_path+"|layername=Igneous extrusive lithologies_PT"
+            file6=self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT"
             output=self.mynormpath(self.dlg.lineEdit_7.text()+"/litho_data.shp")
     
             # merge shapefiles
@@ -2729,15 +2722,15 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params )
     
             # merge structural data
-            file1=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Bedding-Lava flow-S0_PT")
-            file2=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Dikes-Sills_PT")
-            file3=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold and crenulation axial planes_PT")
-            file4=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold axes_PT")
-            file5=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Foliation-cleavage_PT")
-            file6=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fractures_PT")
-            file7=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Lineations_PT")
-            file8=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Shear zones and faults_PT")
-            file9=self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Veins_PT")
+            file1=self.geopackage_file_path+"|layername=Bedding-Lava flow-S0_PT"
+            file2=self.geopackage_file_path+"|layername=Dikes-Sills_PT"
+            file3=self.geopackage_file_path+"|layername=Fold and crenulation axial planes_PT"
+            file4=self.geopackage_file_path+"|layername=Fold axes_PT"
+            file5=self.geopackage_file_path+"|layername=Foliation-cleavage_PT"
+            file6=self.geopackage_file_path+"|layername=Fractures_PT"
+            file7=self.geopackage_file_path+"|layername=Lineations_PT"
+            file8=self.geopackage_file_path+"|layername=Shear zones and faults_PT"
+            file9=self.geopackage_file_path+"|layername=Veins_PT"
             output=self.mynormpath(self.dlg.lineEdit_7.text()+"/structure_data.shp")
     
             # merge shapefiles
@@ -2774,31 +2767,30 @@ class WAXI_QF:
             # Defines pseudo stop numbers based on proximity
             project = QgsProject.instance()
             proj_file_path=project.fileName()
-            head_tail = os.path.split(proj_file_path)
     
             file=[]
     
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Lineations_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold axes_PT"))        
+            file.append(self.geopackage_file_path+"|layername=Lineations_PT")
+            file.append(self.geopackage_file_path+"|layername=Fold axes_PT")        
 
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Bedding-Lava flow-S0_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Foliation-cleavage_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Shear zones and faults_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fold and crenulation axial planes_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Fractures_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Veins_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Dikes-Sills_PT"))
+            file.append(self.geopackage_file_path+"|layername=Bedding-Lava flow-S0_PT")
+            file.append(self.geopackage_file_path+"|layername=Foliation-cleavage_PT")
+            file.append(self.geopackage_file_path+"|layername=Shear zones and faults_PT")
+            file.append(self.geopackage_file_path+"|layername=Fold and crenulation axial planes_PT")
+            file.append(self.geopackage_file_path+"|layername=Fractures_PT")
+            file.append(self.geopackage_file_path+"|layername=Veins_PT")
+            file.append(self.geopackage_file_path+"|layername=Dikes-Sills_PT")
 
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Local lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Supergene lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Sedimentary lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Volcanoclastic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous extrusive lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Igneous intrusive lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Metamorphic lithologies_PT"))
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Lithological contacts_PT"))
+            file.append(self.geopackage_file_path+"|layername=Local lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Supergene lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Sedimentary lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Igneous extrusive lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Igneous intrusive lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Metamorphic lithologies_PT")
+            file.append(self.geopackage_file_path+"|layername=Lithological contacts_PT")
 
-            file.append(self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Magnetic susceptibility_PT"))
+            file.append(self.geopackage_file_path+"|layername=Magnetic susceptibility_PT")
 
             # Merge two shapefiles
             params = {
@@ -2877,10 +2869,10 @@ class WAXI_QF:
                     datestamp=datetime.now().strftime('%d-%b-%Y_%H_%M_%S')
                     params = {'INPUT': merged_layers,
                             'OPTIONS':'-update -nln '+"Virtual_Stops_" + datestamp,
-                            'OUTPUT':output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg"}
+                            'OUTPUT':output_path+self.dir_0+"/CURRENT MISSION.gpkg"}
                     processing.run("gdal:convertformat", params)
 
-                    virtual_path = self.mynormpath(output_path+"/0. FIELD DATA/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datestamp )
+                    virtual_path = self.mynormpath(output_path+self.dir_0+"/CURRENT MISSION.gpkg|layername=Virtual_Stops_" + datestamp )
                     self.iface.addVectorLayer(virtual_path, '', 'ogr')
                     self.iface.messageBar().pushMessage("Virtual Stop layer created", level=Qgis.Success, duration=5)
             else:
@@ -2899,7 +2891,7 @@ class WAXI_QF:
     def set_stereoConfig(self):
     
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), "99. COMMAND FILES - PLUGIN/stereonet.json")
+        stereoConfigPath = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/stereonet.json")
         stereoConfig = {'showGtCircles':True,'showContours':True,'showKinematics':True,'linPlanes':True,'roseDiagram':True}
         
         if(os.path.exists(stereoConfigPath)):
@@ -2938,7 +2930,7 @@ class WAXI_QF:
         params = { 
         'FIELDS' : ['Date','User','xcoord','ycoord'], 
         'INPUT' : merged, 
-        'OUTPUT' : 'ogr:dbname=\''+self.mynormpath(head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg")+'\' table="'+couche2.name()+'" (geom)' 
+        'OUTPUT' : 'ogr:dbname=\''+self.geopackage_file_path+'\' table="'+couche2.name()+'" (geom)' 
         }
 
         processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
@@ -2953,18 +2945,7 @@ class WAXI_QF:
             
             colonnes_couche1 = [field.name() for field in couche1.fields()]
             colonnes_couche2 = [field.name() for field in couche2.fields()]
-            
-            '''
-            if set(colonnes_couche1) != set(colonnes_couche2):
-                
-                colonnes_manquantes = set(colonnes_couche2) - set(colonnes_couche1)
 
-                for nom_colonne in colonnes_manquantes:
-                    print(nom_colonne)
-                    type_donnee = couche2.fields().field(nom_colonne).typeName()
-                    couche1.addAttribute(QgsField(nom_colonne, type_donnee))
-                couche1.updateFields()
-            '''   
    
             ## Loop on first layer entities
             
@@ -3231,7 +3212,7 @@ class WAXI_QF:
         self.dlg.comboBox_delete.clear()
         
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_99_CSV_files = os.path.join(os.path.dirname(WAXI_projet_path), "0. FIELD DATA/99. CSV FILES/")
+        emplacement_99_CSV_files = self.templateCSV_path
         
         if os.path.exists(emplacement_99_CSV_files):
             fichier_delete = read_csv(emplacement_99_CSV_files + self.dlg.comboBox.currentText() + ".csv", encoding="latin_1", sep=";")
@@ -3414,11 +3395,10 @@ class WAXI_QF:
     def check_version(self):
 
         project = QgsProject.instance()
-        proj_file_path=project.fileName()
-        head_tail = os.path.split(proj_file_path)
  
         plugin_version=template_version='0.0.0'
-        template_version_file=open(head_tail[0]+'/99. COMMAND FILES - PLUGIN/Version.txt')
+        template_version_file_path=self.basePath+self.dir_99+"/Version.txt"
+        template_version_file=open(template_version_file_path,"r")
         version=template_version_file.readline()
         template_version=version[1:].split('.')
         
@@ -3453,26 +3433,27 @@ class WAXI_QF:
         
         import geopandas as gpd
         import fiona 
-        self.check_version()
 
         project = QgsProject.instance()
         proj_file_path=project.fileName()
         head_tail = os.path.split(proj_file_path)
-        
-        geopackage_path = head_tail[0]+"/0. FIELD DATA/CURRENT MISSION.gpkg"
-        
-        if os.path.exists(geopackage_path):
+        self.basePath = head_tail[0]+'/'
+        self.dir_99="99. COMMAND FILES - PLUGIN/"
+        self.dir_0="0. FIELD DATA/"
+        self.dir_11="11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
+        self.geopackage_file_path = self.basePath+self.dir_0+"/CURRENT MISSION.gpkg"
+        self.templateCSV_path = self.basePath+self.dir_99+"/CSV FILES/"
 
-
+        self.check_version()
+        
+        if (os.path.exists(self.geopackage_file_path)):
 
             if self.first_start == True:
                 self.first_start = False
-                
                     
                 ### Accessing the main window : QDialog
                 self.dlg = WAXI_QFDialog()   
                 self.dlg.setFixedSize(1131, 600)
-                
             
                 ### Connection of PushButtons ### 
                 
@@ -3496,27 +3477,17 @@ class WAXI_QF:
                 self.fill_ComboBox_layers_user() #ADD
                 
                 self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo) #ADD
-                
-                
-                # Update the repository path for pictures tool (show current defaut_value)
 
-                
-                #Sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]  #ADD
-                #self.dlg.lineEdit_16.setText('./0. FIELD DATA/DCIM/')  #ADD
-                
-                
                 # Save a new CURRENT MISSION+CSV FILES.qlr file
                 self.dlg.pushButton_save__project_template_style_2.clicked.connect(self.save_template_style)  #ADD
                 
                 # Export_data
                 self.dlg.export_pushButton.clicked.connect(self.exportData)
-                self.dlg.pushButton_22.clicked.connect(self.resetWindow_data_management)
-                
+                self.dlg.pushButton_22.clicked.connect(self.resetWindow_data_management)                
                 
                 # Stop 
                 self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
                 self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
-
 
                 # Stereo             
                 self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
