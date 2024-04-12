@@ -2193,7 +2193,7 @@ class WAXI_QF:
 
             # create directory structure
                 
-            dirs=[newProjPath,newProjPath+self.dir_0,newProjPath+self.dir_99,newProjPath+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"]
+            dirs=[newProjPath,newProjPath+self.dir_0,newProjPath+self.dir_99]
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
@@ -2674,31 +2674,13 @@ class WAXI_QF:
             file.append(self.geopackage_file_path+"|layername=Brecciated zones_PG")
             file.append(self.geopackage_file_path+"|layername=Cataclastic zones_PG")
             file.append(self.geopackage_file_path+"|layername=Alteration zones_PG")
-            output=self.mynormpath(self.dlg.lineEdit_7.text()+"/zonal_data.shp")
+            file.append(self.geopackage_file_path+"|layername=Lithology zones_PG")
+            output=self.geopackage_file_path+"|layername=Zonal data_PG"
+            print(output)
             
-            """for f in file:
-                print(f)
-                layer = self.iface.addVectorLayer(f, '', 'ogr')
-                # Get layer capabilities
-                caps = layer.dataProvider().capabilities()
-    
-                # Add Fields
-                if caps & QgsVectorDataProvider.AddAttributes:
-                    res = layer.dataProvider().addAttributes([QgsField('DataType', QVariant.String, "string",50)])
-                    layer.updateFields()
-    
-                #Get indexes of LDC and Fecha fields
-                DataType_idx = layer.fields().lookupField('DataType')
-    
-                # Change attribute values
-                for f in layer.getFeatures():
-                    head_tail=os.path.split(f)
-                    DataType = head_tail[1].replace(".shp","")
-                    layer.dataProvider().changeAttributeValues({f.id(): {DataType_idx: DataType}})
-            """
             # merge shapefiles
             params = {
-            'LAYERS': [file[0], file[1],file[2],file[3]],
+            'LAYERS': [file[0], file[1],file[2],file[3],file[4]],
             'OUTPUT': output
             }
     
@@ -2710,12 +2692,14 @@ class WAXI_QF:
             file3=self.geopackage_file_path+"|layername=Sedimentary lithologies_PT"
             file4=self.geopackage_file_path+"|layername=Supergene lithologies_PT"
             file5=self.geopackage_file_path+"|layername=Igneous extrusive lithologies_PT"
-            file6=self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT"
-            output=self.mynormpath(self.dlg.lineEdit_7.text()+"/litho_data.shp")
+            file6=self.geopackage_file_path+"|layername=Igneous intrusive lithologies_PT"
+            file7=self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT"
+            file8=self.geopackage_file_path+"|layername=Lithological contacts_PT"
+            output=self.mynormpath(self.dlg.lineEdit_7.text())+"/litho_data.shp"
     
             # merge shapefiles
             params = {
-            'LAYERS': [file1, file2,file3,file4,file5,file6],
+            'LAYERS': [file1, file2,file3,file4,file5,file6,file7,file8],
             'OUTPUT': output
             }
     
@@ -2865,7 +2849,7 @@ class WAXI_QF:
                     print("Layer failed to build!")
                 else:
                     QgsProject.instance().addMapLayer(merged_layers,False)
-                    output_path = QgsProject.instance().readPath("./")
+                    output_path = QgsProject.instance().readPath("./")+'/'
                     datestamp=datetime.now().strftime('%d-%b-%Y_%H_%M_%S')
                     params = {'INPUT': merged_layers,
                             'OPTIONS':'-update -nln '+"Virtual_Stops_" + datestamp,
@@ -3444,9 +3428,9 @@ class WAXI_QF:
         self.geopackage_file_path = self.basePath+self.dir_0+"/CURRENT MISSION.gpkg"
         self.templateCSV_path = self.basePath+self.dir_99+"/CSV FILES/"
 
-        self.check_version()
         
         if (os.path.exists(self.geopackage_file_path)):
+            self.check_version()
 
             if self.first_start == True:
                 self.first_start = False
