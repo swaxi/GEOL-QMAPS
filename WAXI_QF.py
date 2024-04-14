@@ -2675,7 +2675,7 @@ class WAXI_QF:
             file.append(self.geopackage_file_path+"|layername=Cataclastic zones_PG")
             file.append(self.geopackage_file_path+"|layername=Alteration zones_PG")
             file.append(self.geopackage_file_path+"|layername=Lithology zones_PG")
-            output=self.geopackage_file_path+"|layername=Zonal data_PG"
+            output=self.mynormpath(self.dlg.lineEdit_7.text())+"/Zonal data_PG.shp"
             print(output)
             
             # merge shapefiles
@@ -2687,19 +2687,18 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params )
     
             # merge lithology data
-            file1=self.geopackage_file_path+"|layername=Metamorphic lithologies_PT"
-            file2=self.geopackage_file_path+"|layername=Igneous intrusive lithologies_PT"
+            file1=self.geopackage_file_path+"|layername=Local lithologies_PT"
+            file2=self.geopackage_file_path+"|layername=Supergene lithologies_PT"
             file3=self.geopackage_file_path+"|layername=Sedimentary lithologies_PT"
-            file4=self.geopackage_file_path+"|layername=Supergene lithologies_PT"
+            file4=self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT"
             file5=self.geopackage_file_path+"|layername=Igneous extrusive lithologies_PT"
             file6=self.geopackage_file_path+"|layername=Igneous intrusive lithologies_PT"
-            file7=self.geopackage_file_path+"|layername=Volcanoclastic lithologies_PT"
-            file8=self.geopackage_file_path+"|layername=Lithological contacts_PT"
+            file7=self.geopackage_file_path+"|layername=Metamorphic lithologies_PT"
             output=self.mynormpath(self.dlg.lineEdit_7.text())+"/litho_data.shp"
     
             # merge shapefiles
             params = {
-            'LAYERS': [file1, file2,file3,file4,file5,file6,file7,file8],
+            'LAYERS': [file1, file2,file3,file4,file5,file6,file7],
             'OUTPUT': output
             }
     
