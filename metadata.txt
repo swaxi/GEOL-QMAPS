@@ -6,11 +6,11 @@
 name=WAXI_QF
 qgisMinimumVersion=3.36
 description=The WAXI_QF Plugin allows you to import or export data from or in the WAXI QGIS template. It also supports QField usage by the WAXI Team. 
-version=3.0.8
+version=3.0.9
 author=Mark Jessell and Eliott Betend UWA
 email=mark.jessell@uwa.edu.au
 
-about= Developed by Eliott Betend and Mark Jessell, the WAXI_QF plugin supports the custom QField layers produced for the WAXI project. 
+about= Developed by Eliott Betend and Mark Jessell, the WAXI_QF plugin supports the custom QField layers produced for the GEOL-QMAPS digital geological mapping solutin supported by QGIS. 
 
 tracker=https://github.com/swaxi/WAXI_QF/issues
 repository=https://github.com/swaxi/WAXI_QF
