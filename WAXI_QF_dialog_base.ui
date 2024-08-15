@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -2282,26 +2282,6 @@ border-style: solid;border-width: 1px;border-color: black
 </string>
      </property>
     </widget>
-    <widget class="QPushButton" name="merge_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>400</x>
-       <y>220</y>
-       <width>131</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-     </property>
-     <property name="text">
-      <string>Merge Projects</string>
-     </property>
-    </widget>
     <widget class="QLineEdit" name="lineEdit_37">
      <property name="geometry">
       <rect>
@@ -2401,7 +2381,7 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>390</x>
-       <y>460</y>
+       <y>450</y>
        <width>141</width>
        <height>21</height>
       </rect>
@@ -2536,7 +2516,7 @@ font-size: 12px;
        <x>20</x>
        <y>40</y>
        <width>521</width>
-       <height>211</height>
+       <height>191</height>
       </rect>
      </property>
      <property name="font">
@@ -2549,6 +2529,26 @@ font-size: 12px;
      <property name="title">
       <string>Merge two projects</string>
      </property>
+     <widget class="QPushButton" name="merge_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>150</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+      </property>
+      <property name="text">
+       <string>Merge Projects</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox_10">
      <property name="geometry">
@@ -2594,7 +2594,7 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>330</y>
+       <y>320</y>
        <width>521</width>
        <height>161</height>
       </rect>
@@ -2657,7 +2657,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>280</y>
+       <y>290</y>
        <width>1071</width>
        <height>20</height>
       </rect>
@@ -2670,7 +2670,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>580</x>
-       <y>300</y>
+       <y>310</y>
        <width>521</width>
        <height>181</height>
       </rect>
@@ -2838,6 +2838,46 @@ font-size: 12px;
       </property>
      </widget>
     </widget>
+    <widget class="QGroupBox" name="groupBox_9">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>230</y>
+       <width>521</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Remove Duplicate UUIDs from project</string>
+     </property>
+     <widget class="QPushButton" name="merge_pushButton_2">
+      <property name="geometry">
+       <rect>
+        <x>380</x>
+        <y>30</y>
+        <width>131</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+      </property>
+      <property name="text">
+       <string>Remove Duplicates</string>
+      </property>
+     </widget>
+    </widget>
     <zorder>line</zorder>
     <zorder>groupBox_11</zorder>
     <zorder>groupBox_12</zorder>
@@ -2858,7 +2898,6 @@ font-size: 12px;
     <zorder>pushButton_27</zorder>
     <zorder>label_11</zorder>
     <zorder>lineEdit_26</zorder>
-    <zorder>merge_pushButton</zorder>
     <zorder>lineEdit_37</zorder>
     <zorder>pushButton_29</zorder>
     <zorder>label_15</zorder>
@@ -2872,6 +2911,7 @@ font-size: 12px;
     <zorder>contours_checkBox</zorder>
     <zorder>gtCircles_checkBox</zorder>
     <zorder>groupBox_16</zorder>
+    <zorder>groupBox_9</zorder>
    </widget>
    <widget class="QWidget" name="Help">
     <property name="styleSheet">

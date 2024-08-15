@@ -68,10 +68,11 @@ QgsField
 )
 
 from scipy.spatial.distance import cdist
+from processing.gui.AlgorithmExecutor import execute_in_place
 
 
 # Libraries for manipulating Excel files 
-from pandas import *
+import pandas as pd
 
 # Library for list copies
 from copy import copy 
@@ -82,6 +83,7 @@ from copy import copy
 
 # Library for check the input file nature
 from pathlib import Path
+
 
 
 # Importation des bibliothèques situées dans le dossier du plugin 
@@ -144,7 +146,7 @@ class WAXI_QF:
             import xlsxwriter
             
         except:
-            self.install_library("xlsxwriter")
+            install_library("xlsxwriter")
         
         
         # Library Openpyxl
@@ -152,14 +154,14 @@ class WAXI_QF:
             import openpyxl
 
         except:
-            self.install_library("openpyxl")
+            install_library("openpyxl")
 
         # Library fiona
         try:
             import fiona
 
         except:
-            self.install_library("fiona")
+            install_library("fiona")
 
 
         # Library FuzzyWuzzy
@@ -167,21 +169,16 @@ class WAXI_QF:
             import fuzzywuzzy
 
         except:
-            self.install_library("fuzzywuzzy")
+            install_library("fuzzywuzzy")
         
         # Library Geopandas
         try :    
             import geopandas 
             
         except :
-            self.install_library("geopandas")
+            install_library("geopandas")
             
-        # Library Fiona
-        try : 
-            import fiona 
-            
-        except :
-            self.install_library("fiona")
+
             
      
 
@@ -384,15 +381,16 @@ class WAXI_QF:
             data_list.append(ligne)
         
         # DataFrame creation from dictionary list
-        input_file = DataFrame(data_list, columns=noms_des_champs)
+        input_file = pd.DataFrame(data_list, columns=noms_des_champs)
+
         input_file = input_file.astype(str)
         
 
         # File 2: WAXI project columns
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_reference_WAXI4.xlsx")
-        print(WAXI_projet_path,os.path.dirname(WAXI_projet_path),emplacement_files_WAXI_columns)
-        column_reference = read_excel(emplacement_files_WAXI_columns)
+
+        column_reference = pd.read_excel(emplacement_files_WAXI_columns)
      
         
         # Extraction of column names in file 1 
@@ -402,12 +400,6 @@ class WAXI_QF:
         # Extraction of column names in file 2
         list_column_reference = column_reference.columns.tolist()
     
-    
-        ## Creation of column pairs (input,reference) : 
-        
-        # Create an empty list of column name pairs (input,reference) :
-        list_couples_column=[]
-        list_score=[]
         
         list_trio_columns=[]
         for k in range (0,len(list_column_input)):
@@ -664,7 +656,7 @@ class WAXI_QF:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_reference_WAXI4.xlsx")
         
-        column_reference = read_excel(emplacement_files_WAXI_columns)
+        column_reference = pd.read_excel(emplacement_files_WAXI_columns)
         list_column_reference = column_reference.columns.tolist()
         
         # CASE 1 : If the line has already been deleted
@@ -782,15 +774,19 @@ class WAXI_QF:
         list_columns_check2 = []
         list_new=[]
         for k in range (len(list_columns_check)):
-            if list_columns_check[k][1] not in list_new :
+            found=False
+            for new_item in list_new:
+                if list_columns_check[k][1] == new_item :
+                    found=True
+                    #self.iface.messageBar().pushMessage("Two or more of your old columns have been assigned to the same new column name, this is not possible !", level=Qgis.Warning, duration=15) 
+
+            if(not found):
                 if list_columns_check[k][1] !='NULL' :
                     list_columns_check2.append(list_columns_check[k])
-                    list_new = list_columns_check[k][1]
-            else : 
-                self.iface.messageBar().pushMessage("Two or more of your old columns have been assigned to the same new column name, this is not possible !", level=Qgis.Warning, duration=45) 
+                    list_new.append(list_columns_check[k][1])
                 
         # Creation of a DataFrame = OUTPUT file 
-        fichier_output = DataFrame()
+        fichier_output = pd.DataFrame()
         list_columns_check3=[]
         
         # Add all the values
@@ -827,7 +823,8 @@ class WAXI_QF:
                     ligne_raw_data.append(f"{column} : {value} ; ")
             fichier_output.at[index, 'Existing databases - raw data'] = ''.join(ligne_raw_data)
     
-    
+        self.fichier_output_cp=fichier_output.copy(deep=True)
+
         return fichier_output, list_columns_check3
     
     
@@ -843,16 +840,19 @@ class WAXI_QF:
         from openpyxl import Workbook
         from fuzzywuzzy import fuzz
         
+        value_counts=self.fichier_output_cp['Litho'].value_counts().to_dict()
+
+
         # List of input lithologies 
         list_lithology_input = fichier_output['Litho'].tolist()
 
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+
         emplacement_99_CSV_files = self.templateCSV_path
         
         
         # Reference list of lithologies
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference = read_csv(emplacement_99_CSV_files +'Lithologies.csv', sep=';')
+            fichier_reference = pd.read_csv(emplacement_99_CSV_files +'Lithologies.csv', sep=';')
             list_lithology_reference = list(fichier_reference['Valeur'])
         
         else:
@@ -863,7 +863,6 @@ class WAXI_QF:
         list_trio=[]
         for k in range (0,len(list_lithology_input)):
             list_trio.append([list_lithology_input[k],'NULL',0])
-        
         
         # Identification with Fuzzywuzzy :  
         for k in range (0,len(list_lithology_input)) : 
@@ -880,32 +879,29 @@ class WAXI_QF:
             else : 
             
                 ## Condition 1 : prefix leuco, micro and meta to be deleted in front of names
+                letters=['áéóíúèìòùôêîâûçäëïöüÁÉÓÍÚÈÌÒÙÔÊÎÂÛÇÄËÏÖ','aeiouaeiouaeiouaeioucAEIOUAEIOUAEIOUAEIOUC']
+                for i in range (len(letters[0])):
+                    list_lithology_input[k] =list_lithology_input[k].replace(letters[0][i],letters[1][i])
+
+                #modifiers
+                list_lithology_input[k] = list_lithology_input[k].replace('Micro-','')
+                list_lithology_input[k] = list_lithology_input[k].replace('micro-','')
+                list_lithology_input[k] = list_lithology_input[k].replace('Meta-','')
+                list_lithology_input[k] = list_lithology_input[k].replace('meta-','')
+                list_lithology_input[k] = list_lithology_input[k].replace('Micro','')
+                list_lithology_input[k] = list_lithology_input[k].replace('micro','')
+                list_lithology_input[k] = list_lithology_input[k].replace('Meta','')
+                list_lithology_input[k] = list_lithology_input[k].replace('meta','')
                 
-                if list_lithology_input[k].startswith("Micro"):
-                    # prefix 'micro-'
-                    list_lithology_input[k] =  list_lithology_input[k][5:]
-             
-                
-                if list_lithology_input[k][0] == "L" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "u" and list_lithology_input[k][3] == "c" and list_lithology_input[k][4] == "o" : 
-                    # prefix 'leuco-'
-                    list_lithology_input[k] =  list_lithology_input[k][5:]
-                
-                
-                if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "e" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
-                    # prefix 'meta-'
-                    list_lithology_input[k] =  list_lithology_input[k][4:]
-                
-                
-                if list_lithology_input[k][0] == "M" and list_lithology_input[k][1] == "é" and list_lithology_input[k][2] == "t" and list_lithology_input[k][3] == "a" : 
-                    # prefix 'méta'
-                    list_lithology_input[k] =  list_lithology_input[k][4:]
-                   
-                    
-                 ## Condition 2 : often used words "pegmatite" or "granitoid" replace them with "granite"
-                if list_lithology_input[k] == "pegmatite" or list_lithology_input[k] == "granitoid" :
-                    list_lithology_input[k] = "granite"
-        
-        
+                #francophone translations
+                list_lithology_input[k] = list_lithology_input[k].replace('Argillite','Shale')
+                list_lithology_input[k] = list_lithology_input[k].replace('Argillites','Shale')
+                list_lithology_input[k] = list_lithology_input[k].replace('argillite','Shale')
+                list_lithology_input[k] = list_lithology_input[k].replace('argillites','Shale')
+                list_lithology_input[k] = list_lithology_input[k].replace(' Gres ','Sandstone')
+                list_lithology_input[k] = list_lithology_input[k].replace(' gres ','Sandstone')
+
+       
                 for rock_reference in list_lithology_reference :
                 
                     new_score = fuzz.token_set_ratio(list_lithology_input[k], rock_reference)
@@ -965,7 +961,7 @@ class WAXI_QF:
             self.dlg.tableWidget2.setRowCount(current_row_count)
             
             # Filling the 2 columns
-            self.dlg.tableWidget2.setItem(k, 0, QTableWidgetItem(str(old)))
+            self.dlg.tableWidget2.setItem(k, 0, QTableWidgetItem(str(old)+" : "+str(value_counts[old])+""))
             self.dlg.tableWidget2.setItem(k, 1, QTableWidgetItem(str(new)))
             
             
@@ -1114,7 +1110,7 @@ class WAXI_QF:
         
         # List Litho Metamorphic lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference = read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';')
+            fichier_reference = pd.read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';')
             list_litho_metamorphic = list(fichier_reference['Valeur'])
             list_litho_metamorphic.sort()
         else:
@@ -1122,33 +1118,39 @@ class WAXI_QF:
         
         # List Litho Igneous intrusive lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference1 = read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';')
+            fichier_reference1 = pd.read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';')
             list_litho_plutonic = list(fichier_reference1['Valeur'])
             list_litho_plutonic.sort()
             
         # List Litho Igneous extrusive lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference2 = read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';')
+            fichier_reference2 = pd.read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';')
             list_litho_volcanic = list(fichier_reference2['Valeur'])
             list_litho_volcanic.sort()
         
         # List Litho Volcanoclastic lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference3 = read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';')
+            fichier_reference3 = pd.read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';')
             list_litho_volcanoclastic = list(fichier_reference3['Valeur'])
             list_litho_volcanoclastic.sort()
         
         # List Litho Sedimentary lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference4 = read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';')
+            fichier_reference4 = pd.read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';')
             list_litho_sedimentary = list(fichier_reference4['Valeur'])
             list_litho_sedimentary.sort()
         
         # List Litho Supergene lithologies_PT
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_reference5 = read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';')
+            fichier_reference5 = pd.read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';')
             list_litho_supergene = list(fichier_reference5['Valeur'])
             list_litho_supergene.sort()
+        
+        # List Local lithologies_PT
+        if os.path.exists(emplacement_99_CSV_files):
+            fichier_reference6 = pd.read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';')
+            list_litho_local = list(fichier_reference6['Valeur'])
+            list_litho_local.sort()
         
         
         # CASE 1 : If the line has already been deleted
@@ -1165,7 +1167,8 @@ class WAXI_QF:
             
             rock_types = {"      ---Plutonic---      ": list_litho_plutonic,"      ---Volcanic---      ":list_litho_volcanic, 
                           "      ---Sedimentary---      ": list_litho_sedimentary, "      ---Metamorphic---      ": list_litho_metamorphic,
-                          "       ---Supergene---      ":list_litho_supergene, "      ---Volcanoclastic---      ":list_litho_volcanoclastic}
+                          "       ---Supergene---      ":list_litho_supergene, "      ---Volcanoclastic---      ":list_litho_volcanoclastic,
+                          "      ---Local---      ":list_litho_local}
             
             combo_box = QComboBox()
             delegate = QStyledItemDelegate(combo_box)
@@ -1250,7 +1253,7 @@ class WAXI_QF:
         list_lithologies_unique_check_OK = []
         
         for row in range(self.dlg.tableWidget2.rowCount()):
-            old = self.dlg.tableWidget2.item(row, 0).text()
+            old = self.dlg.tableWidget2.item(row, 0).text().split(' :')[0]
             
             if old != '-': 
                 if isinstance(self.dlg.tableWidget2.cellWidget(row, 1), QComboBox):
@@ -1300,13 +1303,13 @@ class WAXI_QF:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
         
-        litho_local = list((read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
-        litho_supergene = list((read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
-        litho_sedimentary = list((read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';'))['Valeur'])
-        litho_volcanoclastic = list((read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';'))['Valeur'])
-        litho_igneous_extrusive = list((read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';'))['Valeur'])
-        litho_igneous_intrusive = list((read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';'))['Valeur'])
-        litho_metamorphic = list((read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';'))['Valeur'])
+        litho_local = list((pd.read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
+        litho_supergene = list((pd.read_csv(emplacement_99_CSV_files +'Supergene lithologies.csv', sep=';'))['Valeur'])
+        litho_sedimentary = list((pd.read_csv(emplacement_99_CSV_files +'Sedimentary lithologies.csv', sep=';'))['Valeur'])
+        litho_volcanoclastic = list((pd.read_csv(emplacement_99_CSV_files +'Volcanoclastic lithologies.csv', sep=';'))['Valeur'])
+        litho_igneous_extrusive = list((pd.read_csv(emplacement_99_CSV_files +'Volcanic lithologies.csv', sep=';'))['Valeur'])
+        litho_igneous_intrusive = list((pd.read_csv(emplacement_99_CSV_files +'Plutonic lithologies.csv', sep=';'))['Valeur'])
+        litho_metamorphic = list((pd.read_csv(emplacement_99_CSV_files +'Metamorphic lithologies.csv', sep=';'))['Valeur'])
         
         
         ### Creation of the output Workbook ###
@@ -1462,7 +1465,7 @@ class WAXI_QF:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_types_structures_WAXI4.xlsx")
         
-        Dataframe = read_excel(emplacement_files_WAXI_columns)
+        Dataframe = pd.read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
         
         
@@ -1527,7 +1530,7 @@ class WAXI_QF:
         
  
              
-        ###    Filling 3 : STRCUTURE NAME ## input = list_trio_unique2     ### 
+        ###    Filling 3 : STRUCTURE NAME ## input = list_trio_unique2     ### 
  
         # Setting the number of columns in the QTableWidget
         self.dlg.tableWidget3.setColumnCount(3)
@@ -1690,7 +1693,7 @@ class WAXI_QF:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(os.path.dirname(WAXI_projet_path), self.dir_99+"/columns_types_structures_WAXI4.xlsx")
         
-        Dataframe = read_excel(emplacement_files_WAXI_columns)
+        Dataframe = pd.read_excel(emplacement_files_WAXI_columns)
         list_structure_reference = Dataframe.columns.tolist()
         
         # CASE 1 : If the row has already been deleted 
@@ -1830,24 +1833,24 @@ class WAXI_QF:
    
                 if fichier_output['Structure_type'].iloc[m] == list_structure_unique_check_OK[k][0] :
                     if list_structure_unique_check_OK[k][1] != 'NULL' : 
-                        fichier_output['Structure_type'].iloc[m] = (list_structure_unique_check_OK[k][1]+ '_' + name_layer_to_import).split('.')[0]  
+                        fichier_output['Structure_type'].iloc[m] = (list_structure_unique_check_OK[k][1]+ '_' + name_layer_to_import).split('.')[0]
                         break  # Once the match has been found, exit the internal loop
                     else : 
                         fichier_output['Structure_type'].iloc[m] = 'NULL'
-                        
+                       
 
-            else:
-                fichier_output['Structure_type'].iloc[m] = 'NULL'
+                #else:
+                #    fichier_output['Structure_type'].iloc[m] = 'NULL'
                     
         fichier_output['Structure_type'] = fichier_output['Structure_type'].fillna('NULL')  
-        
+        #fichier_output['Structure_type'].to_csv(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\f_o_s_t.csv")
 
         # Arrange rows according to their Structure_type value
         for k in range(0,len(fichier_output['Structure_type'])): 
             
             type_structure2 = fichier_output['Structure_type'][k]
             
-            
+
             if type_structure2 != 'NULL':
                 
                 for sheet in fichier_output_structures.sheetnames :
@@ -1855,19 +1858,24 @@ class WAXI_QF:
                         if type_structure2 == sheet :
                             
                             header_reference = [col[0].value for col in fichier_output_structures[sheet].iter_cols(min_row=1, max_row=1)]
+
                             ligne = []
                             for col_reference in (header_reference) :
-                                if col_reference not in list_columns_check3 :
+                                if (('Lineations_PT' in sheet or 'Fold axes_PT' in sheet) and col_reference == 'Azimuth'):
+                                    ligne.append(fichier_output['Dip_Dir'][k])
+                                elif col_reference not in list_columns_check3 :
                                     ligne.append ('')
+
                                 else : 
-                                    ligne.append(fichier_output[col_reference][k]) 
+                                    ligne.append(fichier_output[col_reference][k])
+
                                     
                             fichier_output_structures[sheet].append(ligne)
-         
+ 
         return fichier_output_structures
   
   
-  
+        
     ###############################################################################
     ##   Step 9 : Import the 2 fichier_output (lithology + structure) into QGIS  ##
     ###############################################################################
@@ -1884,22 +1892,24 @@ class WAXI_QF:
         
         elif file_structure : 
             workbooks = [file_structure]
+            #file_structure.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
         
         else : 
             workbooks = []
              
         for workbook in workbooks : 
             
-            # Browse all the sheets in the Excel workbook
+            # loop through all the sheets in the Excel workbook
             for sheet_name in workbook.sheetnames:
-                
+
                 if sheet_name != 'Sheet':
                     
                     sheet = workbook[sheet_name]
         
                    # Retrieve column names
                     headers = [cell.value for cell in sheet[1]]
-        
+
+
                     # Retrieve geometry column index
                     geometry_column_index = headers.index('Geometry') 
             
@@ -1918,10 +1928,12 @@ class WAXI_QF:
                     project = QgsProject.instance()                     
                     layer_reference = project.mapLayersByName(name_reference)[0]
                     
+
                     type_field_data = []
                     for field in layer_reference.fields():
                         type_donnee = field.typeName()
                         type_field_data.append(type_donnee)
+
                             
                     # Add fields name
                     layer_fields = []
@@ -1933,7 +1945,7 @@ class WAXI_QF:
                         if type_donnee == 'String' : 
                             field = QgsField(header, QVariant.String)
                         elif type_donnee == 'Integer' : 
-                            field = QgsField(header, QVariant.Int)
+                            field = QgsField(header, QVariant.LongLong)
                         elif type_donnee == 'Integer64' : 
                             field = QgsField(header, QVariant.LongLong)
                         elif type_donnee == 'JSON' : 
@@ -1943,28 +1955,28 @@ class WAXI_QF:
                         
                     layer.dataProvider().addAttributes(layer_fields)
                     layer.updateFields()
-                    
-                    # Add fields content
+
+                    # Add fields content by looping through sheet rows
                     for row in sheet.iter_rows(min_row=2, values_only=True):
-                        
+
                         # Geometry
                         feature = QgsFeature(layer.fields())
                         geometry_wkt = row[geometry_column_index]
                         feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
         
-                        # Other fields of the attribute table
+                        # Other fields of the attribute table by looping through sheet columns 
                         for i, value in enumerate(row):
                             type_donnee = type_field_data[i]
+
                             if type_donnee == 'String' or type_donnee == 'JSON':
                                 feature.setAttribute(i, str(value))
                             elif type_donnee in ['Integer', 'Integer64']:
                                 if value.strip():
                                     try:
-                                        feature.setAttribute(i, int(float(value)))
+                                        feature.setAttribute(i, int(float(value.strip())))
                                     except ValueError:
                                         feature.setAttribute(i, None)
-                                    else:
-                                        feature.setAttribute(i, None)
+
         
                         layer.dataProvider().addFeature(feature)
                     
@@ -2020,7 +2032,7 @@ class WAXI_QF:
         # Step 3 : Retrieving data from QTableWidget1
         list_columns_check = self.recup_contenu_1()
             
-        
+
         # Step 4 : Dataframe creation with sorted and verified columns
         fichier_output, list_columns_check3 = self.DataFrame_columns_check (fichier_input, list_columns_check,  name_layer_to_import)
          
@@ -2096,7 +2108,7 @@ class WAXI_QF:
     
     def click_columns_check_OK (self, fichier_input, name_layer_to_import): 
         
-        fichier_output = DataFrame()
+        fichier_output = pd.DataFrame()
         list_columns_check3 = []
         
         fichier_output, list_columns_check3 = self.method_columns_check_OK(fichier_input, name_layer_to_import)
@@ -2171,16 +2183,17 @@ class WAXI_QF:
             
             clip_poly_shp=self.mynormpath(self.dlg.lineEdit_8.text())
 
-            shps=read_csv(shp_list,names=['name','dir_code'])
+            shps=pd.read_csv(shp_list,names=['name','dir_code'])
             shps=shps.set_index("name")   
              
             # clipping rectangle from shapefile polygon
             if(self.dlg.lineEdit_8.text()):
-                print('clip by poly')
+
                 clip_layer = QgsVectorLayer(os.path.split(clip_poly_shp)[0],os.path.split(clip_poly_shp)[1], "ogr")
             # clipping rectangle from Canvas
             else:
                 e = self.iface.mapCanvas().extent()  
+
                 extent = QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())  # Replace with the desired extents
                 geom = QgsGeometry().fromRect(extent)
                 ftr = QgsFeature()
@@ -2246,20 +2259,20 @@ class WAXI_QF:
                     ]
             
             for pairs in copies:
-                shutil.copyfile(pairs[0],pairs[1])
+                shutil.copyfile(self.mynormpath(pairs[0]),self.mynormpath(pairs[1]))
             
             # Prepare the output shapefile parameters for clipping
             
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
                 if layer.name() in shps.index.tolist():  
-                    if(not '_PG' in layer.name()): 
+                    if( '_PG' in layer.name()  or '_PT' in layer.name() or '_LN' in layer.name()): 
                         # Get the file path of the layer
         
                         input_path=self.mynormpath(layer.dataProvider().dataSourceUri())
 
                         output_path_gpkg=self.mynormpath(newGpkgPath)
-                        print(output_path_gpkg)
+
                         processing.run("native:clip", 
                             {'INPUT':input_path,
                                 'OVERLAY':clip_layer,
@@ -2280,75 +2293,81 @@ class WAXI_QF:
     ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
     def addCsvItem(self):
         
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
         
         layer_name = str(self.dlg.comboBox.currentText())
-        chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
+        
+        csv_updates=[layer_name ,"Lithologies"]
+        for csv_file in csv_updates:
+            chemin_fichier_CSV_modifier = self.mynormpath(emplacement_99_CSV_files + csv_file + ".csv")
+            if chemin_fichier_CSV_modifier :
+                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+                
+                    df = pd.read_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";")
+                    
+                    # Get the value to be added to the ComboBox
+                    new_row = {'Valeur' : str(self.dlg.lineEdit_38.text()), 'Description': str(self.dlg.lineEdit_27.text())}
+                    
+                    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+                    
+                    df=df.sort_values(by='Valeur')
+
+                    # Rewrites the CSV file with the added line
+                    df.to_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";", index=False)
+                    
+                    # Updates the layer in QGIS
+                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                    couche_csv.dataProvider().reloadData()
         
         if chemin_fichier_CSV_modifier :
-            
-            df = read_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";")
-            
-            # Get the value to be added to the ComboBox
-            new_row = {'Valeur' : str(self.dlg.lineEdit_38.text()), 'Description': str(self.dlg.lineEdit_27.text())}
-            
-            df = concat([df, DataFrame([new_row])], ignore_index=True)
-            
-            df.sort_values(by='Valeur', inplace=True)
-
-            # Rewrites the CSV file with the added line
-            df.to_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";", index=False)
-            
-            # Updates the layer in QGIS
-            couche_csv = QgsProject.instance().mapLayersByName(layer_name)[0]
-            couche_csv.dataProvider().forceReload()
-    
             self.iface.messageBar().pushMessage("Item " + str(self.dlg.lineEdit_38.text()) + " " + str(self.dlg.lineEdit_27.text()) + " added to " + layer_name, level=Qgis.Success, duration=15)
 
-        else:
-            self.iface.messageBar().pushMessage("Layer not found: " + layer_name, level=Qgis.Warning, duration=45)
+
         
 
 
     ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template 
     def deleteCsvItem(self):
         
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+
         emplacement_99_CSV_files = self.templateCSV_path
         
         layer_name = str(self.dlg.comboBox.currentText())
         chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
         
-        if chemin_fichier_CSV_modifier :
-            
-            df = read_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";")
-            
-            # Gets the value to be deleted from the ComboBox
-            deleted_value = str(self.dlg.comboBox_delete.currentText())
-            
-            # Index corresponding to the value to be deleted
-            index_to_drop = df[df['Valeur'] == deleted_value].index
-            
-            # Deletes the corresponding line
-            df.drop(index_to_drop, inplace=True)
-            
-            # Rewrites the CSV file with the deleted line
-            df.to_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";", index=False)
-    
-            # Updates the layer in QGIS
-            couche_csv = QgsProject.instance().mapLayersByName(layer_name)[0]
-            couche_csv.dataProvider().forceReload()
-            
-            # Delete word from comboBox
-            index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
-            if index_a_supprimer != -1:
-                self.dlg.comboBox_delete.removeItem(index_a_supprimer)
-    
-            self.iface.messageBar().pushMessage("Item " + deleted_value + " deleted to "+ layer_name, level=Qgis.Success, duration=15)
+        csv_updates=[layer_name ,"Lithologies"]
+        for csv_file in csv_updates:
+            chemin_fichier_CSV_modifier = self.mynormpath(emplacement_99_CSV_files + csv_file + ".csv")
+            if chemin_fichier_CSV_modifier :
 
-        else:
-            self.iface.messageBar().pushMessage("Layer not found: " + layer_name, level=Qgis.Warning, duration=45)
+                # Gets the value to be deleted from the ComboBox
+                deleted_value = str(self.dlg.comboBox_delete.currentText())          
+
+                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+
+                    df = pd.read_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";")
+                    
+                    # Index corresponding to the value to be deleted
+                    index_to_drop = df[df['Valeur'] == deleted_value].index
+                    
+                    # Deletes the corresponding line
+                    df=df.drop(index_to_drop)
+                    
+                    # Rewrites the CSV file with the deleted line
+                    df.to_csv(chemin_fichier_CSV_modifier, encoding="latin_1", sep=";", index=False)
+            
+                    # Updates the layer in QGIS
+                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                    couche_csv.dataProvider().reloadData()
+                    
+                    # Delete word from comboBox
+                    index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
+                    if index_a_supprimer != -1:
+                        self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+        
+        if chemin_fichier_CSV_modifier :
+            self.iface.messageBar().pushMessage("Item " + str(self.dlg.lineEdit_38.text()) + " " + str(self.dlg.lineEdit_27.text()) + " removed from " + layer_name, level=Qgis.Success, duration=15)
+
 
 
     ### Update project name ###
@@ -2400,7 +2419,7 @@ class WAXI_QF:
             ## User.csv file location 
             WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
             emplacement_User_file = self.templateCSV_path+"/User list.csv"
-            user_file = read_csv(emplacement_User_file, sep=';', encoding='latin-1')
+            user_file = pd.read_csv(emplacement_User_file, sep=';', encoding='latin-1')
             
             
             ## Test if the user name is already present in the User.csv file 
@@ -2414,7 +2433,7 @@ class WAXI_QF:
             # If the user name is not in the CSV file, we add it:
             if 100 not in list_score :  
                 new_row = {'Valeur': default_value_user_csv, 'Description':  default_value_user_csv}
-                user_file = concat([user_file, DataFrame([new_row])], ignore_index=True)
+                user_file = pd.concat([user_file, pd.DataFrame([new_row])], ignore_index=True)
                 user_file.sort_values(by='Valeur', inplace=True)
                 
                 # Rewrites the CSV file with the added line
@@ -2495,7 +2514,68 @@ class WAXI_QF:
             if (os.path.isfile(path) and path.split('.')[-1]=='csv'):
                 files.append(filename)
         return files
-   
+    
+
+    def removeDuplicates(self):
+            
+        project = QgsProject.instance()  # assumes one of the projects is actually open!  Could use copy stored in plugin?
+
+        # set up directory structure and load filename lists
+
+        shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
+
+        shps=pd.read_csv(shp_list,names=['name','dir_code'])
+        shps=shps.set_index("name")
+
+        registry = QgsApplication.instance().processingRegistry()
+        alg = registry.algorithmById("native:removeduplicatesbyattribute")
+
+        # Specify the field name based on which duplicates should be identified
+        field_name = "UUID"
+
+        # remove objects with duplicate UUIDs
+        for layer in project.mapLayers().values():
+            # Check if the layer name matches the target name
+            if layer.name() in shps.index.tolist():  
+
+                # Start editing the layer
+                layer.startEditing()
+
+                # Initialize a set to track unique values
+                unique_values = set()
+
+                # List to store IDs of features to be deleted
+                features_to_delete = []
+
+                # Loop through features in the layer
+                for feature in layer.getFeatures():
+                    field_value = feature[field_name]
+                    
+                    # Check if the field value has been encountered before
+                    if field_value in unique_values:
+                        # If it's a duplicate, mark the feature for deletion
+                        features_to_delete.append(feature.id())
+                    else:
+                        # If it's unique, add the value to the set
+                        unique_values.add(field_value)
+
+                # Delete the duplicate features
+                if features_to_delete:
+                    layer.deleteFeatures(features_to_delete)
+
+
+                # Commit the changes
+                if layer.commitChanges():
+                    print("Changes successfully committed.")
+
+
+                # Refresh the layer to see changes
+            layer.triggerRepaint()
+            
+            self.iface.messageBar().pushMessage("Duplicate UUIDs removed, saved in current project", level=Qgis.Success, duration=5)
+
+
+
     def mergeProjects(self):
     # Takes two WAXI QFIELD Projects and combines them, 
     # removing duplicates and saves out the full structure to a new directory
@@ -2511,9 +2591,9 @@ class WAXI_QF:
 
             shp_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/shp.csv")
             csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-            shps=read_csv(shp_list,names=['name','dir_code'])
+            shps=pd.read_csv(shp_list,names=['name','dir_code'])
             shps=shps.set_index("name")
-            csvs=read_csv(csv_list,names=['name'])            
+            csvs=pd.read_csv(csv_list,names=['name'])            
 
             merge_project_path =  self.dlg.lineEdit_37.text()+'/'
 
@@ -2523,34 +2603,36 @@ class WAXI_QF:
             main_project_path=head_tail_main[0]+'/'
             sub_project_path=head_tail_sub[0]+'/'
                        
-            mainGpkgPath=main_project_path+self.dir_0+'CURRENT MISSION.gpkg'
-            subGpkgPath=sub_project_path+self.dir_0+'CURRENT MISSION.gpkg'
-            mergeGpkgPath=merge_project_path+self.dir_0+'CURRENT MISSION.gpkg'
+            mainGpkgPath=self.mynormpath(main_project_path+self.dir_0+'CURRENT MISSION.gpkg')
+            subGpkgPath=self.mynormpath(sub_project_path+self.dir_0+'CURRENT MISSION.gpkg')
+            mergeGpkgPath=self.mynormpath(merge_project_path+self.dir_0+'CURRENT MISSION.gpkg')
 
             #create new directory structures
-            dirs=[merge_project_path,merge_project_path+self.dir_0,merge_project_path+self.dir_99]
+            dirs=[merge_project_path,merge_project_path+self.dir_0,merge_project_path+self.dir_99,merge_project_path+self.dir_99+'CSV FILES']
 
             for dirpath in dirs:
                 if(not os.path.exists(self.mynormpath(dirpath))):
                     os.mkdir(self.mynormpath(dirpath))
     
-            # copy over files that are not clipped
+            # merge and de-duplicate csv files
+            for file in csvs.name:
+                main_path=self.mynormpath(main_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
+                sub_path=self.mynormpath(sub_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
+                merge_path=self.mynormpath(merge_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
     
-            src_path=main_project_path+self.dir_99+"/CSV FILES/"
-            dst_path=self.mynormpath(merge_project_path+self.dir_99+"/CSV FILES/")
-            shutil.copytree(src_path, dst_path)
+                main=pd.read_csv(main_path,sep=";",encoding="latin_1")
+                sub=pd.read_csv(sub_path,sep=";",encoding="latin_1")
+                merge=pd.concat([main,sub])
+                merge=merge.drop_duplicates()
+                merge.to_csv(merge_path,index=False,sep=";")
 
-            src_path=main_project_path+self.dir_11
-            dst_path=self.mynormpath(merge_project_path+self.dir_11)
-            shutil.copytree(src_path, dst_path)
 
-            '''src_path=main_project_path+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
-            dst_path=self.mynormpath(merge_project_path+"/11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/")
-            shutil.copytree(src_path, dst_path)'''
-
-            src_path=main_project_path+self.dir_0+"/DCIM/"
-            dst_path=self.mynormpath(merge_project_path+self.dir_0+"/DCIM/")
-            shutil.copytree(src_path, dst_path)
+            cp_dirs=["1. EXISTING FIELD DATABASE","2. GPS-LOCALITIES OF INTEREST","3. GEOCHEMISTRY","4. GEOCHRONOLOGY","5. MINING AND EXPLORATION",
+                     "6. GEOLOGY","7. GEOPHYSICS","8. LAND USE","9. GEOGRAPHY","10. TOPOGRAPHY","11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY",self.dir_0+"/DCIM/"]
+            for cp_dir in cp_dirs:
+                src_path=main_project_path+cp_dir
+                dst_path=self.mynormpath(merge_project_path+cp_dir)
+                shutil.copytree(src_path, dst_path)
 
             src_file = main_project_path+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
             dst_file = merge_project_path+self.dir_0+"/CURRENT MISSION+CSV FILES.qlr"
@@ -2561,8 +2643,7 @@ class WAXI_QF:
             in_pref=main_project_path+self.dir_99
             out_pref=merge_project_path+self.dir_99
             copies=[[mainGpkgPath,mergeGpkgPath],
-                    #[in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
-                    [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
+                    [in_pref+'columns_reference_WAXI4.xlsx',out_pref+'columns_reference_WAXI4.xlsx'],
                     [in_pref+'columns_types_structures_WAXI4.xlsx',out_pref+'columns_types_structures_WAXI4.xlsx'],
                     [in_pref+'stereonet.json',out_pref+'stereonet.json'],
                     [in_pref+'Stops_PT.qml',out_pref+'Stops_PT.qml'],
@@ -2572,7 +2653,6 @@ class WAXI_QF:
                     ]
             
             for pairs in copies:
-                print(pairs[0],pairs[1])
                 shutil.copyfile(pairs[0],pairs[1])
             
             for layer in project.mapLayers().values():
@@ -2581,73 +2661,12 @@ class WAXI_QF:
     
                     main_layer_path=mainGpkgPath+'|layername='+layer.name()
                     sub_layer_path=subGpkgPath+'|layername='+layer.name()
-                    #merge_layer_path=mergeGpkgPath+'|layername='+layer.name()
-
+                    params = {
+                    'LAYERS': [main_layer_path, sub_layer_path],
+                    'OUTPUT': 'ogr:dbname=\''+self.mynormpath(mergeGpkgPath+'\' table="'+layer.name())+'"'
+                    }
+                    merged_layers=processing.run("native:mergevectorlayers", params )
         
-
-                    if(layer.name()=='Sampling_PT'): #can't add coordinates when alias and cooments present
-
-                        # merge two shapefiles
-                        params = { 
-                        'LAYERS': [main_layer_path, sub_layer_path],
-                        'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
-                        }
-            
-                        processing.run("native:mergevectorlayers", params )
-
-
-                    else:
-                        # merge two shapefiles
-                        params = {
-                        'LAYERS': [main_layer_path, sub_layer_path],
-                        'OUTPUT': 'memory:'
-                        }
-                        merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
-
-                       # extract geometries of merged file
-                        params = { 
-                        'CALC_METHOD' : 0, 
-                        'INPUT' :  merged_layers, 
-                        'OUTPUT' : 'memory:' 
-                        }
-            
-                        added_geom=processing.run("qgis:exportaddgeometrycolumns",params)['OUTPUT']
-        
-                        # remove duplicate rows
-                        params = { 
-                        'FIELDS' : ['Date','User','xcoord','ycoord','SampleID'], 
-                        'INPUT' : added_geom, 
-                        'OUTPUT' : 'memory:' 
-                        }
-            
-                        removed_dups=processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
-            
-                        # remove generated coordinate columns
-                        params = {
-                        'INPUT':removed_dups,
-                        'COLUMN':['xcoord','ycoord'],
-                        'OUTPUT':'ogr:dbname=\''+mergeGpkgPath+'\' table="'+layer.name()+'" (geom)'
-                        }
-            
-                        processing.run("native:deletecolumn", params) 
-                        
-                '''
-                else:
-                    print("xxx",layer.name()) 
-                print(shps.index.tolist())  
-                '''         
-                # merge and de-duplicate csv files
-                for file in csvs.name:
-                    main_path=self.mynormpath(main_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
-                    sub_path=self.mynormpath(sub_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
-                    merge_path=self.mynormpath(merge_project_path+self.dir_99+"/CSV FILES/"+file+'.csv')
-        
-                    main=read_csv(main_path,sep=";",encoding="latin_1")
-                    sub=read_csv(sub_path,sep=";",encoding="latin_1")
-                    merge=concat([main,sub])
-                    merge=merge.drop_duplicates()
-                    merge.to_csv(merge_path,index=False,sep=";")
-                
             
             self.iface.messageBar().pushMessage("Projects merged, saved in directory" + merge_project_path, level=Qgis.Success, duration=5)
 
@@ -2676,7 +2695,7 @@ class WAXI_QF:
             file.append(self.geopackage_file_path+"|layername=Alteration zones_PG")
             file.append(self.geopackage_file_path+"|layername=Lithology zones_PG")
             output=self.mynormpath(self.dlg.lineEdit_7.text())+"/Zonal data_PG.shp"
-            print(output)
+
             
             # merge shapefiles
             params = {
@@ -2733,8 +2752,7 @@ class WAXI_QF:
 
     
     def mynormpath(self,path):
-        return(os.path.normpath(path).replace("\\","/"))
-    
+        return(r''+os.path.normpath(path).replace("\\","/"))
     
     
 
@@ -2780,14 +2798,14 @@ class WAXI_QF:
             'LAYERS': [file[0],file[1]],
             'OUTPUT': 'memory:'
             }
-            print(file[0])
-            print(file[1])
+
+
             merged_layers=processing.run("native:mergevectorlayers", params )['OUTPUT']
             
             for i,f in enumerate(file):
        
                     if(i>1):
-                        print(f)
+
                         # merge two shapefiles
                         params = {
                         'LAYERS': [merged_layers,f],
@@ -2829,7 +2847,6 @@ class WAXI_QF:
     
     
                 clusters = scanner.fit_predict(X)
-                #print(clusters)
                 
     
                 merged_layers.startEditing()
@@ -3198,7 +3215,7 @@ class WAXI_QF:
         emplacement_99_CSV_files = self.templateCSV_path
         
         if os.path.exists(emplacement_99_CSV_files):
-            fichier_delete = read_csv(emplacement_99_CSV_files + self.dlg.comboBox.currentText() + ".csv", encoding="latin_1", sep=";")
+            fichier_delete = pd.read_csv(emplacement_99_CSV_files + self.dlg.comboBox.currentText() + ".csv", encoding="latin_1", sep=";")
             list_combobox_delete = list(fichier_delete['Valeur'])
             list_combobox_delete = [str(item) for item in list_combobox_delete]
         
@@ -3284,6 +3301,7 @@ class WAXI_QF:
         # Project Parameters 
         self.dlg.projName_pushButton.setToolTip("Update project name")
         self.dlg.merge_pushButton.setToolTip("Merge projects")
+        self.dlg.merge_pushButton_2.setToolTip("Remove Duplicate UUIDs")
         self.dlg.merge_layers_pushButton_2.setToolTip("Merge two QGIS layers")
         self.dlg.clip_pushButton.setToolTip("Clip to current canvas")
         self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
@@ -3401,7 +3419,7 @@ class WAXI_QF:
             self.iface.messageBar().pushMessage("ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(pv,tv), level=Qgis.Critical, duration=45)
         elif(template_version[0]<plugin_version[0] or
             ((template_version[0] == plugin_version[0]) and template_version[1]<plugin_version[1])):
-            self.iface.messageBar().pushMessage("WARNING: Plugin {} newer than Template {}, uncertain behaviour!".format(ppv,tv), level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage("WARNING: Plugin {} newer than Template {}, uncertain behaviour!".format(pv,tv), level=Qgis.Warning, duration=45)
         else:
             self.iface.messageBar().pushMessage("SUCCESS: Plugin {} and Template {} are compatible!!".format(pv,tv), level=Qgis.Success, duration=15)
 
@@ -3443,6 +3461,7 @@ class WAXI_QF:
                 # Project_parameters
                 self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
                 self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
+                self.dlg.merge_pushButton_2.clicked.connect(self.removeDuplicates)
                 self.dlg.merge_layers_pushButton_2.clicked.connect(self.merge_2_layers)
 
                 self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
@@ -3544,7 +3563,7 @@ class WAXI_QF:
 
                 # ComboBox for create dropdown list of all csv files
                 csv_list = self.mynormpath(os.path.dirname(os.path.realpath(__file__))+"/csv.csv")
-                csvs=read_csv(csv_list,names=['name'])
+                csvs=pd.read_csv(csv_list,names=['name'])
                 csv_file_list=[]
                 for name in csvs.name:
                     csv_file_list.append(name)
