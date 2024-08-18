@@ -69,6 +69,7 @@ QgsField
 
 from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
+import hashlib
 
 
 # Libraries for manipulating Excel files 
@@ -822,7 +823,7 @@ class WAXI_QF:
                 if str(column) != "Geometry":
                     ligne_raw_data.append(f"{column} : {value} ; ")
             fichier_output.at[index, 'Existing databases - raw data'] = ''.join(ligne_raw_data)
-    
+           
         self.fichier_output_cp=fichier_output.copy(deep=True)
 
         return fichier_output, list_columns_check3
@@ -1300,7 +1301,7 @@ class WAXI_QF:
         ### Sorting lithologies ### 
         
         # Lists of reference rocks from the WAXI4 QGIS project
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+
         emplacement_99_CSV_files = self.templateCSV_path
         
         litho_local = list((pd.read_csv(emplacement_99_CSV_files +'Local lithologies.csv', sep=';'))['Valeur'])
@@ -1858,7 +1859,7 @@ class WAXI_QF:
                         if type_structure2 == sheet :
                             
                             header_reference = [col[0].value for col in fichier_output_structures[sheet].iter_cols(min_row=1, max_row=1)]
-
+                            print(header_reference)
                             ligne = []
                             for col_reference in (header_reference) :
                                 if (('Lineations_PT' in sheet or 'Fold axes_PT' in sheet) and col_reference == 'Azimuth'):
@@ -1889,7 +1890,8 @@ class WAXI_QF:
         
         elif file_lithology :
             workbooks = [file_lithology]
-        
+            #file_lithology.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
+       
         elif file_structure : 
             workbooks = [file_structure]
             #file_structure.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
@@ -1933,6 +1935,8 @@ class WAXI_QF:
                     for field in layer_reference.fields():
                         type_donnee = field.typeName()
                         type_field_data.append(type_donnee)
+                    
+                    field_names=layer_reference.fields().names()
 
                             
                     # Add fields name
@@ -1966,10 +1970,16 @@ class WAXI_QF:
         
                         # Other fields of the attribute table by looping through sheet columns 
                         for i, value in enumerate(row):
+                            if(field_names[i]=='Existing databases - raw data'):
+                                hash=hashlib.sha256(value.encode()).hexdigest()
+                                
                             type_donnee = type_field_data[i]
 
                             if type_donnee == 'String' or type_donnee == 'JSON':
-                                feature.setAttribute(i, str(value))
+                                if(field_names[i]=='UUID'):
+                                    feature.setAttribute(i, str(hash)) #relies on 'UUID' field coming after 'Existing databases - raw data' field
+                                else:    
+                                    feature.setAttribute(i, str(value))
                             elif type_donnee in ['Integer', 'Integer64']:
                                 if value.strip():
                                     try:
@@ -1977,7 +1987,7 @@ class WAXI_QF:
                                     except ValueError:
                                         feature.setAttribute(i, None)
 
-        
+         
                         layer.dataProvider().addFeature(feature)
                     
                     # Add the layer to the QGIS project 
@@ -2126,7 +2136,6 @@ class WAXI_QF:
         
         from openpyxl import Workbook
         fichier_output_lithology = Workbook()
-        
         fichier_output_lithology = self.method_lithologies_check_OK(fichier_input, name_layer_to_import,fichier_output, list_columns_check3)
         
         # Connect Structure check OK button correctly
@@ -2515,6 +2524,7 @@ class WAXI_QF:
                 files.append(filename)
         return files
     
+    ### Remove multiple instances of the same feature in current project based on their unique ID (UUID field) 
 
     def removeDuplicates(self):
             
