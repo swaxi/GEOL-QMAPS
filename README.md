@@ -1,5 +1,5 @@
-# WAXI_QF
- QGIS Plugin to help QFIELD usage related to the latest GEOL-QMAPS digital geological mapping solution (ctrl + click on the link to access latest template): https://doi.org/10.5281/zenodo.7834717
+# GEOL-QMAPS custom QGIS plugin
+ Custom QGIS Plugin to help QFIELD usage related to the latest GEOL-QMAPS digital geological mapping solution (ctrl + click on the link to access latest template): https://doi.org/10.5281/zenodo.7834717
  
 ## Install
 Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly from zip file.
@@ -35,10 +35,10 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 ## Roadmap
 Add centroids of polygon and line features when creating virtual stop layer.
 Generate default symbols when adding new values to dictionaries if appropriate.
-Implement a tool that change saturation of symbols for preexisting field data, to distinguish them frm newly entered entities.
+Implement a tool that change saturation of symbols for pre-existing field data, to distinguish them from newly entered entities.
    
 ## Credits    
 Plugin construction - Eliott Betend GUI and Import Tool    
 Plugin construction - Mark Jessell using QGIS Plugin Builder Plugin     
 Manual - Eliott Betend and Mark Jessell   
-QGIS digital mapping tool - Julien Perret 
+GEOL-QMAPS QGIS digital mapping tool - Julien Perret 
