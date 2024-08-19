@@ -3322,7 +3322,7 @@ font-weight: bold;</string>
       </font>
      </property>
      <property name="title">
-      <string>Need some help ? Contact us !</string>
+      <string>Need some help? Contact us!</string>
      </property>
      <widget class="QPlainTextEdit" name="plainTextEdit_8">
       <property name="enabled">
@@ -3366,11 +3366,9 @@ font-weight: bold;</string>
        <bool>true</bool>
       </property>
       <property name="plainText">
-       <string>¤   Eliott BETEND - Developer of the plugin GUI and data import tool :  eliott.betend@uwa.edu.au
+       <string>¤   Mark JESSELL(mark.jessell@uwa.edu.au) and Eliott BETEND - Developers of the custom QGIS plugin
 
-¤   Mark JESSELL - Developer of all the other tools of the plugin :   mark.jessell@uwa.edu.au
-
-¤   Julien PERRET - Developer of the WAXI QGIS Template :  julien.perret@uwa.edu.au</string>
+¤   Julien PERRET (julien.perret@uwa.edu.au) - Developer of the GEOL-QMAPS QGIS Template </string>
       </property>
       <property name="backgroundVisible">
        <bool>false</bool>
@@ -3434,7 +3432,7 @@ font-weight: bold;</string>
       </font>
      </property>
      <property name="title">
-      <string>Any ideas ? </string>
+      <string>Please provide Feedback </string>
      </property>
      <widget class="QPlainTextEdit" name="plainTextEdit_9">
       <property name="enabled">
@@ -3470,7 +3468,7 @@ font-weight: bold;</string>
        <bool>true</bool>
       </property>
       <property name="plainText">
-       <string>If you have any ideas for improvements or tools you'd like to add to this plugin, please submit them to the github issues page:</string>
+       <string>If you have bugs to report, suggestions for improvements or new tools to add to this plugin, please submit them on the GitHub issues page:</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_23">
@@ -3567,7 +3565,7 @@ font-weight: bold;</string>
        <bool>true</bool>
       </property>
       <property name="plainText">
-       <string>The AMIRA West African Exploration Initiative (WAXI), in French l'Initiative d'Exploration d'Ouest Africaine (IXOA), is an ambitious research and training program based on the cooperation between most of the major stakeholders in the West African minerals sector : research institutions, geological surveys, governements and the minerals industry. </string>
+       <string> The AMIRA West African Exploration Initiative (WAXI) is a unique collaborative research and training program focusing on the tectonics and mineral potential of the West African Craton, involving research institutions, geological surveys, governements and actors of the mineral industry. </string>
       </property>
      </widget>
     </widget>
@@ -3588,7 +3586,7 @@ font-weight: bold;</string>
       </font>
      </property>
      <property name="title">
-      <string>Plugin Roadmap</string>
+      <string>Roadmap for future development</string>
      </property>
     </widget>
     <zorder>groupBox_30</zorder>

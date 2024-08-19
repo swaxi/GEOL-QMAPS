@@ -29,7 +29,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 - **Stereographic projection settings**: Select Stereonet checkbox to control WAXI fork of Stereonet plugin display (https://github.com/swaxi/qgis-stereonet).
 - **Picture storage**: Allows a new directory to be defined for the storage of field and sampling pictures.  
      
-![dialog3](Capture3.PNG)
+![dialog3](dialog3.png)
 
 
 ## Roadmap
