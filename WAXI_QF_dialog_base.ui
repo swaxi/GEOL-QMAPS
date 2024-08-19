@@ -3029,10 +3029,10 @@ backround-color: (220,220,220);
       <bool>true</bool>
      </property>
      <property name="rowCount">
-      <number>4</number>
+      <number>3</number>
      </property>
      <property name="columnCount">
-      <number>2</number>
+      <number>1</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
@@ -3064,28 +3064,7 @@ backround-color: (220,220,220);
      <row/>
      <column>
       <property name="text">
-       <string>New features/tools</string>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>10</pointsize>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="background">
-       <color>
-        <red>255</red>
-        <green>255</green>
-        <blue>255</blue>
-       </color>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Planned date</string>
+       <string>Future development of tools</string>
       </property>
       <property name="font">
        <font>
@@ -3106,78 +3085,17 @@ backround-color: (220,220,220);
      </column>
      <item row="0" column="0">
       <property name="text">
-       <string>Addition of a button to update the Source path in Photographs_PT and Sampling_PT layers for all entities</string>
+       <string>Add centroids of polygon and line features when creating virtual stop layers</string>
       </property>
-     </item>
-     <item row="0" column="1">
-      <property name="text">
-       <string>April 2024</string>
-      </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
-      </property>
-     </item>
+     </item> 
      <item row="1" column="0">
       <property name="text">
-       <string>Addition of a button to set the default value for “User” field for all layers at once </string>
-      </property>
-     </item>
-     <item row="1" column="1">
-      <property name="text">
-       <string>April 2024</string>
-      </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
+       <string>Generate default symbols when adding new values to dictionaries if appropriate</string>
       </property>
      </item>
      <item row="2" column="0">
       <property name="text">
-       <string>Addition of a button to save a new CURRENT MISSION+CSV FILES.qlr files (if company people are interested in using the template)</string>
-      </property>
-     </item>
-     <item row="2" column="1">
-      <property name="text">
-       <string>April 2024</string>
-      </property>
-      <property name="font">
-       <font>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
-      </property>
-     </item>
-     <item row="3" column="0">
-      <property name="text">
-       <string>_</string>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
-      </property>
-     </item>
-     <item row="3" column="1">
-      <property name="text">
-       <string>_</string>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
+       <string>Create a tool to adjust symbol saturation for existing data to differentiate it from new entries</string>
       </property>
      </item>
     </widget>
@@ -3240,7 +3158,7 @@ font-weight: bold;
 </string>
      </property>
      <property name="text">
-      <string>Publications by WAXI Team</string>
+      <string>List of publications by WAXI team</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_39">
@@ -3262,7 +3180,7 @@ font-weight: bold;
 </string>
      </property>
      <property name="text">
-      <string>Theses by WAXI Team</string>
+      <string>List of theses by WAXI Team</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_40">
@@ -3302,7 +3220,7 @@ background-color: rgb(220, 220, 220);
 font-weight: bold;</string>
      </property>
      <property name="text">
-      <string> WAXI website</string>
+      <string>WAXI website</string>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_13">
@@ -3348,10 +3266,7 @@ font-weight: bold;</string>
        <bool>false</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">#plainTextEdit_8{
-
-	background-color: rgb(240, 240, 240, 255);
-}</string>
+       <string notr="true">#plainTextEdit_8{background-color: rgb(240, 240, 240, 255);}</string>
       </property>
       <property name="inputMethodHints">
        <set>Qt::ImhNone</set>
@@ -3367,8 +3282,7 @@ font-weight: bold;</string>
       </property>
       <property name="plainText">
        <string>¤   Mark JESSELL(mark.jessell@uwa.edu.au) and Eliott BETEND - Developers of the custom QGIS plugin
-
-¤   Julien PERRET (julien.perret@uwa.edu.au) - Developer of the GEOL-QMAPS QGIS Template </string>
+¤   Julien PERRET (julien.perret@uwa.edu.au) - Developer of the GEOL-QMAPS QGIS mapping template </string>
       </property>
       <property name="backgroundVisible">
        <bool>false</bool>
@@ -3432,7 +3346,7 @@ font-weight: bold;</string>
       </font>
      </property>
      <property name="title">
-      <string>Please provide Feedback </string>
+      <string>Please provide Feedback</string>
      </property>
      <widget class="QPlainTextEdit" name="plainTextEdit_9">
       <property name="enabled">
