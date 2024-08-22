@@ -6,9 +6,9 @@
 name=GEOL-QMAPS
 qgisMinimumVersion=3.36
 description=The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
-version=3.0.11
-author=Mark Jessell and Eliott Betend UWA
-email=mark.jessell@uwa.edu.au
+version=3.0.12
+author=Mark Jessell, Eliott Betend and Julien Perret (University of Western Australia)
+email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
 
 about= The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 
