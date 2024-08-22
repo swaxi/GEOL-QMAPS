@@ -490,7 +490,7 @@ class WAXI_QF:
         self.dlg.tableWidget1.setColumnCount(3)
         
         # Headers in the QTableWidget
-        column_names1 = ["OLD Name*", 'NEW Name**', 'Check']
+        column_names1 = ['Legacy data value', 'Assigned standard value', 'Modify the assigned value']
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
           
         current_row_count=1
@@ -950,7 +950,7 @@ class WAXI_QF:
         self.dlg.tableWidget2.setColumnCount(3)
         
         # Headers of the QTableWidget
-        column_names2 = ["OLD Name*", 'NEW Name**', 'Check']
+        column_names2 = ['Legacy data value', 'Assigned standard value', 'Modify the assigned value']
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
         
         # Re-organizing the list by descending score 
@@ -1538,7 +1538,7 @@ class WAXI_QF:
         self.dlg.tableWidget3.setColumnCount(3)
         
         # Headers of the QTableWidget
-        column_names3 = ["OLD Name*", 'NEW Name**', 'Check']
+        column_names3 = ['Legacy data value', 'Assigned standard value', 'Modify the assigned value']
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
           
         # Re-organize list by descending score 
