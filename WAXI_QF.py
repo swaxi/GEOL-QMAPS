@@ -936,7 +936,7 @@ class WAXI_QF:
 
                 ## Condition 1 : prefix leuco, micro and meta to be deleted in front of names
                 letters = [
-                    "áéíóúàèìòùâêîôûäëïöüçÁÉÓÍÚÈÌÒÙÔÊÎÂÛÄËÏÖÜÇ",
+                    "áéíóúàèìòùâêîôûäëïöüçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÇ",
                     "aeiouaeiouaeiouaeioucAEIOUAEIOUAEIOUAEIOUC",
                 ]
                 sylables = [
