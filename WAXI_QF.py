@@ -936,43 +936,56 @@ class WAXI_QF:
 
                 ## Condition 1 : prefix leuco, micro and meta to be deleted in front of names
                 letters = [
-                    "áéóíúèìòùôêîâûçäëïöüÁÉÓÍÚÈÌÒÙÔÊÎÂÛÇÄËÏÖ",
+                    "áéíóúàèìòùâêîôûäëïöüçÁÉÓÍÚÈÌÒÙÔÊÎÂÛÄËÏÖÜÇ",
                     "aeiouaeiouaeiouaeioucAEIOUAEIOUAEIOUAEIOUC",
+                ]
+                sylables = [
+                    ["Micro-", ""],
+                    ["micro-", ""],
+                    ["Meta-", ""],
+                    ["meta-", ""],
+                    ["Micro", ""],
+                    ["micro", ""],
+                    ["Meta", ""],
+                    ["meta", ""],
+                    # modifiers
+                    ["Micro-", ""],
+                    ["micro-", ""],
+                    ["Meta-", ""],
+                    ["meta-", ""],
+                    ["Micro", ""],
+                    ["micro", ""],
+                    ["Meta", ""],
+                    [
+                        "meta",
+                        "",
+                    ],
+                    # abbreviations
+                    [" sst ", "Sandstone"],
+                    [" Sst ", "Sandstone"],
+                    [" qtzite ", "Quartzite"],
+                    [" Qtzite ", "Quartzite"],
+                    [" qtz ", "Quartzite"],
+                    [" QTZ ", "quartz"],
+                    [" lst ", "Limestone"],
+                    [" Lst ", "Limestone"],
+                    # francophone translations
+                    ["Argillite ", "Shale "],
+                    ["Argillites ", "Shale "],
+                    ["argillite ", "Shale "],
+                    ["argillites ", "Shale "],
+                    ["Gres ", "Sandstone "],
+                    ["gres ", "Sandstone "],
                 ]
                 for i in range(len(letters[0])):
                     list_lithology_input[k] = list_lithology_input[k].replace(
                         letters[0][i], letters[1][i]
                     )
 
-                # modifiers
-                list_lithology_input[k] = list_lithology_input[k].replace("Micro-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("micro-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Meta-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("meta-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Micro", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("micro", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Meta", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("meta", "")
-
-                # francophone translations
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "Argillite", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "Argillites", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "argillite", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "argillites", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    " Gres ", "Sandstone"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    " gres ", "Sandstone"
-                )
+                for i in range(len(sylables)):
+                    list_lithology_input[k] = list_lithology_input[k].replace(
+                        sylables[i][0], sylables[i][1]
+                    )
 
                 for rock_reference in list_lithology_reference:
 
