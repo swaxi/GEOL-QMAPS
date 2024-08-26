@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1522</width>
-    <height>1324</height>
+    <height>802</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -750,7 +750,7 @@ font-style: italic;</string>
       </font>
      </property>
      <property name="title">
-      <string>Step 1: Select the legacy field data shapefile to import</string>
+      <string>Step 1a: Select the legacy field data shapefile to import</string>
      </property>
      <widget class="QLabel" name="label_22">
       <property name="geometry">
@@ -785,7 +785,7 @@ font-size: 10px;
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>140</y>
+       <y>130</y>
        <width>381</width>
        <height>61</height>
       </rect>
@@ -828,7 +828,7 @@ font-size: 12px;
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>230</y>
+       <y>210</y>
        <width>381</width>
        <height>131</height>
       </rect>
@@ -936,7 +936,7 @@ font-size: 12px;</string>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>430</y>
+       <y>420</y>
        <width>141</width>
        <height>21</height>
       </rect>
@@ -3498,8 +3498,8 @@ font-style: italic;</string>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>650</y>
+     <x>30</x>
+     <y>670</y>
      <width>381</width>
      <height>61</height>
     </rect>

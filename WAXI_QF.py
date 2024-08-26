@@ -4135,40 +4135,6 @@ class WAXI_QF:
 
                 # HELP
 
-                self.dlg.tableWidget4.setColumnWidth(0, 350)
-                self.dlg.tableWidget4.setColumnWidth(1, 171)
-
-                self.dlg.tableWidget4.item(0, 0).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-                self.dlg.tableWidget4.item(0, 1).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-
-                self.dlg.tableWidget4.item(1, 0).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-                self.dlg.tableWidget4.item(1, 1).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-
-                self.dlg.tableWidget4.item(2, 0).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-                self.dlg.tableWidget4.item(2, 1).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-
-                self.dlg.tableWidget4.item(3, 0).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-                self.dlg.tableWidget4.item(3, 1).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-
-                self.dlg.tableWidget4.horizontalHeader().setVisible(True)
-                self.dlg.tableWidget4.setEditTriggers(QTableWidget.NoEditTriggers)
-
                 # Send email to Mark Jessell and Julien Perret
                 self.dlg.pushButton_24.clicked.connect(
                     lambda: QDesktopServices.openUrl(
@@ -4181,7 +4147,7 @@ class WAXI_QF:
                     )
                 )
 
-                # Home Page
+                # Help
 
                 # Connection to the Github issues page site  : https://github.com/swaxi/WAXI_QF/issues/
                 self.dlg.pushButton_23.clicked.connect(
@@ -4208,9 +4174,9 @@ class WAXI_QF:
                 )
 
                 #  Connection to the CET site : https://www.cet.edu.au/
-                self.dlg.pushButton_37.clicked.connect(
-                    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
-                )
+                # self.dlg.pushButton_37.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
+                # )
 
                 #  Connection to the Zenodo site : https://zenodo.org/records/10147786
                 self.dlg.pushButton_34.clicked.connect(
@@ -4220,16 +4186,16 @@ class WAXI_QF:
                 )
 
                 #  Connection to the WAXI articles :
-                self.dlg.pushButton_38.clicked.connect(
-                    lambda: QDesktopServices.openUrl(
-                        QUrl("https://waxi4.org/publications/journal-articles/")
-                    )
-                )
-                self.dlg.pushButton_39.clicked.connect(
-                    lambda: QDesktopServices.openUrl(
-                        QUrl("https://waxi4.org/publications/theses/")
-                    )
-                )
+                # self.dlg.pushButton_38.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(
+                #        QUrl("https://waxi4.org/publications/journal-articles/")
+                #    )
+                # )
+                # self.dlg.pushButton_39.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(
+                #        QUrl("https://waxi4.org/publications/theses/")
+                #    )
+                # )
 
                 # PushButtons to search for files on the computer
 
