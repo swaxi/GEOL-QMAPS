@@ -750,7 +750,7 @@ font-style: italic;</string>
       </font>
      </property>
      <property name="title">
-      <string>Step 1a: Select the legacy field data shapefile to import</string>
+      <string>Step 1: Select the legacy field data shapefile to import</string>
      </property>
      <widget class="QLabel" name="label_22">
       <property name="geometry">
