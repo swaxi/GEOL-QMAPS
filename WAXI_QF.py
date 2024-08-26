@@ -3967,8 +3967,6 @@ class WAXI_QF:
         # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
         # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
 
-        # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
-        # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
 
         # RadioButtons
         self.dlg.radioButtonOn.setToolTip(Auto_on)
