@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>3</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -3446,9 +3446,6 @@ background-color: rgb(240, 240, 240,0);
       </property>
       <property name="plainText">
        <string>Import tool: 
-- fix the copy of raw legacy data to prevent information loss in the dedicated field (currently limited to the first 254 characters),
-
-- fix the issue with copying raw legacy data when merging a standardized output layer with a compilation layer,
 
 - Add a button to enter references for publications or reports associated with the processed legacy field data.
 
