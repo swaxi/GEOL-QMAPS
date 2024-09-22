@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-""" 
-=======
+
 """
 /***************************************************************************
  WAXI_QF
@@ -3968,7 +3967,6 @@ class WAXI_QF:
         # self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
         # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
         # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
-
 
         # RadioButtons
         self.dlg.radioButtonOn.setToolTip(Auto_on)
