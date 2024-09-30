@@ -83,6 +83,7 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsDefaultValue,
+    QgsCoordinateTransformContext,
 )
 from qgis.PyQt.QtCore import QVariant, QUrl
 from qgis.utils import plugins, iface
@@ -363,20 +364,20 @@ class WAXI_QF:
     ######## Step 1 : Check layer coordinates + Create geometry column ############
     ###############################################################################
 
-    def convert_coordinates_WGS84(self, couche):
+    def convert_coordinates_WGS84(self, layer):
 
         # Selection of all entities in the layer
-        couche.selectAll()
+        layer.selectAll()
 
         # Creation of a new 'Geometry' column in the layer's attribute table
-        couche.startEditing()
-        couche.addAttribute(QgsField("Geometry", QVariant.String))
+        layer.startEditing()
+        layer.addAttribute(QgsField("Geometry", QVariant.String))
 
         # Recuperation of CRS (Coordinate Reference System)
-        crs = couche.crs()
+        crs = layer.crs()
 
         # Conversion of coordinates to WGS84
-        for feature in couche.selectedFeatures():
+        for feature in layer.selectedFeatures():
             geometrie = feature.geometry()
 
             transformation = QgsCoordinateTransform(
@@ -385,11 +386,11 @@ class WAXI_QF:
             geometrie.transform(transformation)
 
             feature["Geometry"] = geometrie.asWkt()
-            couche.updateFeature(feature)
+            layer.updateFeature(feature)
 
         # Save changes
-        couche.commitChanges()
-        couche.removeSelection()
+        layer.commitChanges()
+        layer.removeSelection()
 
         # Refreshing the view in QGIS
         QgsProject.instance().reloadAllLayers()
@@ -398,7 +399,7 @@ class WAXI_QF:
     # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs ##
     ###############################################################################
 
-    def export_layer_fill_Table1(self, couche):
+    def export_layer_fill_Table1(self, layer):
 
         from openpyxl import Workbook
         from fuzzywuzzy import fuzz
@@ -408,16 +409,16 @@ class WAXI_QF:
         # File 1: INPUT file
 
         # Adding field names as column names to the Excel sheet
-        noms_des_champs = [field.name() for field in couche.fields()]
+        noms_des_champs = [field.name() for field in layer.fields()]
 
         data_list = []
 
-        for feature in couche.getFeatures():
+        for feature in layer.getFeatures():
             ligne = {
                 field.name(): (
                     feature[field.name()] if feature[field.name()] is not None else ""
                 )
-                for field in couche.fields()
+                for field in layer.fields()
             }
             data_list.append(ligne)
 
@@ -533,7 +534,11 @@ class WAXI_QF:
         self.dlg.tableWidget1.setColumnCount(3)
 
         # Headers in the QTableWidget
-        column_names1 = ["OLD Name*", "NEW Name**", "Check"]
+        column_names1 = [
+            "Legacy data value",
+            "Assigned standard value",
+            "Modify the assigned value",
+        ]
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
 
         current_row_count = 1
@@ -592,8 +597,11 @@ class WAXI_QF:
                 # Forbid editing of first 2 columns
                 item1 = self.dlg.tableWidget1.item(k, 0)
                 item2 = self.dlg.tableWidget1.item(k, 1)
-                item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-                item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+                # print(item1, item2)
+                if item1:
+                    item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+                if item2:
+                    item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
 
                 # Add a column with 2 "Delete" and "Modify" buttons for each row
 
@@ -792,27 +800,28 @@ class WAXI_QF:
         new_values_count = {}
 
         for row in range(self.dlg.tableWidget1.rowCount()):
-            old = self.dlg.tableWidget1.item(row, 0).text()
+            if self.dlg.tableWidget1.item(row, 0):
+                old = self.dlg.tableWidget1.item(row, 0).text()
 
-            if old != "-":
+                if old != "-":
 
-                if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
-                    new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
-                else:
-                    new = self.dlg.tableWidget1.item(row, 1).text()
+                    if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
+                        new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
+                    else:
+                        new = self.dlg.tableWidget1.item(row, 1).text()
 
-                if new != "NULL":
-                    if new in new_values_count:
-                        self.iface.messageBar().pushMessage(
-                            "Erreur: La valeur '{}' est en double !".format(new),
-                            level=Qgis.Warning,
-                            duration=45,
-                        )
-                        return
+                    if new != "NULL":
+                        if new in new_values_count:
+                            self.iface.messageBar().pushMessage(
+                                "Erreur: La valeur '{}' est en double !".format(new),
+                                level=Qgis.Warning,
+                                duration=45,
+                            )
+                            return
 
-                    new_values_count[new] = 1
+                        new_values_count[new] = 1
 
-                    list_columns_check_OK.append([old, new])
+                        list_columns_check_OK.append([old, new])
 
         list_columns_check_OK.append(["Geometry", "Geometry"])
 
@@ -846,11 +855,11 @@ class WAXI_QF:
         # Add all the values
         for k in range(len(list_columns_check2)):
             try:
-                nom_colonne_input = list_columns_check2[k][0]
-                nom_colonne_output = list_columns_check2[k][1]
+                column_name_input = list_columns_check2[k][0]
+                column_name_output = list_columns_check2[k][1]
 
-                fichier_output[nom_colonne_output] = input_file[nom_colonne_input]
-                list_columns_check3.append(nom_colonne_output)
+                fichier_output[column_name_output] = input_file[column_name_input]
+                list_columns_check3.append(column_name_output)
 
             except KeyError:
                 pass
@@ -873,6 +882,7 @@ class WAXI_QF:
             for column, value in row.items():
                 if str(column) != "Geometry":
                     ligne_raw_data.append(f"{column} : {value} ; ")
+
             fichier_output.at[index, "Existing databases - raw data"] = "".join(
                 ligne_raw_data
             )
@@ -932,43 +942,65 @@ class WAXI_QF:
 
                 ## Condition 1 : prefix leuco, micro and meta to be deleted in front of names
                 letters = [
-                    "áéóíúèìòùôêîâûçäëïöüÁÉÓÍÚÈÌÒÙÔÊÎÂÛÇÄËÏÖ",
+                    "áéíóúàèìòùâêîôûäëïöüçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÇ",
                     "aeiouaeiouaeiouaeioucAEIOUAEIOUAEIOUAEIOUC",
+                ]
+                sylables = [
+                    ["Micro-", ""],
+                    ["micro-", ""],
+                    ["Meta-", ""],
+                    ["meta-", ""],
+                    ["Micro", ""],
+                    ["micro", ""],
+                    ["Meta", ""],
+                    ["meta", ""],
+                    # modifiers
+                    ["Micro-", ""],
+                    ["micro-", ""],
+                    ["Meta-", ""],
+                    ["meta-", ""],
+                    ["Micro", ""],
+                    ["micro", ""],
+                    ["Meta", ""],
+                    [
+                        "meta",
+                        "",
+                    ],
+                    # abbreviations
+                    [" sst ", "Sandstone"],
+                    [" Sst ", "Sandstone"],
+                    [" qtzite ", "Quartzite"],
+                    [" Qtzite ", "Quartzite"],
+                    [" qtz ", "Quartzite"],
+                    [" QTZ ", "quartz"],
+                    [" lst ", "Limestone"],
+                    [" Lst ", "Limestone"],
+                    # francophone translations
+                    ["Argillite ", "Shale "],
+                    ["Argillites ", "Shale "],
+                    ["argillite ", "Shale "],
+                    ["argillites ", "Shale "],
+                    ["Argilite ", "Shale "],  # typo
+                    ["Argilites ", "Shale "],  # typo
+                    ["argilite ", "Shale "],  # typo
+                    ["argilites ", "Shale "],  # typo
+                    ["Gres ", "Sandstone "],
+                    ["gres ", "Sandstone "],
+                    ["Volcaniques ", "Volcanics "],
+                    ["Volcanique ", "Volcanic "],
+                    ["Volcanosediment ", "Volcanoclastic "],
+                    ["Schiste ", "Schist "],
+                    ["Schistes ", "Schist "],
                 ]
                 for i in range(len(letters[0])):
                     list_lithology_input[k] = list_lithology_input[k].replace(
                         letters[0][i], letters[1][i]
                     )
 
-                # modifiers
-                list_lithology_input[k] = list_lithology_input[k].replace("Micro-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("micro-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Meta-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("meta-", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Micro", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("micro", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("Meta", "")
-                list_lithology_input[k] = list_lithology_input[k].replace("meta", "")
-
-                # francophone translations
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "Argillite", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "Argillites", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "argillite", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    "argillites", "Shale"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    " Gres ", "Sandstone"
-                )
-                list_lithology_input[k] = list_lithology_input[k].replace(
-                    " gres ", "Sandstone"
-                )
+                for i in range(len(sylables)):
+                    list_lithology_input[k] = list_lithology_input[k].replace(
+                        sylables[i][0], sylables[i][1]
+                    )
 
                 for rock_reference in list_lithology_reference:
 
@@ -1013,7 +1045,11 @@ class WAXI_QF:
         self.dlg.tableWidget2.setColumnCount(3)
 
         # Headers of the QTableWidget
-        column_names2 = ["OLD Name*", "NEW Name**", "Check"]
+        column_names2 = [
+            "Legacy data value",
+            "Assigned standard value",
+            "Modify the assigned value",
+        ]
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
 
         # Re-organizing the list by descending score
@@ -1741,7 +1777,11 @@ class WAXI_QF:
         self.dlg.tableWidget3.setColumnCount(3)
 
         # Headers of the QTableWidget
-        column_names3 = ["OLD Name*", "NEW Name**", "Check"]
+        column_names3 = [
+            "Legacy data value",
+            "Assigned standard value",
+            "Modify the assigned value",
+        ]
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
 
         # Re-organize list by descending score
@@ -2090,6 +2130,15 @@ class WAXI_QF:
             if type_structure2 != "NULL":
 
                 for sheet in fichier_output_structures.sheetnames:
+                    try:
+                        Dip_Dir = fichier_output["Dip_Dir"][k]
+                    except:
+                        Dip_Dir = False
+                    try:
+                        Dip = fichier_output["Dip"][k]
+                    except:
+                        Dip = False
+
                     if sheet != "Sheet":
                         if type_structure2 == sheet:
 
@@ -2099,13 +2148,23 @@ class WAXI_QF:
                                     min_row=1, max_row=1
                                 )
                             ]
-                            print(header_reference)
+                            # print(header_reference)
                             ligne = []
                             for col_reference in header_reference:
                                 if (
                                     "Lineations_PT" in sheet or "Fold axes_PT" in sheet
                                 ) and col_reference == "Azimuth":
-                                    ligne.append(fichier_output["Dip_Dir"][k])
+                                    if Dip_Dir:
+                                        ligne.append(fichier_output["Dip_Dir"][k])
+                                    else:
+                                        ligne.append(fichier_output["Azimuth"][k])
+                                elif (
+                                    "Lineations_PT" in sheet or "Fold axes_PT" in sheet
+                                ) and col_reference == "Plunge":
+                                    if Dip:
+                                        ligne.append(fichier_output["Dip"][k])
+                                    else:
+                                        ligne.append(fichier_output["Plunge"][k])
                                 elif col_reference not in list_columns_check3:
                                     ligne.append("")
 
@@ -2133,7 +2192,9 @@ class WAXI_QF:
 
         elif file_structure:
             workbooks = [file_structure]
-            # file_structure.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
+            # file_structure.save(
+            #    r"C:\\Users\\00073294\\Dropbox\\WAXI4\\gis\\####W4S5\\debug.xlsx"
+            # )
 
         else:
             workbooks = []
@@ -2207,6 +2268,7 @@ class WAXI_QF:
 
                         # Other fields of the attribute table by looping through sheet columns
                         for i, value in enumerate(row):
+
                             if field_names[i] == "Existing databases - raw data":
                                 hash = hashlib.sha256(value.encode()).hexdigest()
 
@@ -2217,6 +2279,11 @@ class WAXI_QF:
                                         i, str(hash)
                                     )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
                                     self.sheetHashUUID[str(hash)] = [new_text]
+                                elif (
+                                    field_names[i] == "Measure"
+                                    and "Lineations_PT" in sheet_name
+                                ):
+                                    feature.setAttribute(i, "Vertical plane")
                                 elif field_names[i] == "Existing databases - raw data":
                                     new_text = {}
                                     for pair in value[:-1].split(";"):
@@ -2260,9 +2327,9 @@ class WAXI_QF:
             name_layer_to_import = segments[-1]
 
             # Load layer into QGIS
-            couche = QgsVectorLayer(path_layer_to_import, name_layer_to_import, "ogr")
+            layer = QgsVectorLayer(path_layer_to_import, name_layer_to_import, "ogr")
 
-            if couche.isValid():
+            if layer.isValid():
                 pass
 
             else:
@@ -2271,10 +2338,10 @@ class WAXI_QF:
                 )
 
             # Step 1 : Check layer coordinates + Create the Geometry column
-            self.convert_coordinates_WGS84(couche)
+            self.convert_coordinates_WGS84(layer)
 
             # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs
-            fichier_input = self.export_layer_fill_Table1(couche)
+            fichier_input = self.export_layer_fill_Table1(layer)
 
             self.iface.messageBar().pushMessage(
                 "Selected File loaded ", "OK", level=Qgis.Success, duration=45
@@ -2418,7 +2485,6 @@ class WAXI_QF:
 
         from openpyxl import Workbook
 
-        fichier_output_lithology = Workbook()
         fichier_output_lithology = self.method_lithologies_check_OK(
             fichier_input, name_layer_to_import, fichier_output, list_columns_check3
         )
@@ -2695,8 +2761,8 @@ class WAXI_QF:
                     )
 
                     # Updates the layer in QGIS
-                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    couche_csv.dataProvider().reloadData()
+                    layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                    layer_csv.dataProvider().reloadData()
 
         if chemin_fichier_CSV_modifier:
             self.iface.messageBar().pushMessage(
@@ -2749,8 +2815,8 @@ class WAXI_QF:
                     )
 
                     # Updates the layer in QGIS
-                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    couche_csv.dataProvider().reloadData()
+                    layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                    layer_csv.dataProvider().reloadData()
 
                     # Delete word from comboBox
                     index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
@@ -2853,8 +2919,8 @@ class WAXI_QF:
                 )
 
                 # Updates the layer in QGIS
-                couche_user = QgsProject.instance().mapLayersByName("User list")[0]
-                couche_user.dataProvider().forceReload()
+                layer_user = QgsProject.instance().mapLayersByName("User list")[0]
+                layer_user.dataProvider().forceReload()
 
                 default_value_user = "'" + str(self.dlg.lineEdit_39.text()) + "'"
 
@@ -3164,6 +3230,59 @@ class WAXI_QF:
 
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
 
+            layers_names = [
+                "Fractured zones_PG",
+                "Brecciated zones_PG",
+                "Cataclastic zones_PG",
+                "Alteration zones_PG",
+                "Lithology zones_PG",
+                "Local lithologies_PT",
+                "Supergene lithologies_PT",
+                "Sedimentary lithologies_PT",
+                "Volcanoclastic lithologies_PT",
+                "Igneous extrusive lithologies_PT",
+                "Igneous intrusive lithologies_PT",
+                "Metamorphic lithologies_PT",
+                "Bedding-Lava flow-S0_PT",
+                "Dikes-Sills_PT",
+                "Fold and crenulation axial planes_PT",
+                "Fold axes_PT",
+                "Foliation-cleavage_PT",
+                "Fractures_PT",
+                "Lineations_PT",
+                "Shear zones and faults_PT",
+                "Veins_PT",
+            ]
+            proj = QgsProject.instance()
+
+            for name in layers_names:
+
+                layer = proj.mapLayersByName(name)[0]
+                caps = layer.dataProvider().capabilities()
+
+                # Get the list of fields in the layer
+                existing_fields = [field.name() for field in layer.fields()]
+
+                # Check if 'src_layer' field exists, if not, add it
+                if "Layer" not in existing_fields:
+                    # Add Fields if the provider supports it
+                    if caps & QgsVectorDataProvider.AddAttributes:
+                        res = layer.dataProvider().addAttributes(
+                            [QgsField("Layer", QVariant.String)]
+                        )
+                        layer.updateFields()
+
+                src_layer_idx = layer.fields().lookupField("Layer")
+
+                # Start editing mode to modify attributes
+                layer.startEditing()
+                # Change attribute values
+                for f in layer.getFeatures():
+                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
+
+                # Commit changes
+                layer.commitChanges()
+
             project = QgsProject.instance()
             proj_file_path = project.fileName()
             head_tail = os.path.split(proj_file_path)
@@ -3174,14 +3293,35 @@ class WAXI_QF:
             file.append(self.geopackage_file_path + "|layername=Cataclastic zones_PG")
             file.append(self.geopackage_file_path + "|layername=Alteration zones_PG")
             file.append(self.geopackage_file_path + "|layername=Lithology zones_PG")
-            output = self.mynormpath(self.dlg.lineEdit_7.text()) + "/Zonal data_PG.shp"
+            newGeopackagePath = self.mynormpath(
+                self.dlg.lineEdit_7.text() + "/export.gpkg"
+            )
+
+            # first create temp layer and new geopackage
+            temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
+
+            options = QgsVectorFileWriter.SaveVectorOptions()
+            options.driverName = "GPKG"  # Specify the GeoPackage format
+
+            transform_context = QgsCoordinateTransformContext()
+
+            QgsVectorFileWriter.writeAsVectorFormatV3(
+                temp_layer, newGeopackagePath, transform_context, options
+            )
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "zonal_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
                 "LAYERS": [file[0], file[1], file[2], file[3], file[4]],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
-
+            # print(params)
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
@@ -3200,12 +3340,19 @@ class WAXI_QF:
                 + "|layername=Igneous intrusive lithologies_PT"
             )
             file7 = self.geopackage_file_path + "|layername=Metamorphic lithologies_PT"
-            output = self.mynormpath(self.dlg.lineEdit_7.text()) + "/litho_data.shp"
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "litho_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4, file5, file6, file7],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
@@ -3223,7 +3370,14 @@ class WAXI_QF:
             file7 = self.geopackage_file_path + "|layername=Lineations_PT"
             file8 = self.geopackage_file_path + "|layername=Shear zones and faults_PT"
             file9 = self.geopackage_file_path + "|layername=Veins_PT"
-            output = self.mynormpath(self.dlg.lineEdit_7.text() + "/structure_data.shp")
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "structure_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
@@ -3238,7 +3392,7 @@ class WAXI_QF:
                     file8,
                     file9,
                 ],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
@@ -3449,7 +3603,7 @@ class WAXI_QF:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    ### Merge 2 layers ###
+    ### Merge 2 layers old version###
 
     def merge_2_layers_(self):
 
@@ -3457,23 +3611,32 @@ class WAXI_QF:
         proj_file_path = project.fileName()
         head_tail = os.path.split(proj_file_path)
 
-        couche1 = QgsProject.instance().mapLayersByName(
+        layer1 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge1_2.currentText())
         )[0]
-        couche2 = QgsProject.instance().mapLayersByName(
+        layer2 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge2_2.currentText())
         )[0]
+
+        field_name = "fid"
+        field_index = layer1.fields().indexOf(field_name)
+        if field_index != -1:
+            # Delete the field using the field index
+            if layer1.dataProvider().deleteAttributes([field_index]):
+                print(f"Field '{field_name}' removed successfully.")
+            else:
+                print(f"Failed to remove field '{field_name}'.")
 
         # Run the merge algorithm
         merged = processing.run(
             "qgis:mergevectorlayers",
             {
-                "LAYERS": [couche1, couche2],
-                "CRS": couche2.crs(),  # Change the CRS as needed
+                "LAYERS": [layer1, layer2],
+                "CRS": layer2.crs(),  # Change the CRS as needed
                 "OUTPUT": "ogr:dbname='"
                 + self.geopackage_file_path
                 + "' table=\""
-                + couche2.name()
+                + layer2.name()
                 + '" (geom)',  # Output to geopackage
             },
         )
@@ -3485,44 +3648,44 @@ class WAXI_QF:
             "OUTPUT": "ogr:dbname='"
             + self.geopackage_file_path
             + "' table=\""
-            + couche2.name()
+            + layer2.name()
             + '" (geom)',
         }
 
         # processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
 
     def merge_2_layers(self):
-        couche1 = QgsProject.instance().mapLayersByName(
+        layer1 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge1_2.currentText())
         )[0]
-        couche2 = QgsProject.instance().mapLayersByName(
+        layer2 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge2_2.currentText())
         )[0]
 
-        if couche1 != couche2:
+        if layer1 != layer2:
 
-            colonnes_couche1 = [field.name() for field in couche1.fields()]
-            colonnes_couche2 = [field.name() for field in couche2.fields()]
+            columns_layer1 = [field.name() for field in layer1.fields()]
+            columns_layer2 = [field.name() for field in layer2.fields()]
 
             ## Loop on first layer entities
 
-            for entite1 in couche1.getFeatures():
+            for feature1 in layer1.getFeatures():
                 # Creation of a new entity for the second layer
-                nouvelle_entite = QgsFeature()
+                new_feature = QgsFeature()
 
                 # Copy geometry
-                nouvelle_entite.setGeometry(entite1.geometry())
+                new_feature.setGeometry(feature1.geometry())
 
                 # Copy attributes
-                nouvelle_entite.setAttributes(entite1.attributes())
+                new_feature.setAttributes(feature1.attributes())
 
                 # Add entity to second layer
-                couche2.dataProvider().addFeatures([nouvelle_entite])
+                layer2.dataProvider().addFeatures([new_feature])
 
             # extra code to handle storage of original data as dict in json field
-            if not couche2.isEditable():
-                couche2.startEditing()
-            for feature in couche2.getFeatures():
+            if not layer2.isEditable():
+                layer2.startEditing()
+            for feature in layer2.getFeatures():
 
                 if feature["UUID"] in self.sheetHashUUID:
                     new_text = self.sheetHashUUID[feature["UUID"]][0]
@@ -3530,15 +3693,43 @@ class WAXI_QF:
                     feature["Existing databases - raw data"] = new_text
 
                 # Update the feature in the layer
-                couche2.updateFeature(feature)
+                layer2.updateFeature(feature)
 
+            # extra code to handle Lineations_PT
+            if not layer2.isEditable():
+                layer2.startEditing()
+            # for feature in layer2.getFeatures():
+            #    if "Lineations_PT" in self.dlg.comboBox_merge1_2.currentText():
+            #        if feature["Measure"] == "Vertical plane":
+            #            print("found it")
+            # print(feature["Existing databases - raw data"][" DIP "])
             # Refinishing the second layer
-            couche2.updateFields()
-            couche2.commitChanges()
-            couche2.triggerRepaint()
+            layer2.updateFields()
+            layer2.commitChanges()
+            layer2.triggerRepaint()
 
             # Removing the first layer
-            QgsProject.instance().removeMapLayer(couche1.id())
+            QgsProject.instance().removeMapLayer(layer1.id())
+
+    # code to deisplay feature attirbutes and field names
+    def print_feature_details(self, feature):
+        # Print the feature ID
+        print(f"Feature ID: {feature.id()}")
+
+        # Print attribute values
+        attributes = feature.attributes()
+        print("Attributes:")
+        fields = feature.fields()
+        for index, attribute in enumerate(attributes):
+            field_name = fields[index].name()  # Correct way to get field name
+            print(f"  {field_name}: {attribute}")
+
+        # Print geometry as WKT (Well-Known Text)
+        geometry = feature.geometry()
+        if not geometry.isEmpty():
+            print(f"Geometry (WKT): {geometry.asWkt()}")
+        else:
+            print("Feature has no geometry")
 
     ### Update the source path of pictures in Photographs_PT and Sampling_PT layers ###
 
@@ -3564,17 +3755,17 @@ class WAXI_QF:
 
                 layer_photographs_PT.startEditing()
 
-                for entite in layer_photographs_PT.getFeatures():
-                    entite.setAttribute(source_field_index_photo, new_source_path)
-                    layer_photographs_PT.updateFeature(entite)
+                for feature in layer_photographs_PT.getFeatures():
+                    feature.setAttribute(source_field_index_photo, new_source_path)
+                    layer_photographs_PT.updateFeature(feature)
 
                 layer_photographs_PT.commitChanges()
 
                 layer_sampling_PT.startEditing()
 
-                for entite in layer_sampling_PT.getFeatures():
-                    entite.setAttribute(source_field_index_sampling, new_source_path)
-                    layer_sampling_PT.updateFeature(entite)
+                for feature in layer_sampling_PT.getFeatures():
+                    feature.setAttribute(source_field_index_sampling, new_source_path)
+                    layer_sampling_PT.updateFeature(feature)
 
                 layer_sampling_PT.commitChanges()
 
@@ -3622,11 +3813,11 @@ class WAXI_QF:
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_18.text())):
 
             # Retrieve project layer tree
-            arbre_couches = QgsProject.instance().layerTreeRoot()
+            arbre_layers = QgsProject.instance().layerTreeRoot()
 
             # Search for "FIELD DATA" group
             groupe_field_data = None
-            for enfant in arbre_couches.children():
+            for enfant in arbre_layers.children():
                 if enfant.name() == "FIELD DATA" and isinstance(
                     enfant, QgsLayerTreeGroup
                 ):
@@ -3815,32 +4006,34 @@ class WAXI_QF:
         self.dlg.comboBox_merge2_2.clear()
 
         # List of the QGIS layers
-        couches = QgsProject.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
-        for coucheId, couche in couches.items():
+        for layerId, layer in layers.items():
             if (
-                isinstance(couche, QgsVectorLayer)
-                and not couche.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and couche.name() != "African borders_PG"
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
+                and "_PT" in layer.name()
+                and not "Compilation_" in layer.name()
             ):
-                self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
-                self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_merge1_2.addItem(layer.name(), layerId)
+                self.dlg.comboBox_merge2_2.addItem(layer.name(), layerId)
 
     def fill_ComboBox_layers_user(self):  # ADD
         self.dlg.comboBox_layers_user.clear()
 
         # List of the QGIS layers
-        couches = QgsProject.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
-        for coucheId, couche in couches.items():
+        for layerId, layer in layers.items():
 
             # Select all non CSV layers of the QGIS project
             if (
-                isinstance(couche, QgsVectorLayer)
-                and not couche.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and couche.name() != "African borders_PG"
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
             ):
-                self.dlg.comboBox_layers_user.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_layers_user.addItem(layer.name(), layerId)
 
     def update_ComboBox(self):
         self.fill_ComboBox()
@@ -4123,43 +4316,21 @@ class WAXI_QF:
 
                 # HELP
 
-                self.dlg.tableWidget4.setColumnWidth(0, 350)
-                self.dlg.tableWidget4.setColumnWidth(1, 171)
-
-                self.dlg.tableWidget4.item(0, 0).setBackground(
-                    QColor.fromHsv(0, 0, 240)
+                # Send email to Mark Jessell and Julien Perret
+                self.dlg.pushButton_24.clicked.connect(
+                    lambda: QDesktopServices.openUrl(
+                        QUrl("mailto:julien.perret@uwa.edu.au;mark.jessell@uwa.edu.au")
+                    )
                 )
-                self.dlg.tableWidget4.item(0, 1).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-
-                self.dlg.tableWidget4.item(1, 0).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-                self.dlg.tableWidget4.item(1, 1).setBackground(
-                    QColor.fromHsv(0, 0, 220)
+                self.dlg.pushButton_28.clicked.connect(
+                    lambda: QDesktopServices.openUrl(
+                        QUrl("mailto:julien.perret@uwa.edu.au;mark.jessell@uwa.edu.au")
+                    )
                 )
 
-                self.dlg.tableWidget4.item(2, 0).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
-                self.dlg.tableWidget4.item(2, 1).setBackground(
-                    QColor.fromHsv(0, 0, 240)
-                )
+                # Help
 
-                self.dlg.tableWidget4.item(3, 0).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-                self.dlg.tableWidget4.item(3, 1).setBackground(
-                    QColor.fromHsv(0, 0, 220)
-                )
-
-                self.dlg.tableWidget4.horizontalHeader().setVisible(True)
-                self.dlg.tableWidget4.setEditTriggers(QTableWidget.NoEditTriggers)
-
-                # Home Page
-
-                # Connection to the Github issues apge site  : https://github.com/swaxi/WAXI_QF/issues/
+                # Connection to the Github issues page site  : https://github.com/swaxi/WAXI_QF/issues/
                 self.dlg.pushButton_23.clicked.connect(
                     lambda: QDesktopServices.openUrl(
                         QUrl("https://github.com/swaxi/WAXI_QF/issues/")
@@ -4184,9 +4355,9 @@ class WAXI_QF:
                 )
 
                 #  Connection to the CET site : https://www.cet.edu.au/
-                self.dlg.pushButton_37.clicked.connect(
-                    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
-                )
+                # self.dlg.pushButton_37.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
+                # )
 
                 #  Connection to the Zenodo site : https://zenodo.org/records/10147786
                 self.dlg.pushButton_34.clicked.connect(
@@ -4196,16 +4367,16 @@ class WAXI_QF:
                 )
 
                 #  Connection to the WAXI articles :
-                self.dlg.pushButton_38.clicked.connect(
-                    lambda: QDesktopServices.openUrl(
-                        QUrl("https://waxi4.org/publications/journal-articles/")
-                    )
-                )
-                self.dlg.pushButton_39.clicked.connect(
-                    lambda: QDesktopServices.openUrl(
-                        QUrl("https://waxi4.org/publications/theses/")
-                    )
-                )
+                # self.dlg.pushButton_38.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(
+                #        QUrl("https://waxi4.org/publications/journal-articles/")
+                #    )
+                # )
+                # self.dlg.pushButton_39.clicked.connect(
+                #    lambda: QDesktopServices.openUrl(
+                #        QUrl("https://waxi4.org/publications/theses/")
+                #    )
+                # )
 
                 # PushButtons to search for files on the computer
 

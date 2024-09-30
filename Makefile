@@ -1,7 +1,7 @@
 #/***************************************************************************
-# GEOL-QMAPS custom QGIS plugin
+# WAXI_QF
 #
-# Tools to facilitate relevant legacy field data import, mapping project customisation and post-field processing using the GEOL-QMAPS QGIS mapping template
+# Supoprt QField usage by WAXI Team
 #							 -------------------
 #		begin				: 2023-05-31
 #		git sha				: $Format:%H$
@@ -40,7 +40,7 @@ SOURCES = \
 	__init__.py \
 	WAXI_QF.py WAXI_QF_dialog.py
 
-PLUGINNAME = GEOL-QMAPS plugin
+PLUGINNAME = WAXI_QF
 
 PY_FILES = \
 	__init__.py \
