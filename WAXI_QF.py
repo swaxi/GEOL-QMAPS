@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
+""" 
 
-"""
 /***************************************************************************
  WAXI_QF
                                  A QGIS plugin
@@ -2588,6 +2588,35 @@ class WAXI_QF:
 
             shutil.copytree(src_path, dst_path)
 
+            src_path = oldProjPath + "/1. EXISTING FIELD DATABASE/"
+            dst_path = self.mynormpath(newProjPath  + "/1. EXISTING FIELD DATABASE/")
+
+            shutil.copytree(src_path, dst_path) # temp fix for course
+
+            src_path = oldProjPath + "/6. GEOLOGY/"
+            dst_path = self.mynormpath(newProjPath  + "/6. GEOLOGY/")
+
+            shutil.copytree(src_path, dst_path) # temp fix for course
+
+            src_path = oldProjPath + "/7. GEOPHYSICS/"
+            dst_path = self.mynormpath(newProjPath  + "/7. GEOPHYSICS/")
+
+            shutil.copytree(src_path, dst_path) # temp fix for course
+
+            src_path = oldProjPath + "/10. TOPOGRAPHY/"
+            dst_path = self.mynormpath(newProjPath  + "/10. TOPOGRAPHY/")
+
+
+            shutil.copytree(src_path, dst_path) # temp fix for course
+
+            src_path = oldProjPath + "/100. INTERPRETATION - GEOLOGICAL MAP/"
+            dst_path = self.mynormpath(newProjPath  + "/100. INTERPRETATION - GEOLOGICAL MAP/")
+
+            shutil.copytree(src_path, dst_path) # temp fix for course
+
+
+
+
             shutil.copyfile(
                 proj_file_path,
                 newProjPath + "/" + head_tail[1].replace(".qgz", "_clip.qgz"),
@@ -3105,14 +3134,14 @@ class WAXI_QF:
 
             cp_dirs = [
                 "1. EXISTING FIELD DATABASE",
-                "2. GPS-LOCALITIES OF INTEREST",
-                "3. GEOCHEMISTRY",
-                "4. GEOCHRONOLOGY",
-                "5. MINING AND EXPLORATION",
+                #"2. GPS-LOCALITIES OF INTEREST",
+                #"3. GEOCHEMISTRY",
+                #"4. GEOCHRONOLOGY",
+                #"5. MINING AND EXPLORATION",
                 "6. GEOLOGY",
                 "7. GEOPHYSICS",
-                "8. LAND USE",
-                "9. GEOGRAPHY",
+                #"8. LAND USE",
+                #"9. GEOGRAPHY",
                 "10. TOPOGRAPHY",
                 "11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY",
                 self.dir_0 + "/DCIM/",
@@ -3967,6 +3996,7 @@ class WAXI_QF:
         # self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
         # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
         # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
+
 
         # RadioButtons
         self.dlg.radioButtonOn.setToolTip(Auto_on)

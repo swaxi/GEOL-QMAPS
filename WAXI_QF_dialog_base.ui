@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>2</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -1983,6 +1983,9 @@ border-style: solid;border-width: 1px;border-color: black
      <string>Field data management</string>
     </attribute>
     <widget class="QPushButton" name="export_pushButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>980</x>
@@ -2024,6 +2027,9 @@ font-size: 12px;
      </property>
     </widget>
     <widget class="QLineEdit" name="lineEdit_7">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>740</x>
@@ -2044,6 +2050,9 @@ border-style: solid;border-width: 1px;border-color: black
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_5">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>1000</x>
@@ -2530,6 +2539,9 @@ font-size: 13px;
      </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox_10">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>580</x>
