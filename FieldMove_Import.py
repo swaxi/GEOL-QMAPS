@@ -257,7 +257,7 @@ class FM_Import:
             str(im[' notes'])  ,                    
             str(im[' dataId']),
             str(''),
-            str(images_directory+'/'+im[' image name'])]
+            str("file:///"+images_directory+'/'+str(im[' image name']).replace(" ","")).replace(" ","%20").replace("#","%23")]
             
             self.points_to_points(im,layer,attributes) # needs leading space!!
 

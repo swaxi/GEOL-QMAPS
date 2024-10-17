@@ -2728,41 +2728,71 @@ class WAXI_QF:
 
         emplacement_99_CSV_files = self.templateCSV_path
 
-        layer_name = str(self.dlg.comboBox.currentText())
+        csv_file = str(self.dlg.comboBox.currentText())
 
-        csv_updates = [layer_name, "Lithologies"]
-        for csv_file in csv_updates:
-            chemin_fichier_CSV_modifier = self.mynormpath(
-                emplacement_99_CSV_files + csv_file + ".csv"
+        #csv_updates = [layer_name, "Lithologies"]
+        #for csv_file in csv_updates:
+        chemin_fichier_CSV_modifier = self.mynormpath(
+            emplacement_99_CSV_files + csv_file + ".csv"
+        )
+        if chemin_fichier_CSV_modifier:
+            #if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+
+            df = pd.read_csv(
+                chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
             )
-            if chemin_fichier_CSV_modifier:
-                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
 
-                    df = pd.read_csv(
-                        chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
-                    )
+            # Get the value to be added to the ComboBox
+            new_row = {
+                "Valeur": str(self.dlg.lineEdit_38.text()),
+                "Description": str(self.dlg.lineEdit_27.text()),
+            }
 
-                    # Get the value to be added to the ComboBox
-                    new_row = {
-                        "Valeur": str(self.dlg.lineEdit_38.text()),
-                        "Description": str(self.dlg.lineEdit_27.text()),
-                    }
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
-                    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            df = df.sort_values(by="Valeur")
 
-                    df = df.sort_values(by="Valeur")
+            # Rewrites the CSV file with the added line
+            df.to_csv(
+                chemin_fichier_CSV_modifier,
+                encoding="latin_1",
+                sep=";",
+                index=False,
+            )
 
-                    # Rewrites the CSV file with the added line
-                    df.to_csv(
-                        chemin_fichier_CSV_modifier,
-                        encoding="latin_1",
-                        sep=";",
-                        index=False,
-                    )
+            # Updates the layer in QGIS
+            layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+            layer_csv.dataProvider().reloadData()
+            if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+                chemin_fichier_CSV_modifier = self.mynormpath(
+                emplacement_99_CSV_files + "Lithologies" + ".csv")
 
-                    # Updates the layer in QGIS
-                    layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    layer_csv.dataProvider().reloadData()
+                df = pd.read_csv(
+                    chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
+                )
+
+                # Get the value to be added to the ComboBox
+                new_row = {
+                    "Valeur": str(self.dlg.lineEdit_38.text()),
+                    "Description": str(self.dlg.lineEdit_27.text()),
+                }
+
+                df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+                df = df.sort_values(by="Valeur")
+
+                # Rewrites the CSV file with the added line
+                df.to_csv(
+                    chemin_fichier_CSV_modifier,
+                    encoding="latin_1",
+                    sep=";",
+                    index=False,
+                )
+
+                # Updates the layer in QGIS
+                layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                layer_csv.dataProvider().reloadData()
+
 
         if chemin_fichier_CSV_modifier:
             self.iface.messageBar().pushMessage(
@@ -2771,57 +2801,91 @@ class WAXI_QF:
                 + " "
                 + str(self.dlg.lineEdit_27.text())
                 + " added to "
-                + layer_name,
+                + csv_file,
                 level=Qgis.Success,
                 duration=15,
             )
+        self.update_combobox_delete()
 
     ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template
     def deleteCsvItem(self):
 
         emplacement_99_CSV_files = self.templateCSV_path
 
-        layer_name = str(self.dlg.comboBox.currentText())
-        chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
+        csv_file = str(self.dlg.comboBox.currentText())
+        chemin_fichier_CSV_modifier = emplacement_99_CSV_files + csv_file + ".csv"
 
-        csv_updates = [layer_name, "Lithologies"]
-        for csv_file in csv_updates:
-            chemin_fichier_CSV_modifier = self.mynormpath(
-                emplacement_99_CSV_files + csv_file + ".csv"
+
+        chemin_fichier_CSV_modifier = self.mynormpath(
+            emplacement_99_CSV_files + csv_file + ".csv"
+        )
+
+        if chemin_fichier_CSV_modifier:
+
+            # Gets the value to be deleted from the ComboBox
+            deleted_value = str(self.dlg.comboBox_delete.currentText())
+
+
+            df = pd.read_csv(
+                chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
             )
-            if chemin_fichier_CSV_modifier:
 
+            # Index corresponding to the value to be deleted
+            index_to_drop = df[df["Valeur"] == deleted_value].index
+
+            # Deletes the corresponding line
+            df = df.drop(index_to_drop)
+
+            # Rewrites the CSV file with the deleted line
+            df.to_csv(
+                chemin_fichier_CSV_modifier,
+                encoding="latin_1",
+                sep=";",
+                index=False,
+            )
+
+            # Updates the layer in QGIS
+            layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+            layer_csv.dataProvider().reloadData()
+
+            # Delete word from comboBox
+            index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
+            if index_a_supprimer != -1:
+                self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+            
+            if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+                chemin_fichier_CSV_modifier = emplacement_99_CSV_files + "Lithologies" + ".csv"
                 # Gets the value to be deleted from the ComboBox
                 deleted_value = str(self.dlg.comboBox_delete.currentText())
 
-                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
 
-                    df = pd.read_csv(
-                        chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
-                    )
+                df = pd.read_csv(
+                    chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
+                )
 
-                    # Index corresponding to the value to be deleted
-                    index_to_drop = df[df["Valeur"] == deleted_value].index
+                # Index corresponding to the value to be deleted
+                index_to_drop = df[df["Valeur"] == deleted_value].index
 
-                    # Deletes the corresponding line
-                    df = df.drop(index_to_drop)
+                # Deletes the corresponding line
+                df = df.drop(index_to_drop)
 
-                    # Rewrites the CSV file with the deleted line
-                    df.to_csv(
-                        chemin_fichier_CSV_modifier,
-                        encoding="latin_1",
-                        sep=";",
-                        index=False,
-                    )
+                # Rewrites the CSV file with the deleted line
+                df.to_csv(
+                    chemin_fichier_CSV_modifier,
+                    encoding="latin_1",
+                    sep=";",
+                    index=False,
+                )
 
-                    # Updates the layer in QGIS
-                    layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    layer_csv.dataProvider().reloadData()
+                # Updates the layer in QGIS
+                layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                layer_csv.dataProvider().reloadData()
 
-                    # Delete word from comboBox
-                    index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
-                    if index_a_supprimer != -1:
-                        self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+                # Delete word from comboBox
+                index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
+                if index_a_supprimer != -1:
+                    self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+
 
         if chemin_fichier_CSV_modifier:
             self.iface.messageBar().pushMessage(
@@ -2830,10 +2894,12 @@ class WAXI_QF:
                 + " "
                 + str(self.dlg.lineEdit_27.text())
                 + " removed from "
-                + layer_name,
+                + csv_file,
                 level=Qgis.Success,
                 duration=15,
             )
+        
+        self.update_combobox_delete()
 
     ### Update project name ###
 
