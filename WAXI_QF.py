@@ -3955,9 +3955,9 @@ class WAXI_QF:
             self.dlg.lineEdit_FM_project_path.setText(projectDirectoryPath)
             self.FM_Import.import_FM_data(self.basePath,projectDirectoryPath)
             self.iface.messageBar().pushMessage(
-                "SUCCESS: FM Project Imported",
+                "SUCCESS: FeldMove Project Imported",
                 level=Qgis.Success,
-                duration=15,
+                duration=30,
             )
         else:
             self.iface.messageBar().pushMessage(
