@@ -141,7 +141,7 @@ from copy import copy
 
 # Library for check the input file nature
 from pathlib import Path
-
+from .FieldMove_Import import FM_Import
 
 # Importation des bibliothèques situées dans le dossier du plugin
 plugin_directory = os.path.dirname(__file__)
@@ -3946,6 +3946,25 @@ class WAXI_QF:
 
         self.dlg.lineEdit_37.setText(filename)
 
+    def import_FM_Project(self):
+        projectDirectoryPath = QFileDialog.getExistingDirectory(
+            None, "Select FM Project Folder"
+        )
+
+        if(os.path.exists(projectDirectoryPath+"/main.db")):
+            self.dlg.lineEdit_FM_project_path.setText(projectDirectoryPath)
+            self.FM_Import.import_FM_data(self.basePath,projectDirectoryPath)
+            self.iface.messageBar().pushMessage(
+                "SUCCESS: FM Project Imported",
+                level=Qgis.Success,
+                duration=15,
+            )
+        else:
+            self.iface.messageBar().pushMessage(
+                "Error: FM Project Path Incorrect",
+                level=Qgis.Critical,
+                duration=15,
+            )
     def select_file_to_import(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Import layer")
 
@@ -4081,6 +4100,7 @@ class WAXI_QF:
         stereonet_tooltip = (
             "Select Checkbox to control Display behaviour for Stereonet Plugin"
         )
+        FieldMove_Import_tooltip="Select a directory with a FieldMove project and the csv files will be converted to shapefiles, \nthe photos imported to the project, the maps loaded as temporary files and the lithologies added to Local Lithologies"
 
         # Titles
         self.dlg.groupBox_4.setToolTip(Clip_tooltip)
@@ -4122,6 +4142,8 @@ class WAXI_QF:
         self.dlg.pushButton_13.setToolTip("Reset this window")
         self.dlg.pushButton_19.setToolTip("Reset this window")
         self.dlg.pushButton_22.setToolTip("Reset this window")
+
+        self.dlg.pushButton_FM_project_select.setToolTip(FieldMove_Import_tooltip)
 
         # Export Data
         self.dlg.export_pushButton.setToolTip("Export layers")
@@ -4248,7 +4270,7 @@ class WAXI_QF:
         self.dir_11 = "11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
         self.geopackage_file_path = self.basePath + self.dir_0 + "/CURRENT MISSION.gpkg"
         self.templateCSV_path = self.basePath + self.dir_99 + "/CSV FILES/"
-
+        self.FM_Import = FM_Import(None)
         if os.path.exists(self.geopackage_file_path):
             self.check_version()
 
@@ -4380,6 +4402,7 @@ class WAXI_QF:
 
                 # PushButtons to search for files on the computer
 
+                self.dlg.pushButton_FM_project_select.clicked.connect(self.import_FM_Project)
                 self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
                 self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
                 self.dlg.pushButton.clicked.connect(self.select_dst_directory)

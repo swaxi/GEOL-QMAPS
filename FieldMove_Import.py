@@ -1,0 +1,407 @@
+# Importing Fieldmove Data to QFIELD.
+# Author: Mark Jessell
+# Version 0.0.1
+
+import pandas as pd
+import os
+import shutil
+
+from qgis.core import QgsPointXY, QgsGeometry, QgsFeature, QgsVectorLayer, QgsProject
+from qgis.core import QgsField
+from qgis.PyQt.QtCore import QVariant
+from qgis.core import QgsRasterLayer
+from qgis.core import QgsCoordinateReferenceSystem
+from osgeo import gdal
+
+class FM_Import:
+    """
+    A class for converting the geophysical data to Tomofast-x inputs.
+    """
+
+    def __init__(self,df):
+        self.df = df
+
+    # Bunch of geotifs
+    # image.csv photo metadata
+    # line.csv lineations
+    # localities.csv stop label
+    # note.csv locality metadata
+    # plane.csv planar structures
+    # polyline.csv polylines blank line delimited
+    # polyline-attributes.csv polyline attributes
+    # rock-units.csv litho dictionary
+    # sighting.csv sighting direction
+    # stratcolumn.csv strat column
+
+    def import_FM_select_directory(self):
+        pass
+        # choose FM directory
+        # if valid file path (eg main.db) enable import button
+
+    def import_FM_data(self,basePath,projectDirectoryPath):
+
+        # Step 1: Access the root of the layer tree
+        #root = QgsProject.instance().layerTreeRoot()
+
+        # Step 2: Create a new group in the layer tree
+        #group_name = 'FieldMove Import'
+        #new_group = root.addGroup(group_name)
+
+
+        self.basePath=basePath
+        self.projectDirectoryPath=projectDirectoryPath
+        
+        imagesPath=self.projectDirectoryPath+'/images'
+        DCIMPath=self.basePath+'/0. FIELD DATA/DCIM/'
+        geologyPath=self.basePath+'/6. GEOLOGY/'
+        local_litho=self.basePath+'/99. COMMAND FILES - PLUGIN/CSV FILES/Local lithologies.csv'
+        lithologies=self.basePath+'/99. COMMAND FILES - PLUGIN/CSV FILES/Lithologies.csv'
+
+        self.import_FM_rock_types(projectDirectoryPath,local_litho,lithologies)
+        self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
+        self.import_FM_polylines()
+        self.import_FM_lineations()
+        self.import_FM_localities()
+        self.import_FM_photos(imagesPath,DCIMPath)
+        self.import_FM_planar_structures()
+
+    def import_FM_rock_types(self,projectDirectoryPath,local_litho,lithologies):
+        litho=pd.read_csv(projectDirectoryPath+'/rock-units.csv',index_col=None)
+        localLithoQFIELD = pd.read_csv(local_litho, sep=";", encoding="latin_1",index_col=None)
+        lithoQFIELD = pd.read_csv(lithologies, sep=";", encoding="latin_1",index_col=None)
+
+        litho=litho.drop(columns=['unitId',' type',' color'])
+        litho=litho.rename(columns={' name':'Valeur'})
+        litho.Valeur=litho.Valeur.str.lstrip()
+        litho['Description']=litho['Valeur']
+
+
+        merge = pd.concat([localLithoQFIELD, litho])
+        merge = merge.drop_duplicates()
+        merge.to_csv(local_litho, index=False, sep=";")
+        
+        merge = pd.concat([lithoQFIELD, litho])
+        merge = merge.drop_duplicates()
+        merge.to_csv(lithologies, index=False, sep=";")
+
+    def import_FM_polylines(self):
+        polyline=pd.read_csv(self.projectDirectoryPath+'/polyline.csv',index_col=None)
+        polyline_attributes=pd.read_csv(self.projectDirectoryPath+'/polyline-attributes.csv',index_col=None)
+        polyline_attributes=polyline_attributes.set_index(' dataId')
+
+        # Step 1: Create a new vector layer to store the polyline
+        layer = QgsVectorLayer('LineString?crs=EPSG:4326', 'PolylineLayer', 'memory')
+
+        # Step 2: Start editing the layer
+        layer.startEditing()
+        layer.dataProvider().addAttributes([
+            QgsField('localityName', QVariant.String),
+            QgsField('rockUnit', QVariant.String),
+            QgsField('thickness', QVariant.Int),
+            QgsField('opacity', QVariant.Int),
+            QgsField('style', QVariant.String),
+            QgsField('filled', QVariant.Int),
+            QgsField('timedate', QVariant.String),
+            QgsField('notes', QVariant.String)
+        ])   
+        layer.updateFields()
+
+        # Step 3: Convert points to polylines or polygons
+
+        uniqueDataId=polyline.dataId.unique()
+        for pID in uniqueDataId:
+            onePolyline=polyline[polyline["dataId"]==pID]
+            self.points_to_Polyline(onePolyline,polyline_attributes.loc[" "+pID],layer) # needs leading space!!
+
+
+        # Step 4: Commit the changes
+        layer.commitChanges()
+
+        # Step 5: Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)
+
+
+    def import_FM_lineations(self):
+        lineation=pd.read_csv(self.projectDirectoryPath+'/line.csv',index_col=None)
+
+        # Step 3: Create a new vector layer to store the polyline
+        layer = QgsVectorLayer('Point?crs=EPSG:4326', 'LineationLayer', 'memory')
+
+        # Step 4: Start editing the layer
+        layer.startEditing()
+        layer.dataProvider().addAttributes([
+            QgsField('localityName', QVariant.String),
+            QgsField('altitude', QVariant.Int),
+            QgsField('horiz_precision', QVariant.Int),
+            QgsField('vert_precision', QVariant.Int),
+            QgsField('lineationType', QVariant.String),
+            QgsField('plunge', QVariant.Int),
+            QgsField('plungeAzimuth', QVariant.Int),
+            QgsField('declination', QVariant.Int),
+            QgsField('rockUnit', QVariant.String),
+            QgsField('timedate', QVariant.String),
+            QgsField('notes', QVariant.String),
+        ])   
+        layer.updateFields()
+        for i,lin in lineation.iterrows():
+            attributes=[
+            str(lin[' localityName']),
+            int(lin[' altitude']),
+            int(lin[' horiz_precision']),
+            int(lin[' vert_precision']),
+            str(lin[' lineationType']),
+            int(lin[' plunge']),
+            int(lin[' plungeAzimuth']),
+            int(lin[' declination']),
+            str(lin[' rockUnit']),
+            str(lin[' timedate']),
+            str(lin[' notes'])                      
+            ]
+            self.points_to_points(lin,layer,attributes) # needs leading space!!
+
+        # Step 7: Commit the changes
+        layer.commitChanges()
+
+        # Step 8: Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)
+
+
+    def import_FM_planar_structures(self):
+        planes=pd.read_csv(self.projectDirectoryPath+'/plane.csv',index_col=None)
+
+        # Step 31: Create a new vector layer to store the polyline
+        layer = QgsVectorLayer('Point?crs=EPSG:4326', 'PlaneLayer', 'memory')
+
+        # Step 2: Start editing the layer
+        layer.startEditing()
+        layer.dataProvider().addAttributes([
+            QgsField('localityName', QVariant.String),
+            QgsField('altitude', QVariant.Double),
+            QgsField('horiz_precision', QVariant.Int),
+            QgsField('vert_precision', QVariant.Int),
+            QgsField('planeType', QVariant.String),
+            QgsField('dip', QVariant.Int),
+            QgsField('dipAzimuth', QVariant.Int),
+            QgsField('strike', QVariant.Int),
+            QgsField('declination', QVariant.Int),
+            QgsField('rockUnit', QVariant.String),
+            QgsField('timedate', QVariant.String),
+            QgsField('notes', QVariant.String),
+        ])   
+        layer.updateFields()
+        for i,pl in planes.iterrows():
+            attributes=[
+            str(pl[' localityName']),
+            float(pl[' altitude']),
+            int(pl[' horiz_precision']),
+            int(pl[' vert_precision']),
+            str(pl[' planeType']),
+            int(pl[' dip']),
+            int(pl[' dipAzimuth']),
+            int(pl[' strike']),
+            int(pl[' declination']),
+            str(pl[' rockUnit']),
+            str(pl[' timedate']),
+            str(pl[' notes'])                      
+            ]
+            self.points_to_points(pl,layer,attributes) # needs leading space!!
+
+        # Step 7: Commit the changes
+        layer.commitChanges()
+
+        # Step 8: Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)
+
+    # Function to search for files with specific extensions
+    def find_files_with_extensions(self,directory, extensions):
+        matching_files = []
+        
+        # Walk through the directory and its subdirectories
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                # Check if the file ends with one of the specified extensions
+                if file.endswith(tuple(extensions)):
+                    matching_files.append(os.path.join(root, file))
+        
+        return matching_files
+
+    def import_FM_photos(self,directory_to_search,images_directory):
+
+        images=pd.read_csv(self.projectDirectoryPath+'/image.csv',index_col=None)
+
+
+        # Step 31: Create a new vector layer to store the polyline
+        layer = QgsVectorLayer('Point?crs=EPSG:4326', 'PhotosLayer', 'memory')
+
+        # Step 2: Start editing the layer
+        layer.startEditing()
+        layer.dataProvider().addAttributes([
+            QgsField('id', QVariant.Double),
+            QgsField('Photo ID', QVariant.String),
+            QgsField('Azimut', QVariant.Double),
+            QgsField('Photo', QVariant.String),
+            QgsField('Date', QVariant.String),
+            QgsField('Mission', QVariant.String),
+            QgsField('Country', QVariant.String),
+            QgsField('Stop_ID', QVariant.String),
+            QgsField('Layer', QVariant.String),
+            QgsField('Virtual_ID', QVariant.Int),
+            QgsField('Source', QVariant.String),
+            QgsField('CRS', QVariant.String),
+            QgsField('Comments', QVariant.String),
+            QgsField('UUID', QVariant.String),
+            QgsField('User', QVariant.String),
+            QgsField('path', QVariant.String),
+        ])   
+        layer.updateFields()
+
+        for i,im in images.iterrows():
+            attributes=[
+            float(0.0),
+            str(""),
+            float(im[' heading']),
+            str(""),
+            str(im[' timedate'])  ,                    
+            str(""),
+            str(""),
+            str(im[' localityName']),
+            str("PhotosLayer"),
+            int(0),
+            str("FieldMove Import"),
+            str("EPSG:4326")  ,                    
+            str(im[' notes'])  ,                    
+            str(im[' dataId']),
+            str(''),
+            str(images_directory+'/'+im[' image name'])]
+            
+            self.points_to_points(im,layer,attributes) # needs leading space!!
+
+        # Step 7: Commit the changes
+        layer.commitChanges()
+
+        # Step 8: Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)
+
+        extensions = ['.jpg']
+        # Get the list of matching files
+        file_list = self.find_files_with_extensions(directory_to_search, extensions)
+        for fileName in file_list:
+            shutil.copy2(fileName, os.path.join(images_directory, os.path.basename(fileName)))
+
+
+    def import_FM_map_images(self,directory_to_search,map_directory):
+        extensions = ['.tif','.tiff','.TIF','.TIFF','.mbtiles','.MBTILES']
+        # Get the list of matching files
+        file_list = self.find_files_with_extensions(directory_to_search, extensions)
+
+
+        for fileName in file_list:
+            shutil.copy2(fileName, os.path.join(map_directory, os.path.basename(fileName)))
+
+            # Create a QgsRasterLayer object
+            raster_layer = QgsRasterLayer(os.path.join(map_directory, os.path.basename(fileName)), os.path.basename(fileName))
+
+            # Check if the raster was loaded successfully
+            if not raster_layer.isValid():
+                print("Failed to load the raster layer.")
+            else:
+                # Add the raster layer to the QGIS project
+                QgsProject.instance().addMapLayer(raster_layer)
+
+        # copy photos file from template
+        # open images.csv as pandas
+        # copy all photos to default photo directory
+        # populate photos layer with images.csv info
+
+    def import_FM_localities(self):
+        localities=pd.read_csv(self.projectDirectoryPath+'/localities.csv',index_col=None)
+
+        # Step 3: Create a new vector layer to store the polyline
+        layer = QgsVectorLayer('Point?crs=EPSG:4326', 'LocationsLayer', 'memory')
+
+        # Step 4: Start editing the layer
+        layer.startEditing()
+        layer.dataProvider().addAttributes([
+            QgsField('localityName', QVariant.String),
+            QgsField('altitude', QVariant.Int),
+            QgsField('horiz_precision', QVariant.Int),
+            QgsField('vert_precision', QVariant.Int),
+            QgsField('timedate', QVariant.String),
+            QgsField('description', QVariant.String),
+        ])   
+        layer.updateFields()
+        for i,loc in localities.iterrows():
+            attributes=[
+            str(loc[' name']),
+            int(loc[' altitude']),
+            int(loc[' horiz_precision']),
+            int(loc[' vert_precision']),
+            str(loc[' timedate']),
+            str(loc[' description'])                      
+            ]
+            self.points_to_points(loc,layer,attributes) # needs leading space!!
+
+        # Step 7: Commit the changes
+        layer.commitChanges()
+
+        # Step 8: Add the layer to the project
+        QgsProject.instance().addMapLayer(layer)   
+
+    def points_to_points(self,df,layer,attributes):
+        # Step 1: Define the points (replace with your actual points)
+        pointsx = df[' longitude']
+        pointsy = df[' latitude']
+        
+        # Step 2: Create a polyline from the points
+        allPts = QgsGeometry.fromPointXY(QgsPointXY(pointsx,pointsy))
+
+        # Step 5: Create a new feature and assign the polyline geometry to it
+        feature = QgsFeature()
+        feature.setGeometry(allPts)
+
+        feature.setAttributes(attributes)
+
+        # Step 6: Add the feature to the layer
+        layer.addFeature(feature)
+
+
+    def points_to_Polyline(self,dfPolyline,dfPolylineAttributes,layer):
+
+        # Step 1: Define the points (replace with your actual points)
+        allPointsx = dfPolyline[' longitude'].values
+        allPointsy = dfPolyline[' latitude'].values
+        points=[]
+        for p in range(0,len(allPointsx)):       
+
+            points.append(QgsPointXY(allPointsx[p],allPointsy[p]))
+
+     
+
+        # Step 2: Create a polyline from the points
+        polyline = QgsGeometry.fromPolylineXY(points)
+
+        # Step 5: Create a new feature and assign the polyline geometry to it
+        feature = QgsFeature()
+        feature.setGeometry(polyline)
+
+        feature.setAttributes([
+        str(dfPolylineAttributes[' localityName']),
+        str(dfPolylineAttributes[' rockUnit']),
+        int(dfPolylineAttributes[' thickness']),
+        int(dfPolylineAttributes[' opacity']),
+        str(dfPolylineAttributes[' style']),
+        int(dfPolylineAttributes[' filled']),
+        str(dfPolylineAttributes[' timedate']),
+        str(dfPolylineAttributes[' notes'])                      
+        ])
+
+        # Step 6: Add the feature to the layer
+        layer.addFeature(feature)
+
+# =================================================================================
+def main(self):
+    pass
+
+# ============================================================================
+if __name__ == "__main__":
+    main()
