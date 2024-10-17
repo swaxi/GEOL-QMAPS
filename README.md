@@ -11,6 +11,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
 
 ## Functionality
 - **Import Layers** Convert pre-existing data into a QGIS GEOL-QMAPS template ready for merging, uses fuzzy logic to suggest best choices for lithology labels.   
+- **Import FieldMove Project** Cpnvert existing FieldMove project into QFIELD compatible files.   
 
 ![dialog1](dialog1.png)
 
