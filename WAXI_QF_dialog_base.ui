@@ -774,7 +774,7 @@ font-size: 10px;
 </string>
       </property>
       <property name="text">
-       <string>Import of Lithology and Planar structural datapoints is supported</string>
+       <string>Import of Lithology and Structural datapoints is supported</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -803,9 +803,9 @@ font-size: 10px;
      <widget class="QPushButton" name="pushButton_14">
       <property name="geometry">
        <rect>
-        <x>170</x>
+        <x>230</x>
         <y>30</y>
-        <width>201</width>
+        <width>141</width>
         <height>21</height>
        </rect>
       </property>
@@ -820,7 +820,7 @@ font-size: 12px;
 </string>
       </property>
       <property name="text">
-       <string>Generate output QGIS layers</string>
+       <string>Generate QGIS layers</string>
       </property>
      </widget>
     </widget>

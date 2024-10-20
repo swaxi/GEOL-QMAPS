@@ -3135,6 +3135,16 @@ class WAXI_QF:
                 duration=5,
             )
 
+    def get_csv_list(self,path):
+        extensions = ['.csv']
+        # Get the list of matching files
+        file_list=self.FM_Import.find_files_with_extensions(path, extensions)
+        names=[]
+        for file in file_list:
+            file_prefix=str(os.path.basename(file)).replace(".csv","")
+            print(file,file_prefix)
+            names.append(file_prefix)
+        return(names)
 
     def recursive_overwrite(self,src, dest, ignore=None):
         if os.path.isdir(src):
@@ -3173,12 +3183,13 @@ class WAXI_QF:
             shp_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
             )
-            csv_list = self.mynormpath(
+            self.csvs=self. get_csv_list(main_project_path+ self.dir_99 + "CSV FILES")
+            """csv_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
-            )
+            )"""
             shps = pd.read_csv(shp_list, names=["name", "dir_code"])
             shps = shps.set_index("name")
-            csvs = pd.read_csv(csv_list, names=["name"])
+            #csvs = pd.read_csv(csv_list, names=["name"])
 
             merge_project_path = self.dlg.lineEdit_37.text() + "/"
 
@@ -3211,7 +3222,7 @@ class WAXI_QF:
                     os.mkdir(self.mynormpath(dirpath))
 
             # merge and de-duplicate csv files
-            for file in csvs.name:
+            for file in self.csvs:
                 main_path = self.mynormpath(
                     main_project_path + self.dir_99 + "/CSV FILES/" + file + ".csv"
                 )
@@ -4096,7 +4107,7 @@ class WAXI_QF:
 
         self.dlg.comboBox_delete.clear()
 
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
 
         if os.path.exists(emplacement_99_CSV_files):
@@ -4508,14 +4519,21 @@ class WAXI_QF:
                 self.dlg.comboBox.currentIndexChanged.connect(
                     self.update_combobox_delete
                 )
+                
+                head_tail = os.path.split(proj_file_path)
+                main_project_path = head_tail[0] + "/"
+
+                self.csvs=self.get_csv_list(main_project_path+ self.dir_99 + "CSV FILES")
 
                 # ComboBox for create dropdown list of all csv files
-                csv_list = self.mynormpath(
-                    os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
-                )
-                csvs = pd.read_csv(csv_list, names=["name"])
+                """                csv_list = self.mynormpath(
+                                    os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
+                                )
+                """                
+                #csvs = pd.read_csv(csv_list, names=["name"])
+
                 csv_file_list = []
-                for name in csvs.name:
+                for name in self.csvs:
                     csv_file_list.append(name)
                 self.dlg.comboBox.addItems(csv_file_list[:-2])
 
