@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -1838,7 +1838,7 @@ font-style: italic;
       <string>Toggle Auto-Increment of Stop numbers</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButtonOff">
+    <widget class="QRadioButton" name="autoinc_off_pushButton">
      <property name="geometry">
       <rect>
        <x>700</x>
@@ -1855,27 +1855,7 @@ font-size: 15px;</string>
       <string>Off</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="autoinc_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>950</x>
-       <y>340</y>
-       <width>151</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-     </property>
-     <property name="text">
-      <string>Toggle behaviour</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOn">
+    <widget class="QRadioButton" name="autoinc_on_pushButton">
      <property name="geometry">
       <rect>
        <x>620</x>
@@ -2007,6 +1987,61 @@ border-style: solid;border-width: 1px;border-color: black
       </property>
      </widget>
     </widget>
+    <widget class="QGroupBox" name="groupBox_20">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>390</y>
+       <width>531</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Define defualt structural measurement style</string>
+     </property>
+     <widget class="QRadioButton" name="structure_style_off_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>20</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 15px;</string>
+      </property>
+      <property name="text">
+       <string>Dip/Strike RHR</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="structure_style_on_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>20</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 15px;
+</string>
+      </property>
+      <property name="text">
+       <string>Dip/Dip Direction</string>
+      </property>
+     </widget>
+    </widget>
     <zorder>groupBox_7</zorder>
     <zorder>groupBox_6</zorder>
     <zorder>groupBox_4</zorder>
@@ -2038,10 +2073,10 @@ border-style: solid;border-width: 1px;border-color: black
     <zorder>label_37</zorder>
     <zorder>label_38</zorder>
     <zorder>groupBox_18</zorder>
-    <zorder>radioButtonOff</zorder>
-    <zorder>autoinc_pushButton</zorder>
-    <zorder>radioButtonOn</zorder>
+    <zorder>autoinc_off_pushButton</zorder>
+    <zorder>autoinc_on_pushButton</zorder>
     <zorder>groupBox_17</zorder>
+    <zorder>groupBox_20</zorder>
    </widget>
    <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
@@ -3565,6 +3600,26 @@ font-style: italic;</string>
     <zorder>pushButton_21</zorder>
     <zorder>label_34</zorder>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="autoinc_pushButton">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>760</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+   </property>
+   <property name="text">
+    <string>Set behaviour</string>
+   </property>
   </widget>
  </widget>
  <resources/>

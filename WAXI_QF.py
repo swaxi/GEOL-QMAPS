@@ -2925,7 +2925,7 @@ class WAXI_QF:
 
         no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
         auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"
-        if self.dlg.radioButtonOn.isChecked():
+        if self.dlg.autoinc_on_pushButton.isChecked():
             shutil.copy(auto_filename, current_file_name)
             self.iface.messageBar().pushMessage(
                 "Auto Incrementing Stop Numbers turned ON",
@@ -2941,7 +2941,7 @@ class WAXI_QF:
                 duration=15,
             )
 
-        layer = project.mapLayersByName("Stops_PT")[0]
+        layer = project.mapLayersByName("Sampling_PT")[0]
         layer.loadNamedStyle(head_tail[0] + "/" + self.dir_99 + "/Stops_PT.qml")
         layer.triggerRepaint()
 
@@ -2956,7 +2956,7 @@ class WAXI_QF:
             default_value_user_csv = str(self.dlg.lineEdit_39.text())
 
             ## User.csv file location
-            WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+            #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
             emplacement_User_file = self.templateCSV_path + "/User list.csv"
             user_file = pd.read_csv(emplacement_User_file, sep=";", encoding="latin-1")
 
@@ -3057,6 +3057,44 @@ class WAXI_QF:
                     level=Qgis.Success,
                     duration=15,
                 )
+    
+    # set dip/dip direction vs dip/strike RHR
+    
+    def set_orientation_style(self):
+        if self.dlg.structure_style_on_pushButton.isChecked(): 
+            value="'Dip - dip direction'"
+        else:
+            value="'Strike (right-hand rule) - dip'"
+
+        # Create default value
+        default_value = QgsDefaultValue(value)
+
+        shp_list = self.mynormpath(
+            os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
+        )
+
+        shps = pd.read_csv(shp_list, names=["name", "dir_code"])
+        shps = shps.set_index("name")
+        planes=["Dikes-Sills_PT","Fold and crenulation axial planes_PT","Foliation-cleavage_PT",
+                "Bedding-Lava flow-S0_PT","Lithological contacts_PT","Shear zones and faults_PT","Veins_PT","Fractures_PT"]
+        for name,data in shps.iterrows():
+            if(name in planes):
+                layer = QgsProject.instance().mapLayersByName(name)[0]
+                # Find 'User' field index
+                field_index = layer.fields().indexFromName("Measure")
+
+                # Update default field value
+                layer.setDefaultValueDefinition(field_index, default_value)
+        
+        QgsProject.instance().write()
+
+        self.iface.messageBar().pushMessage(
+            str(value)
+            + " is now the default structural style ",
+            level=Qgis.Success,
+            duration=15,
+        )
+            
 
     ###############################################################################
     ################       Page 3 : Field Data Management           ###############
@@ -4270,8 +4308,8 @@ class WAXI_QF:
         # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
 
         # RadioButtons
-        self.dlg.radioButtonOn.setToolTip(Auto_on)
-        self.dlg.radioButtonOff.setToolTip(Auto_off)
+        self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
+        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)
 
         # LineEdit
         self.dlg.lineEdit_38.setToolTip(Value_tooltip)
@@ -4430,7 +4468,8 @@ class WAXI_QF:
 
                 # Stop
                 self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
-                self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
+                self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
+                self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)
 
                 # Stereo
                 self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
@@ -4528,6 +4567,8 @@ class WAXI_QF:
                 self.dlg.comboBox.currentIndexChanged.connect(
                     self.update_combobox_delete
                 )
+                self.dlg.structure_style_on_pushButton.clicked.connect(self.set_orientation_style)
+                self.dlg.structure_style_off_pushButton.clicked.connect(self.set_orientation_style)
                 
                 head_tail = os.path.split(proj_file_path)
                 main_project_path = head_tail[0] + "/"
@@ -4546,10 +4587,42 @@ class WAXI_QF:
                     csv_file_list.append(name)
                 self.dlg.comboBox.addItems(csv_file_list[:-2])
 
+                # set default structural emasurement from project in gui
+                layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+                # Find 'Measure' field index
+                field_index = layer.fields().indexFromName("Measure")
+
+                # Update default field value
+                default_value=layer.defaultValueDefinition(field_index).expression()
+
+                if(default_value == "'Dip - dip direction'"):
+                    self.dlg.structure_style_on_pushButton.setChecked(True)
+                else:
+                    self.dlg.structure_style_off_pushButton.setChecked(True)
+
+
+
                 # Combobox Merge 2 layers
                 self.fill_ComboBox()
                 QgsProject.instance().layersAdded.connect(self.update_ComboBox)
                 QgsProject.instance().layersRemoved.connect(self.update_ComboBox)
+
+                with open(main_project_path+self.dir_99+"Stops_PT.qml", 'r') as file:
+
+                    lines = file.readlines()
+                    found=False
+                    for i,line in enumerate(lines,start=1):
+                        if('<policy policy="Duplicate" field="User"/>' in line):
+                            found=True
+                            break
+
+                    if(found):
+                        self.dlg.autoinc_on_pushButton.setChecked(True)
+                        self.dlg.autoinc_off_pushButton.setChecked(False)
+                    else:
+                        self.dlg.autoinc_on_pushButton.setChecked(False)
+                        self.dlg.autoinc_off_pushButton.setChecked(True)
+                    file.flush()
 
                 self.define_tips()
 
