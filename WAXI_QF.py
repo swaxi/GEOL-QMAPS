@@ -3135,6 +3135,25 @@ class WAXI_QF:
                 duration=5,
             )
 
+
+    def recursive_overwrite(self,src, dest, ignore=None):
+        if os.path.isdir(src):
+            if not os.path.isdir(dest):
+                os.makedirs(dest)
+            files = os.listdir(src)
+            if ignore is not None:
+                ignored = ignore(src, files)
+            else:
+                ignored = set()
+            for f in files:
+                if f not in ignored:
+                    self.recursive_overwrite(os.path.join(src, f), 
+                                        os.path.join(dest, f), 
+                                        ignore)
+        else:
+            shutil.copyfile(src, dest)
+
+
     def mergeProjects(self):
         # Takes two WAXI QFIELD Projects and combines them,
         # removing duplicates and saves out the full structure to a new directory
@@ -3227,6 +3246,11 @@ class WAXI_QF:
                 src_path = main_project_path + cp_dir
                 dst_path = self.mynormpath(merge_project_path + cp_dir)
                 shutil.copytree(src_path, dst_path)
+
+            src_path = sub_project_path + self.dir_0 + "/DCIM/"
+            dst_path = self.mynormpath(merge_project_path + self.dir_0 + "/DCIM/")
+
+            self.recursive_overwrite(src_path, dst_path, ignore=None)     
 
             src_file = main_project_path + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
             dst_file = (
