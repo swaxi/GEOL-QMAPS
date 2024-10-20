@@ -597,7 +597,7 @@ class WAXI_QF:
                 # Forbid editing of first 2 columns
                 item1 = self.dlg.tableWidget1.item(k, 0)
                 item2 = self.dlg.tableWidget1.item(k, 1)
-                # print(item1, item2)
+
                 if item1:
                     item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
                 if item2:
@@ -2148,7 +2148,7 @@ class WAXI_QF:
                                     min_row=1, max_row=1
                                 )
                             ]
-                            # print(header_reference)
+
                             ligne = []
                             for col_reference in header_reference:
                                 if (
@@ -3135,6 +3135,7 @@ class WAXI_QF:
                 duration=5,
             )
 
+    # get list of csv files in the csv directory on the fly
     def get_csv_list(self,path):
         extensions = ['.csv']
         # Get the list of matching files
@@ -3142,10 +3143,10 @@ class WAXI_QF:
         names=[]
         for file in file_list:
             file_prefix=str(os.path.basename(file)).replace(".csv","")
-            print(file,file_prefix)
             names.append(file_prefix)
         return(names)
 
+    # copy files to new directory checking for duplicates
     def recursive_overwrite(self,src, dest, ignore=None):
         if os.path.isdir(src):
             if not os.path.isdir(dest):
@@ -3183,6 +3184,13 @@ class WAXI_QF:
             shp_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
             )
+
+            project = QgsProject.instance()
+            proj_file_path = project.fileName()
+
+            head_tail = os.path.split(proj_file_path)
+            main_project_path = head_tail[0] + "/"
+
             self.csvs=self. get_csv_list(main_project_path+ self.dir_99 + "CSV FILES")
             """csv_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
@@ -3269,9 +3277,10 @@ class WAXI_QF:
             )
             shutil.copyfile(src_file, dst_file)
 
+            proj_name=os.path.basename(self.dlg.lineEdit_11.text())
             shutil.copyfile(
                 self.dlg.lineEdit_11.text(),
-                merge_project_path + "/WAXI4 - Mission ID - Date.qgz",
+                merge_project_path + "/"+proj_name,
             )
 
             in_pref = main_project_path + self.dir_99
@@ -3422,7 +3431,7 @@ class WAXI_QF:
                 "LAYERS": [file[0], file[1], file[2], file[3], file[4]],
                 "OUTPUT": newLayer,
             }
-            # print(params)
+
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
