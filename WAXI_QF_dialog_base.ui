@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1522</width>
+    <width>1145</width>
     <height>802</height>
    </rect>
   </property>
@@ -352,7 +352,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="legendbox_3">
@@ -506,7 +506,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="legendbox">
@@ -551,7 +551,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_26">

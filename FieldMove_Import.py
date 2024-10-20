@@ -53,14 +53,18 @@ class FM_Import:
         litho.Valeur=litho.Valeur.str.lstrip()
         litho['Description']=litho['Valeur']
 
+        for i,lithoObject in litho.itterrows():
+            if(not lithoObject['Description'] in lithoQFIELD['Description']):
+                # New row data
+                new_row = {'Valeur': lithoObject['Description'], 'Description': lithoObject['Description']}
 
-        merge = pd.concat([localLithoQFIELD, litho])
-        merge = merge.drop_duplicates()
-        merge.to_csv(local_litho, index=False, sep=";")
+                # Append new row using append()
+                localLithoQFIELD = localLithoQFIELD.append(new_row, ignore_index=True)
+                lithoQFIELD = lithoQFIELD.append(new_row, ignore_index=True)
+
+        localLithoQFIELD.to_csv(local_litho, index=False, sep=";")
         
-        merge = pd.concat([lithoQFIELD, litho])
-        merge = merge.drop_duplicates()
-        merge.to_csv(lithologies, index=False, sep=";")
+        lithoQFIELD.to_csv(lithologies, index=False, sep=";")
 
     # import polylines defined as points and convert to polyline layer in memory
     def import_FM_polylines(self):

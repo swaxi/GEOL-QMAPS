@@ -4197,10 +4197,10 @@ class WAXI_QF:
         self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
         self.dlg.pushButton_8.setToolTip("Process the file you want to load")
 
-        self.dlg.pushButton_11.setToolTip("Go Back")
+        self.dlg.pushButton_11.setToolTip("Undo previous edits")
         self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
 
-        self.dlg.pushButton_12.setToolTip("Go Back")
+        self.dlg.pushButton_12.setToolTip("Undo previous edits")
         self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
 
         self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
