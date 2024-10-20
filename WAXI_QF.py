@@ -4195,7 +4195,6 @@ class WAXI_QF:
 
         # Import Data
         self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
-        self.dlg.pushButton_8.setToolTip("Process the file you want to load")
 
         self.dlg.pushButton_11.setToolTip("Undo previous edits")
         self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
@@ -4362,7 +4361,6 @@ class WAXI_QF:
 
                 # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
 
-                self.dlg.pushButton_8.clicked.connect(self.click_import_data)
                 self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                 self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                 self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)

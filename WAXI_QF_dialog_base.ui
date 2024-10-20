@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1145</width>
+    <width>1221</width>
     <height>802</height>
    </rect>
   </property>
@@ -3564,77 +3564,6 @@ font-style: italic;</string>
     <zorder>groupBox_13</zorder>
     <zorder>pushButton_21</zorder>
     <zorder>label_34</zorder>
-   </widget>
-  </widget>
-  <widget class="QGroupBox" name="groupBox_2">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>670</y>
-     <width>381</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="title">
-    <string>Step 1b: Process raw file</string>
-   </property>
-   <widget class="QPushButton" name="pushButton_8">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>30</y>
-      <width>91</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial;  
-font-size: 12px;</string>
-    </property>
-    <property name="text">
-     <string>Process file</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_25">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>241</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>-1</pointsize>
-      <italic>true</italic>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font-family: Arial; 
-font-size: 10px;
-</string>
-    </property>
-    <property name="text">
-     <string>Automated best-score matching of legacy data with defined mapping guidelines using fuzzy logic</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-    </property>
-    <property name="wordWrap">
-     <bool>true</bool>
-    </property>
    </widget>
   </widget>
  </widget>
