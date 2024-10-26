@@ -2568,9 +2568,9 @@ class WAXI_QF:
             head_tail = os.path.split(proj_file_path)
 
             oldProjPath = head_tail[0] + "/"
-            oldGpkgPath = oldProjPath + self.dir_0 + "CURRENT MISSION.gpkg"
+            oldGpkgPath = oldProjPath + '/1. EXISTING FIELD DATABASE/' + "COMPILATION.gpkg"
             newProjPath = self.mynormpath(self.dlg.lineEdit_3.text()).strip() + "/"
-            newGpkgPath = newProjPath + self.dir_0 + "CURRENT MISSION.gpkg"
+            newGpkgPath = newProjPath + '/1. EXISTING FIELD DATABASE/' + "COMPILATION.gpkg"
             shp_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
             )
@@ -2608,13 +2608,34 @@ class WAXI_QF:
 
             # create directory structure
 
-            dirs = [newProjPath, newProjPath + self.dir_0, newProjPath + self.dir_99]
+            dirs = [newProjPath, newProjPath + self.dir_0, newProjPath + self.dir_99,newProjPath + '/1. EXISTING FIELD DATABASE/']
 
             for dirpath in dirs:
                 if not os.path.exists(self.mynormpath(dirpath)):
                     os.mkdir(self.mynormpath(dirpath))
 
             # copy over files that are not clipped
+            cp_dirs = [
+                #"1. EXISTING FIELD DATABASE",
+                #"2. GPS-LOCALITIES OF INTEREST",
+                "3. GEOCHEMISTRY",
+                "4. GEOCHRONOLOGY",
+                "5. MINING AND EXPLORATION",
+                "6. GEOLOGY",
+                "7. GEOPHYSICS",
+                "8. LAND USE",
+                "9. GEOGRAPHY",
+                "10. TOPOGRAPHY",
+                #"11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY",
+                #self.dir_0 + "/DCIM/",
+            ]
+
+
+            for cp_dir in cp_dirs:
+                src_path = oldProjPath + cp_dir
+                dst_path = self.mynormpath(newProjPath + cp_dir)
+                shutil.copytree(src_path, dst_path)
+
             src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             dst_path = newProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             shutil.copyfile(src_path, dst_path)
@@ -2633,6 +2654,16 @@ class WAXI_QF:
                 newProjPath + "/" + head_tail[1].replace(".qgz", "_clip.qgz"),
             )
 
+            shutil.copyfile(
+                oldGpkgPath ,
+                newGpkgPath
+            )
+
+            shutil.copyfile(
+                oldProjPath + '/0. FIELD DATA/'+'CURRENT MISSION.gpkg',
+                newProjPath + '/0. FIELD DATA/'+'CURRENT MISSION.gpkg'
+            )
+
             src_path = oldProjPath + self.dir_0 + "/DCIM/"
             dst_path = self.mynormpath(newProjPath + self.dir_0 + "/DCIM/")
             shutil.copytree(src_path, dst_path)
@@ -2643,6 +2674,10 @@ class WAXI_QF:
 
             src_path = oldProjPath + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
             dst_path = newProjPath + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(src_path, dst_path)
+
+            src_path = oldProjPath  + '/1. EXISTING FIELD DATABASE/' + "/EXISTING FIELD GEODATABASE.qlr"
+            dst_path = newProjPath  + '/1. EXISTING FIELD DATABASE/'+ "/EXISTING FIELD GEODATABASE.qlr"
             shutil.copyfile(src_path, dst_path)
 
             src_path = oldProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
@@ -2679,39 +2714,43 @@ class WAXI_QF:
 
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
+                    
+                """                
                 if layer.name() in shps.index.tolist():
-                    if (
-                        "_PG" in layer.name()
-                        or "_PT" in layer.name()
-                        or "_LN" in layer.name()
-                    ):
-                        # Get the file path of the layer
+                if (
+                    ("_PG" in layer.name()
+                    or "_PT" in layer.name()
+                    or "_LN" in layer.name()) and "Compilation_" in layer.name()
+                ):"""
+                # Get the file path of the layer
+                if  layer.name().startswith("Compilation_"):        
+                    input_path = self.mynormpath(
+                        layer.dataProvider().dataSourceUri()
+                    )
 
-                        input_path = self.mynormpath(
-                            layer.dataProvider().dataSourceUri()
-                        )
+                    output_path_gpkg = self.mynormpath(newGpkgPath)
 
-                        output_path_gpkg = self.mynormpath(newGpkgPath)
+                    processing.run(
+                        "native:clip",
+                        {
+                            "INPUT": input_path,
+                            "OVERLAY": clip_layer,
+                            "OUTPUT": "ogr:dbname='"
+                            + output_path_gpkg
+                            + "' table=\""
+                            + layer.name()
+                            + '" (geom)',
+                        },
+                    )
 
-                        processing.run(
-                            "native:clip",
-                            {
-                                "INPUT": input_path,
-                                "OVERLAY": clip_layer,
-                                "OUTPUT": "ogr:dbname='"
-                                + output_path_gpkg
-                                + "' table=\""
-                                + layer.name()
-                                + '" (geom)',
-                            },
-                        )
+                else:
+                    pass
+                    #print(layer.name())
 
-                    else:
-                        print(layer.name())
             self.iface.messageBar().pushMessage(
                 "Files clipped to current extent, saved in directory" + newProjPath,
                 level=Qgis.Success,
-                duration=5,
+                duration=15,
             )
 
         else:
@@ -4184,7 +4223,14 @@ class WAXI_QF:
                 and not "Compilation_" in layer.name()
             ):
                 self.dlg.comboBox_merge1_2.addItem(layer.name(), layerId)
-                self.dlg.comboBox_merge2_2.addItem(layer.name(), layerId)
+            elif(
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
+                and "_PT" in layer.name()
+                and "Compilation_" in layer.name()):
+                    self.dlg.comboBox_merge2_2.addItem(layer.name(), layerId)
+
 
     def fill_ComboBox_layers_user(self):  # ADD
         self.dlg.comboBox_layers_user.clear()
