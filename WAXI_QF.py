@@ -2617,7 +2617,7 @@ class WAXI_QF:
             # copy over files that are not clipped
             cp_dirs = [
                 #"1. EXISTING FIELD DATABASE",
-                #"2. GPS-LOCALITIES OF INTEREST",
+                "2. GPS-LOCALITIES OF INTEREST",
                 "3. GEOCHEMISTRY",
                 "4. GEOCHRONOLOGY",
                 "5. MINING AND EXPLORATION",
