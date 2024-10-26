@@ -3446,7 +3446,7 @@ class WAXI_QF:
 
             for name in layers_names:
 
-                layer = proj.mapLayersByName(name)[0]
+                layer = proj.mapLayersByName('Compilation_'+name)[0]
                 caps = layer.dataProvider().capabilities()
 
                 # Get the list of fields in the layer
@@ -3467,7 +3467,7 @@ class WAXI_QF:
                 layer.startEditing()
                 # Change attribute values
                 for f in layer.getFeatures():
-                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
+                    layer.changeAttributeValue(f.id(), src_layer_idx, 'Compilation_'+name)
 
                 # Commit changes
                 layer.commitChanges()
@@ -3477,11 +3477,11 @@ class WAXI_QF:
             head_tail = os.path.split(proj_file_path)
             file = []
             # merge zone data
-            file.append(self.geopackage_file_path + "|layername=Fractured zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Brecciated zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Cataclastic zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Alteration zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Lithology zones_PG")
+            file.append(self.geopackage_file_path + "|layername='Compilation_'+Fractured zones_PG")
+            file.append(self.geopackage_file_path + "|layername='Compilation_'+Brecciated zones_PG")
+            file.append(self.geopackage_file_path + "|layername='Compilation_'+Cataclastic zones_PG")
+            file.append(self.geopackage_file_path + "|layername='Compilation_'+Alteration zones_PG")
+            file.append(self.geopackage_file_path + "|layername='Compilation_'+Lithology zones_PG")
             newGeopackagePath = self.mynormpath(
                 self.dlg.lineEdit_7.text() + "/export.gpkg"
             )
@@ -3514,21 +3514,21 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
-            file1 = self.geopackage_file_path + "|layername=Local lithologies_PT"
-            file2 = self.geopackage_file_path + "|layername=Supergene lithologies_PT"
-            file3 = self.geopackage_file_path + "|layername=Sedimentary lithologies_PT"
+            file1 = self.geopackage_file_path + "|layername='Compilation_'+Local lithologies_PT"
+            file2 = self.geopackage_file_path + "|layername='Compilation_'+Supergene lithologies_PT"
+            file3 = self.geopackage_file_path + "|layername='Compilation_'+Sedimentary lithologies_PT"
             file4 = (
-                self.geopackage_file_path + "|layername=Volcanoclastic lithologies_PT"
+                self.geopackage_file_path + "|layername='Compilation_'+Volcanoclastic lithologies_PT"
             )
             file5 = (
                 self.geopackage_file_path
-                + "|layername=Igneous extrusive lithologies_PT"
+                + "|layername='Compilation_'+Igneous extrusive lithologies_PT"
             )
             file6 = (
                 self.geopackage_file_path
-                + "|layername=Igneous intrusive lithologies_PT"
+                + "|layername='Compilation_'+Igneous intrusive lithologies_PT"
             )
-            file7 = self.geopackage_file_path + "|layername=Metamorphic lithologies_PT"
+            file7 = self.geopackage_file_path + "|layername='Compilation_'+Metamorphic lithologies_PT"
 
             newLayer = (
                 "ogr:dbname='"
@@ -4463,7 +4463,7 @@ class WAXI_QF:
         self.dir_99 = "99. COMMAND FILES - PLUGIN/"
         self.dir_0 = "0. FIELD DATA/"
         self.dir_11 = "11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
-        self.geopackage_file_path = self.basePath + self.dir_0 + "/CURRENT MISSION.gpkg"
+        self.geopackage_file_path = self.basePath +'/1. EXISTING FIELD DATABASE/'+ "/COMPILATION.gpkg"
         self.templateCSV_path = self.basePath + self.dir_99 + "/CSV FILES/"
         self.FM_Import = FM_Import(None)
         if os.path.exists(self.geopackage_file_path):
