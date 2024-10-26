@@ -3172,7 +3172,9 @@ class WAXI_QF:
         # remove objects with duplicate UUIDs
         for layer in project.mapLayers().values():
             # Check if the layer name matches the target name
-            if layer.name() in shps.index.tolist():
+            #if layer.name() in shps.index.tolist():
+            if  layer.name().startswith("Compilation_"):        
+
 
                 # Start editing the layer
                 layer.startEditing()
