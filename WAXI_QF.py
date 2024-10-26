@@ -1213,7 +1213,7 @@ class WAXI_QF:
     # Modify row
     def button_edit2(self, row):
 
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
 
         # List Litho Metamorphic lithologies_PT
@@ -3552,7 +3552,7 @@ class WAXI_QF:
             file2 = self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT"
             file3 = (
                 self.geopackage_file_path
-                + "|layername=Fold and crenulation axial planes_PT"
+                + "|layername=Compilation_Fold and crenulation axial planes_PT"
             )
             file4 = self.geopackage_file_path + "|layername=Compilation_Fold axes_PT"
             file5 = self.geopackage_file_path + "|layername=Compilation_Foliation-cleavage_PT"
