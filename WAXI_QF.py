@@ -3420,33 +3420,33 @@ class WAXI_QF:
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
 
             layers_names = [
-                "Fractured zones_PG",
-                "Brecciated zones_PG",
-                "Cataclastic zones_PG",
-                "Alteration zones_PG",
-                "Lithology zones_PG",
-                "Local lithologies_PT",
-                "Supergene lithologies_PT",
-                "Sedimentary lithologies_PT",
-                "Volcanoclastic lithologies_PT",
-                "Igneous extrusive lithologies_PT",
-                "Igneous intrusive lithologies_PT",
-                "Metamorphic lithologies_PT",
-                "Bedding-Lava flow-S0_PT",
-                "Dikes-Sills_PT",
-                "Fold and crenulation axial planes_PT",
-                "Fold axes_PT",
-                "Foliation-cleavage_PT",
-                "Fractures_PT",
-                "Lineations_PT",
-                "Shear zones and faults_PT",
-                "Veins_PT",
+                "Compilation_Fractured zones_PG",
+                "Compilation_Brecciated zones_PG",
+                "Compilation_Cataclastic zones_PG",
+                "Compilation_Alteration zones_PG",
+                "Compilation_Lithology zones_PG",
+                "Compilation_Local lithologies_PT",
+                "Compilation_Supergene lithologies_PT",
+                "Compilation_Sedimentary lithologies_PT",
+                "Compilation_Volcanoclastic lithologies_PT",
+                "Compilation_Igneous extrusive lithologies_PT",
+                "Compilation_Igneous intrusive lithologies_PT",
+                "Compilation_Metamorphic lithologies_PT",
+                "Compilation_Bedding-Lava flow-S0_PT",
+                "Compilation_Dikes-Sills_PT",
+                "Compilation_Fold and crenulation axial planes_PT",
+                "Compilation_Fold axes_PT",
+                "Compilation_Foliation-cleavage_PT",
+                "Compilation_Fractures_PT",
+                "Compilation_Lineations_PT",
+                "Compilation_Shear zones and faults_PT",
+                "Compilation_Veins_PT",
             ]
             proj = QgsProject.instance()
 
             for name in layers_names:
 
-                layer = proj.mapLayersByName('Compilation_'+name)[0]
+                layer = proj.mapLayersByName(name)[0]
                 caps = layer.dataProvider().capabilities()
 
                 # Get the list of fields in the layer
@@ -3467,21 +3467,22 @@ class WAXI_QF:
                 layer.startEditing()
                 # Change attribute values
                 for f in layer.getFeatures():
-                    layer.changeAttributeValue(f.id(), src_layer_idx, 'Compilation_'+name)
+                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
 
                 # Commit changes
                 layer.commitChanges()
 
             project = QgsProject.instance()
             proj_file_path = project.fileName()
-            head_tail = os.path.split(proj_file_path)
+            #head_tail = os.path.split(proj_file_path)
+
             file = []
             # merge zone data
-            file.append(self.geopackage_file_path + "|layername='Compilation_'+Fractured zones_PG")
-            file.append(self.geopackage_file_path + "|layername='Compilation_'+Brecciated zones_PG")
-            file.append(self.geopackage_file_path + "|layername='Compilation_'+Cataclastic zones_PG")
-            file.append(self.geopackage_file_path + "|layername='Compilation_'+Alteration zones_PG")
-            file.append(self.geopackage_file_path + "|layername='Compilation_'+Lithology zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fractured zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Brecciated zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Cataclastic zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG")
             newGeopackagePath = self.mynormpath(
                 self.dlg.lineEdit_7.text() + "/export.gpkg"
             )
@@ -3514,21 +3515,21 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
-            file1 = self.geopackage_file_path + "|layername='Compilation_'+Local lithologies_PT"
-            file2 = self.geopackage_file_path + "|layername='Compilation_'+Supergene lithologies_PT"
-            file3 = self.geopackage_file_path + "|layername='Compilation_'+Sedimentary lithologies_PT"
+            file1 = self.geopackage_file_path + "|layername=Compilation_Local lithologies_PT"
+            file2 = self.geopackage_file_path + "|layername=Compilation_Supergene lithologies_PT"
+            file3 = self.geopackage_file_path + "|layername=Compilation_Sedimentary lithologies_PT"
             file4 = (
-                self.geopackage_file_path + "|layername='Compilation_'+Volcanoclastic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file5 = (
                 self.geopackage_file_path
-                + "|layername='Compilation_'+Igneous extrusive lithologies_PT"
+                + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file6 = (
                 self.geopackage_file_path
-                + "|layername='Compilation_'+Igneous intrusive lithologies_PT"
+                + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
-            file7 = self.geopackage_file_path + "|layername='Compilation_'+Metamorphic lithologies_PT"
+            file7 = self.geopackage_file_path + "|layername=Compilation_Metamorphic lithologies_PT"
 
             newLayer = (
                 "ogr:dbname='"
@@ -3547,18 +3548,18 @@ class WAXI_QF:
             processing.run("native:mergevectorlayers", params)
 
             # merge structural data
-            file1 = self.geopackage_file_path + "|layername=Bedding-Lava flow-S0_PT"
-            file2 = self.geopackage_file_path + "|layername=Dikes-Sills_PT"
+            file1 = self.geopackage_file_path + "|layername=Compilation_Bedding-Lava flow-S0_PT"
+            file2 = self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT"
             file3 = (
                 self.geopackage_file_path
                 + "|layername=Fold and crenulation axial planes_PT"
             )
-            file4 = self.geopackage_file_path + "|layername=Fold axes_PT"
-            file5 = self.geopackage_file_path + "|layername=Foliation-cleavage_PT"
-            file6 = self.geopackage_file_path + "|layername=Fractures_PT"
-            file7 = self.geopackage_file_path + "|layername=Lineations_PT"
-            file8 = self.geopackage_file_path + "|layername=Shear zones and faults_PT"
-            file9 = self.geopackage_file_path + "|layername=Veins_PT"
+            file4 = self.geopackage_file_path + "|layername=Compilation_Fold axes_PT"
+            file5 = self.geopackage_file_path + "|layername=Compilation_Foliation-cleavage_PT"
+            file6 = self.geopackage_file_path + "|layername=Compilation_Fractures_PT"
+            file7 = self.geopackage_file_path + "|layername=Compilation_Lineations_PT"
+            file8 = self.geopackage_file_path + "|layername=Compilation_Shear zones and faults_PT"
+            file9 = self.geopackage_file_path + "|layername=Compilation_Veins_PT"
 
             newLayer = (
                 "ogr:dbname='"
@@ -3616,51 +3617,51 @@ class WAXI_QF:
 
             file = []
 
-            file.append(self.geopackage_file_path + "|layername=Lineations_PT")
-            file.append(self.geopackage_file_path + "|layername=Fold axes_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Lineations_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fold axes_PT")
 
             file.append(
-                self.geopackage_file_path + "|layername=Bedding-Lava flow-S0_PT"
+                self.geopackage_file_path + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
-            file.append(self.geopackage_file_path + "|layername=Foliation-cleavage_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Foliation-cleavage_PT")
             file.append(
-                self.geopackage_file_path + "|layername=Shear zones and faults_PT"
+                self.geopackage_file_path + "|layername=Compilation_Shear zones and faults_PT"
             )
             file.append(
                 self.geopackage_file_path
                 + "|layername=Fold and crenulation axial planes_PT"
             )
-            file.append(self.geopackage_file_path + "|layername=Fractures_PT")
-            file.append(self.geopackage_file_path + "|layername=Veins_PT")
-            file.append(self.geopackage_file_path + "|layername=Dikes-Sills_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fractures_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Veins_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT")
 
-            file.append(self.geopackage_file_path + "|layername=Local lithologies_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Local lithologies_PT")
             file.append(
-                self.geopackage_file_path + "|layername=Supergene lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Supergene lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Sedimentary lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Sedimentary lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Volcanoclastic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file.append(
                 self.geopackage_file_path
-                + "|layername=Igneous extrusive lithologies_PT"
+                + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file.append(
                 self.geopackage_file_path
-                + "|layername=Igneous intrusive lithologies_PT"
+                + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Metamorphic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Metamorphic lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Lithological contacts_PT"
+                self.geopackage_file_path + "|layername=Compilation_Lithological contacts_PT"
             )
 
             file.append(
-                self.geopackage_file_path + "|layername=Magnetic susceptibility_PT"
+                self.geopackage_file_path + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
             # Merge two shapefiles
