@@ -2315,7 +2315,7 @@ font-size: 13px;
 </string>
      </property>
      <property name="text">
-      <string>Path to project 1:</string>
+      <string>Path to main project</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2631,7 +2631,7 @@ font-size: 13px;
 </string>
       </property>
       <property name="text">
-       <string>Path to project 2:</string>
+       <string>Path to subproject</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
