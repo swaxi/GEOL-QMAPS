@@ -1019,7 +1019,7 @@ border-style: solid;border-width: 1px;border-color: black
        <string/>
       </property>
       <property name="text">
-       <string>Select Field MoveProject Directory</string>
+       <string>Select Field Move Project Directory</string>
       </property>
       <property name="placeholderText">
        <string/>
