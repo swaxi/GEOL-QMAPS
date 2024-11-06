@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1522</width>
+    <width>1221</width>
     <height>802</height>
    </rect>
   </property>
@@ -78,7 +78,7 @@ QTabBar::tab:hover {
 </string>
    </property>
    <property name="currentIndex">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="usesScrollButtons">
     <bool>false</bool>
@@ -352,7 +352,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="legendbox_3">
@@ -506,7 +506,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QGroupBox" name="legendbox">
@@ -551,7 +551,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Go back</string>
+        <string>Undo</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_26">
@@ -774,7 +774,7 @@ font-size: 10px;
 </string>
       </property>
       <property name="text">
-       <string>Import of Lithology and Planar structural datapoints is supported</string>
+       <string>Import of Lithology and Structural datapoints is supported</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -798,14 +798,14 @@ font-size: 10px;
       </font>
      </property>
      <property name="title">
-      <string>Step 3: Export standardised legacy data</string>
+      <string>Step 3: Add standardised legacy data</string>
      </property>
      <widget class="QPushButton" name="pushButton_14">
       <property name="geometry">
        <rect>
-        <x>170</x>
+        <x>230</x>
         <y>30</y>
-        <width>201</width>
+        <width>141</width>
         <height>21</height>
        </rect>
       </property>
@@ -820,7 +820,7 @@ font-size: 12px;
 </string>
       </property>
       <property name="text">
-       <string>Generate output QGIS layers</string>
+       <string>Generate QGIS layers</string>
       </property>
      </widget>
     </widget>
@@ -841,7 +841,7 @@ font-size: 12px;
       </font>
      </property>
      <property name="title">
-      <string>Step 4: Compile standardised legacy data</string>
+      <string>Step 4: Merge standardised legacy data</string>
      </property>
      <widget class="QLabel" name="label_20">
       <property name="geometry">
@@ -935,8 +935,8 @@ font-size: 12px;</string>
     <widget class="QPushButton" name="pushButton_13">
      <property name="geometry">
       <rect>
-       <x>140</x>
-       <y>420</y>
+       <x>120</x>
+       <y>510</y>
        <width>141</width>
        <height>21</height>
       </rect>
@@ -975,6 +975,79 @@ font-size: 12px;</string>
       <bool>true</bool>
      </property>
     </widget>
+    <widget class="QGroupBox" name="groupBox_19">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>360</y>
+       <width>381</width>
+       <height>71</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Import FieldMove Project</string>
+     </property>
+     <widget class="QLineEdit" name="lineEdit_FM_project_path">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>321</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string>Select Field MoveProject Directory</string>
+      </property>
+      <property name="placeholderText">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_FM_project_select">
+      <property name="geometry">
+       <rect>
+        <x>340</x>
+        <y>30</y>
+        <width>31</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Choose your Main Project </string>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+     </widget>
+    </widget>
     <zorder>groupBox_3</zorder>
     <zorder>groupBox</zorder>
     <zorder>lineEdit_13</zorder>
@@ -985,6 +1058,7 @@ font-size: 12px;</string>
     <zorder>groupBox_15</zorder>
     <zorder>pushButton_13</zorder>
     <zorder>label_35</zorder>
+    <zorder>groupBox_19</zorder>
    </widget>
    <widget class="QWidget" name="Fieldwork_preparation">
     <property name="styleSheet">
@@ -1764,7 +1838,7 @@ font-style: italic;
       <string>Toggle Auto-Increment of Stop numbers</string>
      </property>
     </widget>
-    <widget class="QRadioButton" name="radioButtonOff">
+    <widget class="QRadioButton" name="autoinc_off_pushButton">
      <property name="geometry">
       <rect>
        <x>700</x>
@@ -1781,27 +1855,7 @@ font-size: 15px;</string>
       <string>Off</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="autoinc_pushButton">
-     <property name="geometry">
-      <rect>
-       <x>950</x>
-       <y>340</y>
-       <width>151</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-     </property>
-     <property name="text">
-      <string>Toggle behaviour</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButtonOn">
+    <widget class="QRadioButton" name="autoinc_on_pushButton">
      <property name="geometry">
       <rect>
        <x>620</x>
@@ -1933,6 +1987,61 @@ border-style: solid;border-width: 1px;border-color: black
       </property>
      </widget>
     </widget>
+    <widget class="QGroupBox" name="groupBox_20">
+     <property name="geometry">
+      <rect>
+       <x>580</x>
+       <y>390</y>
+       <width>531</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Define defualt structural measurement style</string>
+     </property>
+     <widget class="QRadioButton" name="structure_style_off_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>20</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 15px;</string>
+      </property>
+      <property name="text">
+       <string>Dip/Strike RHR</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="structure_style_on_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>20</y>
+        <width>141</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-family: Arial; 
+font-size: 15px;
+</string>
+      </property>
+      <property name="text">
+       <string>Dip/Dip Direction</string>
+      </property>
+     </widget>
+    </widget>
     <zorder>groupBox_7</zorder>
     <zorder>groupBox_6</zorder>
     <zorder>groupBox_4</zorder>
@@ -1964,10 +2073,10 @@ border-style: solid;border-width: 1px;border-color: black
     <zorder>label_37</zorder>
     <zorder>label_38</zorder>
     <zorder>groupBox_18</zorder>
-    <zorder>radioButtonOff</zorder>
-    <zorder>autoinc_pushButton</zorder>
-    <zorder>radioButtonOn</zorder>
+    <zorder>autoinc_off_pushButton</zorder>
+    <zorder>autoinc_on_pushButton</zorder>
     <zorder>groupBox_17</zorder>
+    <zorder>groupBox_20</zorder>
    </widget>
    <widget class="QWidget" name="Data_management">
     <property name="styleSheet">
@@ -1983,9 +2092,6 @@ border-style: solid;border-width: 1px;border-color: black
      <string>Field data management</string>
     </attribute>
     <widget class="QPushButton" name="export_pushButton">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="geometry">
       <rect>
        <x>980</x>
@@ -2027,9 +2133,6 @@ font-size: 12px;
      </property>
     </widget>
     <widget class="QLineEdit" name="lineEdit_7">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="geometry">
       <rect>
        <x>740</x>
@@ -2050,9 +2153,6 @@ border-style: solid;border-width: 1px;border-color: black
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_5">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="geometry">
       <rect>
        <x>1000</x>
@@ -2215,7 +2315,7 @@ font-size: 13px;
 </string>
      </property>
      <property name="text">
-      <string>Path to project 1:</string>
+      <string>Path to main project</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2531,7 +2631,7 @@ font-size: 13px;
 </string>
       </property>
       <property name="text">
-       <string>Path to project 2:</string>
+       <string>Path to subproject</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -2539,9 +2639,6 @@ font-size: 13px;
      </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox_10">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
      <property name="geometry">
       <rect>
        <x>580</x>
@@ -3504,76 +3601,25 @@ font-style: italic;</string>
     <zorder>label_34</zorder>
    </widget>
   </widget>
-  <widget class="QGroupBox" name="groupBox_2">
+  <widget class="QPushButton" name="autoinc_pushButton">
    <property name="geometry">
     <rect>
-     <x>30</x>
-     <y>670</y>
-     <width>381</width>
-     <height>61</height>
+     <x>40</x>
+     <y>760</y>
+     <width>111</width>
+     <height>21</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
-    </font>
-   </property>
-   <property name="title">
-    <string>Step 1b: Process raw file</string>
-   </property>
-   <widget class="QPushButton" name="pushButton_8">
-    <property name="geometry">
-     <rect>
-      <x>280</x>
-      <y>30</y>
-      <width>91</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(220, 220, 220);
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(220, 220, 220);
 font-weight: bold;
 font-style: italic;
-font-family: Arial;  
+font-family: Arial; 
 font-size: 12px;</string>
-    </property>
-    <property name="text">
-     <string>Process file</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_25">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>241</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>-1</pointsize>
-      <italic>true</italic>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">font-family: Arial; 
-font-size: 10px;
-</string>
-    </property>
-    <property name="text">
-     <string>Automated best-score matching of legacy data with defined mapping guidelines using fuzzy logic</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-    </property>
-    <property name="wordWrap">
-     <bool>true</bool>
-    </property>
-   </widget>
+   </property>
+   <property name="text">
+    <string>Set behaviour</string>
+   </property>
   </widget>
  </widget>
  <resources/>

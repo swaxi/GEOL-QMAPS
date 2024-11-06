@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-""" 
-
+"""
 /***************************************************************************
  WAXI_QF
                                  A QGIS plugin
@@ -84,6 +83,7 @@ from qgis.core import (
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsDefaultValue,
+    QgsCoordinateTransformContext,
 )
 from qgis.PyQt.QtCore import QVariant, QUrl
 from qgis.utils import plugins, iface
@@ -141,7 +141,7 @@ from copy import copy
 
 # Library for check the input file nature
 from pathlib import Path
-
+from .FieldMove_Import import FM_Import
 
 # Importation des bibliothèques situées dans le dossier du plugin
 plugin_directory = os.path.dirname(__file__)
@@ -364,20 +364,20 @@ class WAXI_QF:
     ######## Step 1 : Check layer coordinates + Create geometry column ############
     ###############################################################################
 
-    def convert_coordinates_WGS84(self, couche):
+    def convert_coordinates_WGS84(self, layer):
 
         # Selection of all entities in the layer
-        couche.selectAll()
+        layer.selectAll()
 
         # Creation of a new 'Geometry' column in the layer's attribute table
-        couche.startEditing()
-        couche.addAttribute(QgsField("Geometry", QVariant.String))
+        layer.startEditing()
+        layer.addAttribute(QgsField("Geometry", QVariant.String))
 
         # Recuperation of CRS (Coordinate Reference System)
-        crs = couche.crs()
+        crs = layer.crs()
 
         # Conversion of coordinates to WGS84
-        for feature in couche.selectedFeatures():
+        for feature in layer.selectedFeatures():
             geometrie = feature.geometry()
 
             transformation = QgsCoordinateTransform(
@@ -386,11 +386,11 @@ class WAXI_QF:
             geometrie.transform(transformation)
 
             feature["Geometry"] = geometrie.asWkt()
-            couche.updateFeature(feature)
+            layer.updateFeature(feature)
 
         # Save changes
-        couche.commitChanges()
-        couche.removeSelection()
+        layer.commitChanges()
+        layer.removeSelection()
 
         # Refreshing the view in QGIS
         QgsProject.instance().reloadAllLayers()
@@ -399,7 +399,7 @@ class WAXI_QF:
     # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs ##
     ###############################################################################
 
-    def export_layer_fill_Table1(self, couche):
+    def export_layer_fill_Table1(self, layer):
 
         from openpyxl import Workbook
         from fuzzywuzzy import fuzz
@@ -409,16 +409,16 @@ class WAXI_QF:
         # File 1: INPUT file
 
         # Adding field names as column names to the Excel sheet
-        noms_des_champs = [field.name() for field in couche.fields()]
+        noms_des_champs = [field.name() for field in layer.fields()]
 
         data_list = []
 
-        for feature in couche.getFeatures():
+        for feature in layer.getFeatures():
             ligne = {
                 field.name(): (
                     feature[field.name()] if feature[field.name()] is not None else ""
                 )
-                for field in couche.fields()
+                for field in layer.fields()
             }
             data_list.append(ligne)
 
@@ -597,8 +597,11 @@ class WAXI_QF:
                 # Forbid editing of first 2 columns
                 item1 = self.dlg.tableWidget1.item(k, 0)
                 item2 = self.dlg.tableWidget1.item(k, 1)
-                item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-                item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+
+                if item1:
+                    item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
+                if item2:
+                    item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
 
                 # Add a column with 2 "Delete" and "Modify" buttons for each row
 
@@ -797,27 +800,28 @@ class WAXI_QF:
         new_values_count = {}
 
         for row in range(self.dlg.tableWidget1.rowCount()):
-            old = self.dlg.tableWidget1.item(row, 0).text()
+            if self.dlg.tableWidget1.item(row, 0):
+                old = self.dlg.tableWidget1.item(row, 0).text()
 
-            if old != "-":
+                if old != "-":
 
-                if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
-                    new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
-                else:
-                    new = self.dlg.tableWidget1.item(row, 1).text()
+                    if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
+                        new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
+                    else:
+                        new = self.dlg.tableWidget1.item(row, 1).text()
 
-                if new != "NULL":
-                    if new in new_values_count:
-                        self.iface.messageBar().pushMessage(
-                            "Erreur: La valeur '{}' est en double !".format(new),
-                            level=Qgis.Warning,
-                            duration=45,
-                        )
-                        return
+                    if new != "NULL":
+                        if new in new_values_count:
+                            self.iface.messageBar().pushMessage(
+                                "Erreur: La valeur '{}' est en double !".format(new),
+                                level=Qgis.Warning,
+                                duration=45,
+                            )
+                            return
 
-                    new_values_count[new] = 1
+                        new_values_count[new] = 1
 
-                    list_columns_check_OK.append([old, new])
+                        list_columns_check_OK.append([old, new])
 
         list_columns_check_OK.append(["Geometry", "Geometry"])
 
@@ -851,11 +855,11 @@ class WAXI_QF:
         # Add all the values
         for k in range(len(list_columns_check2)):
             try:
-                nom_colonne_input = list_columns_check2[k][0]
-                nom_colonne_output = list_columns_check2[k][1]
+                column_name_input = list_columns_check2[k][0]
+                column_name_output = list_columns_check2[k][1]
 
-                fichier_output[nom_colonne_output] = input_file[nom_colonne_input]
-                list_columns_check3.append(nom_colonne_output)
+                fichier_output[column_name_output] = input_file[column_name_input]
+                list_columns_check3.append(column_name_output)
 
             except KeyError:
                 pass
@@ -878,6 +882,7 @@ class WAXI_QF:
             for column, value in row.items():
                 if str(column) != "Geometry":
                     ligne_raw_data.append(f"{column} : {value} ; ")
+
             fichier_output.at[index, "Existing databases - raw data"] = "".join(
                 ligne_raw_data
             )
@@ -975,8 +980,17 @@ class WAXI_QF:
                     ["Argillites ", "Shale "],
                     ["argillite ", "Shale "],
                     ["argillites ", "Shale "],
+                    ["Argilite ", "Shale "],  # typo
+                    ["Argilites ", "Shale "],  # typo
+                    ["argilite ", "Shale "],  # typo
+                    ["argilites ", "Shale "],  # typo
                     ["Gres ", "Sandstone "],
                     ["gres ", "Sandstone "],
+                    ["Volcaniques ", "Volcanics "],
+                    ["Volcanique ", "Volcanic "],
+                    ["Volcanosediment ", "Volcanoclastic "],
+                    ["Schiste ", "Schist "],
+                    ["Schistes ", "Schist "],
                 ]
                 for i in range(len(letters[0])):
                     list_lithology_input[k] = list_lithology_input[k].replace(
@@ -1199,7 +1213,7 @@ class WAXI_QF:
     # Modify row
     def button_edit2(self, row):
 
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
 
         # List Litho Metamorphic lithologies_PT
@@ -2116,6 +2130,15 @@ class WAXI_QF:
             if type_structure2 != "NULL":
 
                 for sheet in fichier_output_structures.sheetnames:
+                    try:
+                        Dip_Dir = fichier_output["Dip_Dir"][k]
+                    except:
+                        Dip_Dir = False
+                    try:
+                        Dip = fichier_output["Dip"][k]
+                    except:
+                        Dip = False
+
                     if sheet != "Sheet":
                         if type_structure2 == sheet:
 
@@ -2125,13 +2148,23 @@ class WAXI_QF:
                                     min_row=1, max_row=1
                                 )
                             ]
-                            print(header_reference)
+
                             ligne = []
                             for col_reference in header_reference:
                                 if (
                                     "Lineations_PT" in sheet or "Fold axes_PT" in sheet
                                 ) and col_reference == "Azimuth":
-                                    ligne.append(fichier_output["Dip_Dir"][k])
+                                    if Dip_Dir:
+                                        ligne.append(fichier_output["Dip_Dir"][k])
+                                    else:
+                                        ligne.append(fichier_output["Azimuth"][k])
+                                elif (
+                                    "Lineations_PT" in sheet or "Fold axes_PT" in sheet
+                                ) and col_reference == "Plunge":
+                                    if Dip:
+                                        ligne.append(fichier_output["Dip"][k])
+                                    else:
+                                        ligne.append(fichier_output["Plunge"][k])
                                 elif col_reference not in list_columns_check3:
                                     ligne.append("")
 
@@ -2159,7 +2192,9 @@ class WAXI_QF:
 
         elif file_structure:
             workbooks = [file_structure]
-            # file_structure.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
+            # file_structure.save(
+            #    r"C:\\Users\\00073294\\Dropbox\\WAXI4\\gis\\####W4S5\\debug.xlsx"
+            # )
 
         else:
             workbooks = []
@@ -2233,6 +2268,7 @@ class WAXI_QF:
 
                         # Other fields of the attribute table by looping through sheet columns
                         for i, value in enumerate(row):
+
                             if field_names[i] == "Existing databases - raw data":
                                 hash = hashlib.sha256(value.encode()).hexdigest()
 
@@ -2243,6 +2279,11 @@ class WAXI_QF:
                                         i, str(hash)
                                     )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
                                     self.sheetHashUUID[str(hash)] = [new_text]
+                                elif (
+                                    field_names[i] == "Measure"
+                                    and "Lineations_PT" in sheet_name
+                                ):
+                                    feature.setAttribute(i, "Vertical plane")
                                 elif field_names[i] == "Existing databases - raw data":
                                     new_text = {}
                                     for pair in value[:-1].split(";"):
@@ -2286,9 +2327,9 @@ class WAXI_QF:
             name_layer_to_import = segments[-1]
 
             # Load layer into QGIS
-            couche = QgsVectorLayer(path_layer_to_import, name_layer_to_import, "ogr")
+            layer = QgsVectorLayer(path_layer_to_import, name_layer_to_import, "ogr")
 
-            if couche.isValid():
+            if layer.isValid():
                 pass
 
             else:
@@ -2297,10 +2338,10 @@ class WAXI_QF:
                 )
 
             # Step 1 : Check layer coordinates + Create the Geometry column
-            self.convert_coordinates_WGS84(couche)
+            self.convert_coordinates_WGS84(layer)
 
             # Step 2 : Export the layer in Excel format + Fill Table1 with Columns pairs
-            fichier_input = self.export_layer_fill_Table1(couche)
+            fichier_input = self.export_layer_fill_Table1(layer)
 
             self.iface.messageBar().pushMessage(
                 "Selected File loaded ", "OK", level=Qgis.Success, duration=45
@@ -2444,7 +2485,6 @@ class WAXI_QF:
 
         from openpyxl import Workbook
 
-        fichier_output_lithology = Workbook()
         fichier_output_lithology = self.method_lithologies_check_OK(
             fichier_input, name_layer_to_import, fichier_output, list_columns_check3
         )
@@ -2528,9 +2568,9 @@ class WAXI_QF:
             head_tail = os.path.split(proj_file_path)
 
             oldProjPath = head_tail[0] + "/"
-            oldGpkgPath = oldProjPath + self.dir_0 + "CURRENT MISSION.gpkg"
+            oldGpkgPath = oldProjPath + '/1. EXISTING FIELD DATABASE/' + "COMPILATION.gpkg"
             newProjPath = self.mynormpath(self.dlg.lineEdit_3.text()).strip() + "/"
-            newGpkgPath = newProjPath + self.dir_0 + "CURRENT MISSION.gpkg"
+            newGpkgPath = newProjPath + '/1. EXISTING FIELD DATABASE/' + "COMPILATION.gpkg"
             shp_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
             )
@@ -2568,13 +2608,34 @@ class WAXI_QF:
 
             # create directory structure
 
-            dirs = [newProjPath, newProjPath + self.dir_0, newProjPath + self.dir_99]
+            dirs = [newProjPath, newProjPath + self.dir_0, newProjPath + self.dir_99,newProjPath + '/1. EXISTING FIELD DATABASE/']
 
             for dirpath in dirs:
                 if not os.path.exists(self.mynormpath(dirpath)):
                     os.mkdir(self.mynormpath(dirpath))
 
             # copy over files that are not clipped
+            cp_dirs = [
+                #"1. EXISTING FIELD DATABASE",
+                "2. GPS-LOCALITIES OF INTEREST",
+                "3. GEOCHEMISTRY",
+                "4. GEOCHRONOLOGY",
+                "5. MINING AND EXPLORATION",
+                "6. GEOLOGY",
+                "7. GEOPHYSICS",
+                "8. LAND USE",
+                "9. GEOGRAPHY",
+                "10. TOPOGRAPHY",
+                #"11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY",
+                #self.dir_0 + "/DCIM/",
+            ]
+
+
+            for cp_dir in cp_dirs:
+                src_path = oldProjPath + cp_dir
+                dst_path = self.mynormpath(newProjPath + cp_dir)
+                shutil.copytree(src_path, dst_path)
+
             src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             dst_path = newProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             shutil.copyfile(src_path, dst_path)
@@ -2588,38 +2649,19 @@ class WAXI_QF:
 
             shutil.copytree(src_path, dst_path)
 
-            src_path = oldProjPath + "/1. EXISTING FIELD DATABASE/"
-            dst_path = self.mynormpath(newProjPath  + "/1. EXISTING FIELD DATABASE/")
-
-            shutil.copytree(src_path, dst_path) # temp fix for course
-
-            src_path = oldProjPath + "/6. GEOLOGY/"
-            dst_path = self.mynormpath(newProjPath  + "/6. GEOLOGY/")
-
-            shutil.copytree(src_path, dst_path) # temp fix for course
-
-            src_path = oldProjPath + "/7. GEOPHYSICS/"
-            dst_path = self.mynormpath(newProjPath  + "/7. GEOPHYSICS/")
-
-            shutil.copytree(src_path, dst_path) # temp fix for course
-
-            src_path = oldProjPath + "/10. TOPOGRAPHY/"
-            dst_path = self.mynormpath(newProjPath  + "/10. TOPOGRAPHY/")
-
-
-            shutil.copytree(src_path, dst_path) # temp fix for course
-
-            src_path = oldProjPath + "/100. INTERPRETATION - GEOLOGICAL MAP/"
-            dst_path = self.mynormpath(newProjPath  + "/100. INTERPRETATION - GEOLOGICAL MAP/")
-
-            shutil.copytree(src_path, dst_path) # temp fix for course
-
-
-
-
             shutil.copyfile(
                 proj_file_path,
                 newProjPath + "/" + head_tail[1].replace(".qgz", "_clip.qgz"),
+            )
+
+            shutil.copyfile(
+                oldGpkgPath ,
+                newGpkgPath
+            )
+
+            shutil.copyfile(
+                oldProjPath + '/0. FIELD DATA/'+'CURRENT MISSION.gpkg',
+                newProjPath + '/0. FIELD DATA/'+'CURRENT MISSION.gpkg'
             )
 
             src_path = oldProjPath + self.dir_0 + "/DCIM/"
@@ -2632,6 +2674,10 @@ class WAXI_QF:
 
             src_path = oldProjPath + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
             dst_path = newProjPath + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
+            shutil.copyfile(src_path, dst_path)
+
+            src_path = oldProjPath  + '/1. EXISTING FIELD DATABASE/' + "/EXISTING FIELD GEODATABASE.qlr"
+            dst_path = newProjPath  + '/1. EXISTING FIELD DATABASE/'+ "/EXISTING FIELD GEODATABASE.qlr"
             shutil.copyfile(src_path, dst_path)
 
             src_path = oldProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
@@ -2668,39 +2714,43 @@ class WAXI_QF:
 
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
+                    
+                """                
                 if layer.name() in shps.index.tolist():
-                    if (
-                        "_PG" in layer.name()
-                        or "_PT" in layer.name()
-                        or "_LN" in layer.name()
-                    ):
-                        # Get the file path of the layer
+                if (
+                    ("_PG" in layer.name()
+                    or "_PT" in layer.name()
+                    or "_LN" in layer.name()) and "Compilation_" in layer.name()
+                ):"""
+                # Get the file path of the layer
+                if  layer.name().startswith("Compilation_"):        
+                    input_path = self.mynormpath(
+                        layer.dataProvider().dataSourceUri()
+                    )
 
-                        input_path = self.mynormpath(
-                            layer.dataProvider().dataSourceUri()
-                        )
+                    output_path_gpkg = self.mynormpath(newGpkgPath)
 
-                        output_path_gpkg = self.mynormpath(newGpkgPath)
+                    processing.run(
+                        "native:clip",
+                        {
+                            "INPUT": input_path,
+                            "OVERLAY": clip_layer,
+                            "OUTPUT": "ogr:dbname='"
+                            + output_path_gpkg
+                            + "' table=\""
+                            + layer.name()
+                            + '" (geom)',
+                        },
+                    )
 
-                        processing.run(
-                            "native:clip",
-                            {
-                                "INPUT": input_path,
-                                "OVERLAY": clip_layer,
-                                "OUTPUT": "ogr:dbname='"
-                                + output_path_gpkg
-                                + "' table=\""
-                                + layer.name()
-                                + '" (geom)',
-                            },
-                        )
+                else:
+                    pass
+                    #print(layer.name())
 
-                    else:
-                        print(layer.name())
             self.iface.messageBar().pushMessage(
                 "Files clipped to current extent, saved in directory" + newProjPath,
                 level=Qgis.Success,
-                duration=5,
+                duration=15,
             )
 
         else:
@@ -2717,41 +2767,71 @@ class WAXI_QF:
 
         emplacement_99_CSV_files = self.templateCSV_path
 
-        layer_name = str(self.dlg.comboBox.currentText())
+        csv_file = str(self.dlg.comboBox.currentText())
 
-        csv_updates = [layer_name, "Lithologies"]
-        for csv_file in csv_updates:
-            chemin_fichier_CSV_modifier = self.mynormpath(
-                emplacement_99_CSV_files + csv_file + ".csv"
+        #csv_updates = [layer_name, "Lithologies"]
+        #for csv_file in csv_updates:
+        chemin_fichier_CSV_modifier = self.mynormpath(
+            emplacement_99_CSV_files + csv_file + ".csv"
+        )
+        if chemin_fichier_CSV_modifier:
+            #if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+
+            df = pd.read_csv(
+                chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
             )
-            if chemin_fichier_CSV_modifier:
-                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
 
-                    df = pd.read_csv(
-                        chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
-                    )
+            # Get the value to be added to the ComboBox
+            new_row = {
+                "Valeur": str(self.dlg.lineEdit_38.text()),
+                "Description": str(self.dlg.lineEdit_27.text()),
+            }
 
-                    # Get the value to be added to the ComboBox
-                    new_row = {
-                        "Valeur": str(self.dlg.lineEdit_38.text()),
-                        "Description": str(self.dlg.lineEdit_27.text()),
-                    }
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
-                    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+            df = df.sort_values(by="Valeur")
 
-                    df = df.sort_values(by="Valeur")
+            # Rewrites the CSV file with the added line
+            df.to_csv(
+                chemin_fichier_CSV_modifier,
+                encoding="latin_1",
+                sep=";",
+                index=False,
+            )
 
-                    # Rewrites the CSV file with the added line
-                    df.to_csv(
-                        chemin_fichier_CSV_modifier,
-                        encoding="latin_1",
-                        sep=";",
-                        index=False,
-                    )
+            # Updates the layer in QGIS
+            layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+            layer_csv.dataProvider().reloadData()
+            if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+                chemin_fichier_CSV_modifier = self.mynormpath(
+                emplacement_99_CSV_files + "Lithologies" + ".csv")
 
-                    # Updates the layer in QGIS
-                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    couche_csv.dataProvider().reloadData()
+                df = pd.read_csv(
+                    chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
+                )
+
+                # Get the value to be added to the ComboBox
+                new_row = {
+                    "Valeur": str(self.dlg.lineEdit_38.text()),
+                    "Description": str(self.dlg.lineEdit_27.text()),
+                }
+
+                df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+                df = df.sort_values(by="Valeur")
+
+                # Rewrites the CSV file with the added line
+                df.to_csv(
+                    chemin_fichier_CSV_modifier,
+                    encoding="latin_1",
+                    sep=";",
+                    index=False,
+                )
+
+                # Updates the layer in QGIS
+                layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                layer_csv.dataProvider().reloadData()
+
 
         if chemin_fichier_CSV_modifier:
             self.iface.messageBar().pushMessage(
@@ -2760,57 +2840,91 @@ class WAXI_QF:
                 + " "
                 + str(self.dlg.lineEdit_27.text())
                 + " added to "
-                + layer_name,
+                + csv_file,
                 level=Qgis.Success,
                 duration=15,
             )
+        self.update_combobox_delete()
 
     ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template
     def deleteCsvItem(self):
 
         emplacement_99_CSV_files = self.templateCSV_path
 
-        layer_name = str(self.dlg.comboBox.currentText())
-        chemin_fichier_CSV_modifier = emplacement_99_CSV_files + layer_name + ".csv"
+        csv_file = str(self.dlg.comboBox.currentText())
+        chemin_fichier_CSV_modifier = emplacement_99_CSV_files + csv_file + ".csv"
 
-        csv_updates = [layer_name, "Lithologies"]
-        for csv_file in csv_updates:
-            chemin_fichier_CSV_modifier = self.mynormpath(
-                emplacement_99_CSV_files + csv_file + ".csv"
+
+        chemin_fichier_CSV_modifier = self.mynormpath(
+            emplacement_99_CSV_files + csv_file + ".csv"
+        )
+
+        if chemin_fichier_CSV_modifier:
+
+            # Gets the value to be deleted from the ComboBox
+            deleted_value = str(self.dlg.comboBox_delete.currentText())
+
+
+            df = pd.read_csv(
+                chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
             )
-            if chemin_fichier_CSV_modifier:
 
+            # Index corresponding to the value to be deleted
+            index_to_drop = df[df["Valeur"] == deleted_value].index
+
+            # Deletes the corresponding line
+            df = df.drop(index_to_drop)
+
+            # Rewrites the CSV file with the deleted line
+            df.to_csv(
+                chemin_fichier_CSV_modifier,
+                encoding="latin_1",
+                sep=";",
+                index=False,
+            )
+
+            # Updates the layer in QGIS
+            layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+            layer_csv.dataProvider().reloadData()
+
+            # Delete word from comboBox
+            index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
+            if index_a_supprimer != -1:
+                self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+            
+            if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
+                chemin_fichier_CSV_modifier = emplacement_99_CSV_files + "Lithologies" + ".csv"
                 # Gets the value to be deleted from the ComboBox
                 deleted_value = str(self.dlg.comboBox_delete.currentText())
 
-                if "lithologies" in csv_file or csv_file.startswith("Lithologies"):
 
-                    df = pd.read_csv(
-                        chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
-                    )
+                df = pd.read_csv(
+                    chemin_fichier_CSV_modifier, encoding="latin_1", sep=";"
+                )
 
-                    # Index corresponding to the value to be deleted
-                    index_to_drop = df[df["Valeur"] == deleted_value].index
+                # Index corresponding to the value to be deleted
+                index_to_drop = df[df["Valeur"] == deleted_value].index
 
-                    # Deletes the corresponding line
-                    df = df.drop(index_to_drop)
+                # Deletes the corresponding line
+                df = df.drop(index_to_drop)
 
-                    # Rewrites the CSV file with the deleted line
-                    df.to_csv(
-                        chemin_fichier_CSV_modifier,
-                        encoding="latin_1",
-                        sep=";",
-                        index=False,
-                    )
+                # Rewrites the CSV file with the deleted line
+                df.to_csv(
+                    chemin_fichier_CSV_modifier,
+                    encoding="latin_1",
+                    sep=";",
+                    index=False,
+                )
 
-                    # Updates the layer in QGIS
-                    couche_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
-                    couche_csv.dataProvider().reloadData()
+                # Updates the layer in QGIS
+                layer_csv = QgsProject.instance().mapLayersByName(csv_file)[0]
+                layer_csv.dataProvider().reloadData()
 
-                    # Delete word from comboBox
-                    index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
-                    if index_a_supprimer != -1:
-                        self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+                # Delete word from comboBox
+                index_a_supprimer = self.dlg.comboBox_delete.findText(deleted_value)
+                if index_a_supprimer != -1:
+                    self.dlg.comboBox_delete.removeItem(index_a_supprimer)
+
 
         if chemin_fichier_CSV_modifier:
             self.iface.messageBar().pushMessage(
@@ -2819,10 +2933,12 @@ class WAXI_QF:
                 + " "
                 + str(self.dlg.lineEdit_27.text())
                 + " removed from "
-                + layer_name,
+                + csv_file,
                 level=Qgis.Success,
                 duration=15,
             )
+        
+        self.update_combobox_delete()
 
     ### Update project name ###
 
@@ -2848,7 +2964,7 @@ class WAXI_QF:
 
         no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
         auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"
-        if self.dlg.radioButtonOn.isChecked():
+        if self.dlg.autoinc_on_pushButton.isChecked():
             shutil.copy(auto_filename, current_file_name)
             self.iface.messageBar().pushMessage(
                 "Auto Incrementing Stop Numbers turned ON",
@@ -2864,7 +2980,7 @@ class WAXI_QF:
                 duration=15,
             )
 
-        layer = project.mapLayersByName("Stops_PT")[0]
+        layer = project.mapLayersByName("Sampling_PT")[0]
         layer.loadNamedStyle(head_tail[0] + "/" + self.dir_99 + "/Stops_PT.qml")
         layer.triggerRepaint()
 
@@ -2879,7 +2995,7 @@ class WAXI_QF:
             default_value_user_csv = str(self.dlg.lineEdit_39.text())
 
             ## User.csv file location
-            WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+            #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
             emplacement_User_file = self.templateCSV_path + "/User list.csv"
             user_file = pd.read_csv(emplacement_User_file, sep=";", encoding="latin-1")
 
@@ -2908,8 +3024,8 @@ class WAXI_QF:
                 )
 
                 # Updates the layer in QGIS
-                couche_user = QgsProject.instance().mapLayersByName("User list")[0]
-                couche_user.dataProvider().forceReload()
+                layer_user = QgsProject.instance().mapLayersByName("User list")[0]
+                layer_user.dataProvider().forceReload()
 
                 default_value_user = "'" + str(self.dlg.lineEdit_39.text()) + "'"
 
@@ -2980,6 +3096,44 @@ class WAXI_QF:
                     level=Qgis.Success,
                     duration=15,
                 )
+    
+    # set dip/dip direction vs dip/strike RHR
+    
+    def set_orientation_style(self):
+        if self.dlg.structure_style_on_pushButton.isChecked(): 
+            value="'Dip - dip direction'"
+        else:
+            value="'Strike (right-hand rule) - dip'"
+
+        # Create default value
+        default_value = QgsDefaultValue(value)
+
+        shp_list = self.mynormpath(
+            os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
+        )
+
+        shps = pd.read_csv(shp_list, names=["name", "dir_code"])
+        shps = shps.set_index("name")
+        planes=["Dikes-Sills_PT","Fold and crenulation axial planes_PT","Foliation-cleavage_PT",
+                "Bedding-Lava flow-S0_PT","Lithological contacts_PT","Shear zones and faults_PT","Veins_PT","Fractures_PT"]
+        for name,data in shps.iterrows():
+            if(name in planes):
+                layer = QgsProject.instance().mapLayersByName(name)[0]
+                # Find 'User' field index
+                field_index = layer.fields().indexFromName("Measure")
+
+                # Update default field value
+                layer.setDefaultValueDefinition(field_index, default_value)
+        
+        QgsProject.instance().write()
+
+        self.iface.messageBar().pushMessage(
+            str(value)
+            + " is now the default structural style ",
+            level=Qgis.Success,
+            duration=15,
+        )
+            
 
     ###############################################################################
     ################       Page 3 : Field Data Management           ###############
@@ -3018,7 +3172,9 @@ class WAXI_QF:
         # remove objects with duplicate UUIDs
         for layer in project.mapLayers().values():
             # Check if the layer name matches the target name
-            if layer.name() in shps.index.tolist():
+            #if layer.name() in shps.index.tolist():
+            if  layer.name().startswith("Compilation_"):        
+
 
                 # Start editing the layer
                 layer.startEditing()
@@ -3058,6 +3214,36 @@ class WAXI_QF:
                 duration=5,
             )
 
+    # get list of csv files in the csv directory on the fly
+    def get_csv_list(self,path):
+        extensions = ['.csv']
+        # Get the list of matching files
+        file_list=self.FM_Import.find_files_with_extensions(path, extensions)
+        names=[]
+        for file in file_list:
+            file_prefix=str(os.path.basename(file)).replace(".csv","")
+            names.append(file_prefix)
+        return(names)
+
+    # copy files to new directory checking for duplicates
+    def recursive_overwrite(self,src, dest, ignore=None):
+        if os.path.isdir(src):
+            if not os.path.isdir(dest):
+                os.makedirs(dest)
+            files = os.listdir(src)
+            if ignore is not None:
+                ignored = ignore(src, files)
+            else:
+                ignored = set()
+            for f in files:
+                if f not in ignored:
+                    self.recursive_overwrite(os.path.join(src, f), 
+                                        os.path.join(dest, f), 
+                                        ignore)
+        else:
+            shutil.copyfile(src, dest)
+
+
     def mergeProjects(self):
         # Takes two WAXI QFIELD Projects and combines them,
         # removing duplicates and saves out the full structure to a new directory
@@ -3077,12 +3263,20 @@ class WAXI_QF:
             shp_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
             )
-            csv_list = self.mynormpath(
+
+            project = QgsProject.instance()
+            proj_file_path = project.fileName()
+
+            head_tail = os.path.split(proj_file_path)
+            main_project_path = head_tail[0] + "/"
+
+            self.csvs=self. get_csv_list(main_project_path+ self.dir_99 + "CSV FILES")
+            """csv_list = self.mynormpath(
                 os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
-            )
+            )"""
             shps = pd.read_csv(shp_list, names=["name", "dir_code"])
             shps = shps.set_index("name")
-            csvs = pd.read_csv(csv_list, names=["name"])
+            #csvs = pd.read_csv(csv_list, names=["name"])
 
             merge_project_path = self.dlg.lineEdit_37.text() + "/"
 
@@ -3115,7 +3309,7 @@ class WAXI_QF:
                     os.mkdir(self.mynormpath(dirpath))
 
             # merge and de-duplicate csv files
-            for file in csvs.name:
+            for file in self.csvs:
                 main_path = self.mynormpath(
                     main_project_path + self.dir_99 + "/CSV FILES/" + file + ".csv"
                 )
@@ -3134,14 +3328,14 @@ class WAXI_QF:
 
             cp_dirs = [
                 "1. EXISTING FIELD DATABASE",
-                #"2. GPS-LOCALITIES OF INTEREST",
-                #"3. GEOCHEMISTRY",
-                #"4. GEOCHRONOLOGY",
-                #"5. MINING AND EXPLORATION",
+                "2. GPS-LOCALITIES OF INTEREST",
+                "3. GEOCHEMISTRY",
+                "4. GEOCHRONOLOGY",
+                "5. MINING AND EXPLORATION",
                 "6. GEOLOGY",
                 "7. GEOPHYSICS",
-                #"8. LAND USE",
-                #"9. GEOGRAPHY",
+                "8. LAND USE",
+                "9. GEOGRAPHY",
                 "10. TOPOGRAPHY",
                 "11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY",
                 self.dir_0 + "/DCIM/",
@@ -3151,15 +3345,21 @@ class WAXI_QF:
                 dst_path = self.mynormpath(merge_project_path + cp_dir)
                 shutil.copytree(src_path, dst_path)
 
+            src_path = sub_project_path + self.dir_0 + "/DCIM/"
+            dst_path = self.mynormpath(merge_project_path + self.dir_0 + "/DCIM/")
+
+            self.recursive_overwrite(src_path, dst_path, ignore=None)     
+
             src_file = main_project_path + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
             dst_file = (
                 merge_project_path + self.dir_0 + "/CURRENT MISSION+CSV FILES.qlr"
             )
             shutil.copyfile(src_file, dst_file)
 
+            proj_name=os.path.basename(self.dlg.lineEdit_11.text())
             shutil.copyfile(
                 self.dlg.lineEdit_11.text(),
-                merge_project_path + "/WAXI4 - Mission ID - Date.qgz",
+                merge_project_path + "/"+proj_name,
             )
 
             in_pref = main_project_path + self.dir_99
@@ -3219,66 +3419,155 @@ class WAXI_QF:
 
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
 
+            layers_names = [
+                "Compilation_Fractured zones_PG",
+                "Compilation_Brecciated zones_PG",
+                "Compilation_Cataclastic zones_PG",
+                "Compilation_Alteration zones_PG",
+                "Compilation_Lithology zones_PG",
+                "Compilation_Local lithologies_PT",
+                "Compilation_Supergene lithologies_PT",
+                "Compilation_Sedimentary lithologies_PT",
+                "Compilation_Volcanoclastic lithologies_PT",
+                "Compilation_Igneous extrusive lithologies_PT",
+                "Compilation_Igneous intrusive lithologies_PT",
+                "Compilation_Metamorphic lithologies_PT",
+                "Compilation_Bedding-Lava flow-S0_PT",
+                "Compilation_Dikes-Sills_PT",
+                "Compilation_Fold and crenulation axial planes_PT",
+                "Compilation_Fold axes_PT",
+                "Compilation_Foliation-cleavage_PT",
+                "Compilation_Fractures_PT",
+                "Compilation_Lineations_PT",
+                "Compilation_Shear zones and faults_PT",
+                "Compilation_Veins_PT",
+            ]
+            proj = QgsProject.instance()
+
+            for name in layers_names:
+
+                layer = proj.mapLayersByName(name)[0]
+                caps = layer.dataProvider().capabilities()
+
+                # Get the list of fields in the layer
+                existing_fields = [field.name() for field in layer.fields()]
+
+                # Check if 'src_layer' field exists, if not, add it
+                if "Layer" not in existing_fields:
+                    # Add Fields if the provider supports it
+                    if caps & QgsVectorDataProvider.AddAttributes:
+                        res = layer.dataProvider().addAttributes(
+                            [QgsField("Layer", QVariant.String)]
+                        )
+                        layer.updateFields()
+
+                src_layer_idx = layer.fields().lookupField("Layer")
+
+                # Start editing mode to modify attributes
+                layer.startEditing()
+                # Change attribute values
+                for f in layer.getFeatures():
+                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
+
+                # Commit changes
+                layer.commitChanges()
+
             project = QgsProject.instance()
             proj_file_path = project.fileName()
-            head_tail = os.path.split(proj_file_path)
+            #head_tail = os.path.split(proj_file_path)
+
             file = []
             # merge zone data
-            file.append(self.geopackage_file_path + "|layername=Fractured zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Brecciated zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Cataclastic zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Alteration zones_PG")
-            file.append(self.geopackage_file_path + "|layername=Lithology zones_PG")
-            output = self.mynormpath(self.dlg.lineEdit_7.text()) + "/Zonal data_PG.shp"
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fractured zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Brecciated zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Cataclastic zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG")
+            newGeopackagePath = self.mynormpath(
+                self.dlg.lineEdit_7.text() + "/export.gpkg"
+            )
+
+            # first create temp layer and new geopackage
+            temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
+
+            options = QgsVectorFileWriter.SaveVectorOptions()
+            options.driverName = "GPKG"  # Specify the GeoPackage format
+
+            transform_context = QgsCoordinateTransformContext()
+
+            QgsVectorFileWriter.writeAsVectorFormatV3(
+                temp_layer, newGeopackagePath, transform_context, options
+            )
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "zonal_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
                 "LAYERS": [file[0], file[1], file[2], file[3], file[4]],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
-            file1 = self.geopackage_file_path + "|layername=Local lithologies_PT"
-            file2 = self.geopackage_file_path + "|layername=Supergene lithologies_PT"
-            file3 = self.geopackage_file_path + "|layername=Sedimentary lithologies_PT"
+            file1 = self.geopackage_file_path + "|layername=Compilation_Local lithologies_PT"
+            file2 = self.geopackage_file_path + "|layername=Compilation_Supergene lithologies_PT"
+            file3 = self.geopackage_file_path + "|layername=Compilation_Sedimentary lithologies_PT"
             file4 = (
-                self.geopackage_file_path + "|layername=Volcanoclastic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file5 = (
                 self.geopackage_file_path
-                + "|layername=Igneous extrusive lithologies_PT"
+                + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file6 = (
                 self.geopackage_file_path
-                + "|layername=Igneous intrusive lithologies_PT"
+                + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
-            file7 = self.geopackage_file_path + "|layername=Metamorphic lithologies_PT"
-            output = self.mynormpath(self.dlg.lineEdit_7.text()) + "/litho_data.shp"
+            file7 = self.geopackage_file_path + "|layername=Compilation_Metamorphic lithologies_PT"
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "litho_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4, file5, file6, file7],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
 
             # merge structural data
-            file1 = self.geopackage_file_path + "|layername=Bedding-Lava flow-S0_PT"
-            file2 = self.geopackage_file_path + "|layername=Dikes-Sills_PT"
+            file1 = self.geopackage_file_path + "|layername=Compilation_Bedding-Lava flow-S0_PT"
+            file2 = self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT"
             file3 = (
                 self.geopackage_file_path
-                + "|layername=Fold and crenulation axial planes_PT"
+                + "|layername=Compilation_Fold and crenulation axial planes_PT"
             )
-            file4 = self.geopackage_file_path + "|layername=Fold axes_PT"
-            file5 = self.geopackage_file_path + "|layername=Foliation-cleavage_PT"
-            file6 = self.geopackage_file_path + "|layername=Fractures_PT"
-            file7 = self.geopackage_file_path + "|layername=Lineations_PT"
-            file8 = self.geopackage_file_path + "|layername=Shear zones and faults_PT"
-            file9 = self.geopackage_file_path + "|layername=Veins_PT"
-            output = self.mynormpath(self.dlg.lineEdit_7.text() + "/structure_data.shp")
+            file4 = self.geopackage_file_path + "|layername=Compilation_Fold axes_PT"
+            file5 = self.geopackage_file_path + "|layername=Compilation_Foliation-cleavage_PT"
+            file6 = self.geopackage_file_path + "|layername=Compilation_Fractures_PT"
+            file7 = self.geopackage_file_path + "|layername=Compilation_Lineations_PT"
+            file8 = self.geopackage_file_path + "|layername=Compilation_Shear zones and faults_PT"
+            file9 = self.geopackage_file_path + "|layername=Compilation_Veins_PT"
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "structure_data"
+                + '" (geom)'
+            )
 
             # merge shapefiles
             params = {
@@ -3293,7 +3582,7 @@ class WAXI_QF:
                     file8,
                     file9,
                 ],
-                "OUTPUT": output,
+                "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
@@ -3328,51 +3617,51 @@ class WAXI_QF:
 
             file = []
 
-            file.append(self.geopackage_file_path + "|layername=Lineations_PT")
-            file.append(self.geopackage_file_path + "|layername=Fold axes_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Lineations_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fold axes_PT")
 
             file.append(
-                self.geopackage_file_path + "|layername=Bedding-Lava flow-S0_PT"
+                self.geopackage_file_path + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
-            file.append(self.geopackage_file_path + "|layername=Foliation-cleavage_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Foliation-cleavage_PT")
             file.append(
-                self.geopackage_file_path + "|layername=Shear zones and faults_PT"
+                self.geopackage_file_path + "|layername=Compilation_Shear zones and faults_PT"
             )
             file.append(
                 self.geopackage_file_path
                 + "|layername=Fold and crenulation axial planes_PT"
             )
-            file.append(self.geopackage_file_path + "|layername=Fractures_PT")
-            file.append(self.geopackage_file_path + "|layername=Veins_PT")
-            file.append(self.geopackage_file_path + "|layername=Dikes-Sills_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Fractures_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Veins_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT")
 
-            file.append(self.geopackage_file_path + "|layername=Local lithologies_PT")
+            file.append(self.geopackage_file_path + "|layername=Compilation_Local lithologies_PT")
             file.append(
-                self.geopackage_file_path + "|layername=Supergene lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Supergene lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Sedimentary lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Sedimentary lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Volcanoclastic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file.append(
                 self.geopackage_file_path
-                + "|layername=Igneous extrusive lithologies_PT"
+                + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file.append(
                 self.geopackage_file_path
-                + "|layername=Igneous intrusive lithologies_PT"
+                + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Metamorphic lithologies_PT"
+                self.geopackage_file_path + "|layername=Compilation_Metamorphic lithologies_PT"
             )
             file.append(
-                self.geopackage_file_path + "|layername=Lithological contacts_PT"
+                self.geopackage_file_path + "|layername=Compilation_Lithological contacts_PT"
             )
 
             file.append(
-                self.geopackage_file_path + "|layername=Magnetic susceptibility_PT"
+                self.geopackage_file_path + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
             # Merge two shapefiles
@@ -3504,7 +3793,7 @@ class WAXI_QF:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    ### Merge 2 layers ###
+    ### Merge 2 layers old version###
 
     def merge_2_layers_(self):
 
@@ -3512,23 +3801,32 @@ class WAXI_QF:
         proj_file_path = project.fileName()
         head_tail = os.path.split(proj_file_path)
 
-        couche1 = QgsProject.instance().mapLayersByName(
+        layer1 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge1_2.currentText())
         )[0]
-        couche2 = QgsProject.instance().mapLayersByName(
+        layer2 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge2_2.currentText())
         )[0]
+
+        field_name = "fid"
+        field_index = layer1.fields().indexOf(field_name)
+        if field_index != -1:
+            # Delete the field using the field index
+            if layer1.dataProvider().deleteAttributes([field_index]):
+                print(f"Field '{field_name}' removed successfully.")
+            else:
+                print(f"Failed to remove field '{field_name}'.")
 
         # Run the merge algorithm
         merged = processing.run(
             "qgis:mergevectorlayers",
             {
-                "LAYERS": [couche1, couche2],
-                "CRS": couche2.crs(),  # Change the CRS as needed
+                "LAYERS": [layer1, layer2],
+                "CRS": layer2.crs(),  # Change the CRS as needed
                 "OUTPUT": "ogr:dbname='"
                 + self.geopackage_file_path
                 + "' table=\""
-                + couche2.name()
+                + layer2.name()
                 + '" (geom)',  # Output to geopackage
             },
         )
@@ -3540,44 +3838,44 @@ class WAXI_QF:
             "OUTPUT": "ogr:dbname='"
             + self.geopackage_file_path
             + "' table=\""
-            + couche2.name()
+            + layer2.name()
             + '" (geom)',
         }
 
         # processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
 
     def merge_2_layers(self):
-        couche1 = QgsProject.instance().mapLayersByName(
+        layer1 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge1_2.currentText())
         )[0]
-        couche2 = QgsProject.instance().mapLayersByName(
+        layer2 = QgsProject.instance().mapLayersByName(
             str(self.dlg.comboBox_merge2_2.currentText())
         )[0]
 
-        if couche1 != couche2:
+        if layer1 != layer2:
 
-            colonnes_couche1 = [field.name() for field in couche1.fields()]
-            colonnes_couche2 = [field.name() for field in couche2.fields()]
+            columns_layer1 = [field.name() for field in layer1.fields()]
+            columns_layer2 = [field.name() for field in layer2.fields()]
 
             ## Loop on first layer entities
 
-            for entite1 in couche1.getFeatures():
+            for feature1 in layer1.getFeatures():
                 # Creation of a new entity for the second layer
-                nouvelle_entite = QgsFeature()
+                new_feature = QgsFeature()
 
                 # Copy geometry
-                nouvelle_entite.setGeometry(entite1.geometry())
+                new_feature.setGeometry(feature1.geometry())
 
                 # Copy attributes
-                nouvelle_entite.setAttributes(entite1.attributes())
+                new_feature.setAttributes(feature1.attributes())
 
                 # Add entity to second layer
-                couche2.dataProvider().addFeatures([nouvelle_entite])
+                layer2.dataProvider().addFeatures([new_feature])
 
             # extra code to handle storage of original data as dict in json field
-            if not couche2.isEditable():
-                couche2.startEditing()
-            for feature in couche2.getFeatures():
+            if not layer2.isEditable():
+                layer2.startEditing()
+            for feature in layer2.getFeatures():
 
                 if feature["UUID"] in self.sheetHashUUID:
                     new_text = self.sheetHashUUID[feature["UUID"]][0]
@@ -3585,15 +3883,43 @@ class WAXI_QF:
                     feature["Existing databases - raw data"] = new_text
 
                 # Update the feature in the layer
-                couche2.updateFeature(feature)
+                layer2.updateFeature(feature)
 
+            # extra code to handle Lineations_PT
+            if not layer2.isEditable():
+                layer2.startEditing()
+            # for feature in layer2.getFeatures():
+            #    if "Lineations_PT" in self.dlg.comboBox_merge1_2.currentText():
+            #        if feature["Measure"] == "Vertical plane":
+            #            print("found it")
+            # print(feature["Existing databases - raw data"][" DIP "])
             # Refinishing the second layer
-            couche2.updateFields()
-            couche2.commitChanges()
-            couche2.triggerRepaint()
+            layer2.updateFields()
+            layer2.commitChanges()
+            layer2.triggerRepaint()
 
             # Removing the first layer
-            QgsProject.instance().removeMapLayer(couche1.id())
+            QgsProject.instance().removeMapLayer(layer1.id())
+
+    # code to deisplay feature attirbutes and field names
+    def print_feature_details(self, feature):
+        # Print the feature ID
+        print(f"Feature ID: {feature.id()}")
+
+        # Print attribute values
+        attributes = feature.attributes()
+        print("Attributes:")
+        fields = feature.fields()
+        for index, attribute in enumerate(attributes):
+            field_name = fields[index].name()  # Correct way to get field name
+            print(f"  {field_name}: {attribute}")
+
+        # Print geometry as WKT (Well-Known Text)
+        geometry = feature.geometry()
+        if not geometry.isEmpty():
+            print(f"Geometry (WKT): {geometry.asWkt()}")
+        else:
+            print("Feature has no geometry")
 
     ### Update the source path of pictures in Photographs_PT and Sampling_PT layers ###
 
@@ -3619,17 +3945,17 @@ class WAXI_QF:
 
                 layer_photographs_PT.startEditing()
 
-                for entite in layer_photographs_PT.getFeatures():
-                    entite.setAttribute(source_field_index_photo, new_source_path)
-                    layer_photographs_PT.updateFeature(entite)
+                for feature in layer_photographs_PT.getFeatures():
+                    feature.setAttribute(source_field_index_photo, new_source_path)
+                    layer_photographs_PT.updateFeature(feature)
 
                 layer_photographs_PT.commitChanges()
 
                 layer_sampling_PT.startEditing()
 
-                for entite in layer_sampling_PT.getFeatures():
-                    entite.setAttribute(source_field_index_sampling, new_source_path)
-                    layer_sampling_PT.updateFeature(entite)
+                for feature in layer_sampling_PT.getFeatures():
+                    feature.setAttribute(source_field_index_sampling, new_source_path)
+                    layer_sampling_PT.updateFeature(feature)
 
                 layer_sampling_PT.commitChanges()
 
@@ -3677,11 +4003,11 @@ class WAXI_QF:
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_18.text())):
 
             # Retrieve project layer tree
-            arbre_couches = QgsProject.instance().layerTreeRoot()
+            arbre_layers = QgsProject.instance().layerTreeRoot()
 
             # Search for "FIELD DATA" group
             groupe_field_data = None
-            for enfant in arbre_couches.children():
+            for enfant in arbre_layers.children():
                 if enfant.name() == "FIELD DATA" and isinstance(
                     enfant, QgsLayerTreeGroup
                 ):
@@ -3810,6 +4136,25 @@ class WAXI_QF:
 
         self.dlg.lineEdit_37.setText(filename)
 
+    def import_FM_Project(self):
+        projectDirectoryPath = QFileDialog.getExistingDirectory(
+            None, "Select FM Project Folder"
+        )
+
+        if(os.path.exists(projectDirectoryPath+"/main.db")):
+            self.dlg.lineEdit_FM_project_path.setText(projectDirectoryPath)
+            self.FM_Import.import_FM_data(self.basePath,projectDirectoryPath)
+            self.iface.messageBar().pushMessage(
+                "SUCCESS: FeldMove Project Imported",
+                level=Qgis.Success,
+                duration=30,
+            )
+        else:
+            self.iface.messageBar().pushMessage(
+                "Error: FM Project Path Incorrect",
+                level=Qgis.Critical,
+                duration=15,
+            )
     def select_file_to_import(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Import layer")
 
@@ -3851,7 +4196,7 @@ class WAXI_QF:
 
         self.dlg.comboBox_delete.clear()
 
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
+        #WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_99_CSV_files = self.templateCSV_path
 
         if os.path.exists(emplacement_99_CSV_files):
@@ -3870,32 +4215,41 @@ class WAXI_QF:
         self.dlg.comboBox_merge2_2.clear()
 
         # List of the QGIS layers
-        couches = QgsProject.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
-        for coucheId, couche in couches.items():
+        for layerId, layer in layers.items():
             if (
-                isinstance(couche, QgsVectorLayer)
-                and not couche.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and couche.name() != "African borders_PG"
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
+                and "_PT" in layer.name()
+                and not "Compilation_" in layer.name()
             ):
-                self.dlg.comboBox_merge1_2.addItem(couche.name(), coucheId)
-                self.dlg.comboBox_merge2_2.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_merge1_2.addItem(layer.name(), layerId)
+            elif(
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
+                and "_PT" in layer.name()
+                and "Compilation_" in layer.name()):
+                    self.dlg.comboBox_merge2_2.addItem(layer.name(), layerId)
+
 
     def fill_ComboBox_layers_user(self):  # ADD
         self.dlg.comboBox_layers_user.clear()
 
         # List of the QGIS layers
-        couches = QgsProject.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
-        for coucheId, couche in couches.items():
+        for layerId, layer in layers.items():
 
             # Select all non CSV layers of the QGIS project
             if (
-                isinstance(couche, QgsVectorLayer)
-                and not couche.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and couche.name() != "African borders_PG"
+                isinstance(layer, QgsVectorLayer)
+                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
+                and layer.name() != "African borders_PG"
             ):
-                self.dlg.comboBox_layers_user.addItem(couche.name(), coucheId)
+                self.dlg.comboBox_layers_user.addItem(layer.name(), layerId)
 
     def update_ComboBox(self):
         self.fill_ComboBox()
@@ -3943,6 +4297,7 @@ class WAXI_QF:
         stereonet_tooltip = (
             "Select Checkbox to control Display behaviour for Stereonet Plugin"
         )
+        FieldMove_Import_tooltip="Select a directory with a FieldMove project and the csv files will be converted to shapefiles, \nthe photos imported to the project, the maps loaded as temporary files and the lithologies added to Local Lithologies"
 
         # Titles
         self.dlg.groupBox_4.setToolTip(Clip_tooltip)
@@ -3971,12 +4326,11 @@ class WAXI_QF:
 
         # Import Data
         self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
-        self.dlg.pushButton_8.setToolTip("Process the file you want to load")
 
-        self.dlg.pushButton_11.setToolTip("Go Back")
+        self.dlg.pushButton_11.setToolTip("Undo previous edits")
         self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
 
-        self.dlg.pushButton_12.setToolTip("Go Back")
+        self.dlg.pushButton_12.setToolTip("Undo previous edits")
         self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
 
         self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
@@ -3984,6 +4338,8 @@ class WAXI_QF:
         self.dlg.pushButton_13.setToolTip("Reset this window")
         self.dlg.pushButton_19.setToolTip("Reset this window")
         self.dlg.pushButton_22.setToolTip("Reset this window")
+
+        self.dlg.pushButton_FM_project_select.setToolTip(FieldMove_Import_tooltip)
 
         # Export Data
         self.dlg.export_pushButton.setToolTip("Export layers")
@@ -3997,10 +4353,12 @@ class WAXI_QF:
         # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
         # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
 
+        # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
+        # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
 
         # RadioButtons
-        self.dlg.radioButtonOn.setToolTip(Auto_on)
-        self.dlg.radioButtonOff.setToolTip(Auto_off)
+        self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
+        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)
 
         # LineEdit
         self.dlg.lineEdit_38.setToolTip(Value_tooltip)
@@ -4106,9 +4464,9 @@ class WAXI_QF:
         self.dir_99 = "99. COMMAND FILES - PLUGIN/"
         self.dir_0 = "0. FIELD DATA/"
         self.dir_11 = "11. ORTHOPHOTOGRAPHY-SATELLITE IMAGERY/"
-        self.geopackage_file_path = self.basePath + self.dir_0 + "/CURRENT MISSION.gpkg"
+        self.geopackage_file_path = self.basePath +'/1. EXISTING FIELD DATABASE/'+ "/COMPILATION.gpkg"
         self.templateCSV_path = self.basePath + self.dir_99 + "/CSV FILES/"
-
+        self.FM_Import = FM_Import(None)
         if os.path.exists(self.geopackage_file_path):
             self.check_version()
 
@@ -4134,7 +4492,6 @@ class WAXI_QF:
 
                 # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
 
-                self.dlg.pushButton_8.clicked.connect(self.click_import_data)
                 self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                 self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                 self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
@@ -4160,7 +4517,8 @@ class WAXI_QF:
 
                 # Stop
                 self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
-                self.dlg.autoinc_pushButton.clicked.connect(self.toggleAutoInc)
+                self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
+                self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)
 
                 # Stereo
                 self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
@@ -4240,6 +4598,7 @@ class WAXI_QF:
 
                 # PushButtons to search for files on the computer
 
+                self.dlg.pushButton_FM_project_select.clicked.connect(self.import_FM_Project)
                 self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
                 self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
                 self.dlg.pushButton.clicked.connect(self.select_dst_directory)
@@ -4257,21 +4616,62 @@ class WAXI_QF:
                 self.dlg.comboBox.currentIndexChanged.connect(
                     self.update_combobox_delete
                 )
+                self.dlg.structure_style_on_pushButton.clicked.connect(self.set_orientation_style)
+                self.dlg.structure_style_off_pushButton.clicked.connect(self.set_orientation_style)
+                
+                head_tail = os.path.split(proj_file_path)
+                main_project_path = head_tail[0] + "/"
+
+                self.csvs=self.get_csv_list(main_project_path+ self.dir_99 + "CSV FILES")
 
                 # ComboBox for create dropdown list of all csv files
-                csv_list = self.mynormpath(
-                    os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
-                )
-                csvs = pd.read_csv(csv_list, names=["name"])
+                """                csv_list = self.mynormpath(
+                                    os.path.dirname(os.path.realpath(__file__)) + "/csv.csv"
+                                )
+                """                
+                #csvs = pd.read_csv(csv_list, names=["name"])
+
                 csv_file_list = []
-                for name in csvs.name:
+                for name in self.csvs:
                     csv_file_list.append(name)
                 self.dlg.comboBox.addItems(csv_file_list[:-2])
+
+                # set default structural emasurement from project in gui
+                layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+                # Find 'Measure' field index
+                field_index = layer.fields().indexFromName("Measure")
+
+                # Update default field value
+                default_value=layer.defaultValueDefinition(field_index).expression()
+
+                if(default_value == "'Dip - dip direction'"):
+                    self.dlg.structure_style_on_pushButton.setChecked(True)
+                else:
+                    self.dlg.structure_style_off_pushButton.setChecked(True)
+
+
 
                 # Combobox Merge 2 layers
                 self.fill_ComboBox()
                 QgsProject.instance().layersAdded.connect(self.update_ComboBox)
                 QgsProject.instance().layersRemoved.connect(self.update_ComboBox)
+
+                with open(main_project_path+self.dir_99+"Stops_PT.qml", 'r') as file:
+
+                    lines = file.readlines()
+                    found=False
+                    for i,line in enumerate(lines,start=1):
+                        if('<policy policy="Duplicate" field="User"/>' in line):
+                            found=True
+                            break
+
+                    if(found):
+                        self.dlg.autoinc_on_pushButton.setChecked(True)
+                        self.dlg.autoinc_off_pushButton.setChecked(False)
+                    else:
+                        self.dlg.autoinc_on_pushButton.setChecked(False)
+                        self.dlg.autoinc_off_pushButton.setChecked(True)
+                    file.flush()
 
                 self.define_tips()
 
