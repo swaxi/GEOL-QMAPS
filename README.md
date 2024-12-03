@@ -32,7 +32,7 @@ Save repository to disk as a zip file. Use QGIS Plugin Manager to load directly 
      
 ![dialog3](dialog3.png)
 
-
+![dialog3](dialog4.png)
 ## Roadmap
 Add centroids of polygon and line features when creating virtual stop layer.
 Generate default symbols when adding new values to dictionaries if appropriate.
