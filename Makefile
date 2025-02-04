@@ -1,12 +1,12 @@
 #/***************************************************************************
-# WAXI_QF
+# GEOL_QMAPS
 #
-# Supoprt QField usage by WAXI Team
+# GEOL_QMAPS
 #							 -------------------
-#		begin				: 2023-05-31
+#		begin				: 2024-11-13
 #		git sha				: $Format:%H$
-#		copyright			: (C) 2023 by Mark Jessell UWA
-#		email				: mark.jessell@uwa.edu.au
+#		copyright			: (C) 2024 by GEOL_QMAPS
+#		email				: GEOL_QMAPS
 # ***************************************************************************/
 #
 #/***************************************************************************
@@ -38,15 +38,15 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	WAXI_QF.py WAXI_QF_dialog.py
+	GEOL_QMAPS.py GEOL_QMAPS_dockwidget.py
 
-PLUGINNAME = WAXI_QF
+PLUGINNAME = GEOL_QMAPS
 
 PY_FILES = \
 	__init__.py \
-	WAXI_QF.py WAXI_QF_dialog.py
+	GEOL_QMAPS.py GEOL_QMAPS_dockwidget.py
 
-UI_FILES = WAXI_QF_dialog_base.ui
+UI_FILES = GEOL_QMAPS_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 

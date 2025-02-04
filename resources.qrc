@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/plugins/WAXI_QF" >
+    <qresource prefix="/plugins/GEOL_QMAPS" >
         <file>icon.png</file>
     </qresource>
 </RCC>

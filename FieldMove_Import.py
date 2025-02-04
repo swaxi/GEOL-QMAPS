@@ -19,6 +19,24 @@ class FM_Import:
     def __init__(self,df):
         self.df = df
 
+    def csv_to_pandas(self, gpkg_path, layer_name):
+        # Load the CSV layer from the GeoPackage
+        layer = QgsVectorLayer(f"{gpkg_path}|layername={layer_name}", layer_name, "ogr")
+
+        # Check if the layer is valid
+        if not layer.isValid():
+            raise ValueError("Failed to load the CSV layer from the GeoPackage.")
+
+        # Extract attributes
+        data = []
+        for feature in layer.getFeatures():
+            data.append([feature["Valeur"], feature["Description"]])
+
+        # Convert to Pandas DataFrame
+        df = pd.DataFrame(data, columns=["Valeur", "Description"])
+
+        return df,layer
+        
     # Import specific files within the FieldMove project directory into current project
     def import_FM_data(self,basePath,projectDirectoryPath):
 
@@ -28,13 +46,19 @@ class FM_Import:
         
         # define specific file paths
         imagesPath=self.projectDirectoryPath+'/images'
-        DCIMPath=self.basePath+'/0. FIELD DATA/DCIM/'
-        geologyPath=self.basePath+'/6. GEOLOGY/'
-        local_litho=self.basePath+'/99. COMMAND FILES - PLUGIN/CSV FILES/Local lithologies.csv'
-        lithologies=self.basePath+'/99. COMMAND FILES - PLUGIN/CSV FILES/Lithologies.csv'
+        DCIMPath=self.basePath+'/0_FIELD_DATA/DCIM/'
+        geologyPath=self.basePath+'/6_GEOLOGY/'
+
+
+        mainCompGpkgPath = self.mynormpath(
+                self.basePath + "99_COMMAND_FILES_PLUGIN/Dictionaries.gpkg"
+            )
+        local_df,local_layer = self.csv_to_pandas(mainCompGpkgPath,"Local lithologies__List of lithologies")
+        all_litho_df,litho_layer = self.csv_to_pandas(mainCompGpkgPath,"General__List of all lithologies")
+
 
         # Import different file types
-        self.import_FM_rock_types(projectDirectoryPath,local_litho,lithologies)
+        self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath)
         self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
         self.import_FM_polylines()
         self.import_FM_lineations()
@@ -42,29 +66,121 @@ class FM_Import:
         self.import_FM_photos(imagesPath,DCIMPath)
         self.import_FM_planar_structures()
 
+    def mynormpath(self, path):
+        return r"" + os.path.normpath(path).replace("\\", "/")
+    
     # import lithology name file and store new rock names in QFIELD csv dicitonaries (Local lithologies)
-    def import_FM_rock_types(self,projectDirectoryPath,local_litho,lithologies):
+    def import_FM_rock_types(self,projectDirectoryPath,lithoQFIELD,litho_layer,localQField,local_layer,mainCompGpkgPath):
+
         litho=pd.read_csv(projectDirectoryPath+'/rock-units.csv',index_col=None)
-        localLithoQFIELD = pd.read_csv(local_litho, sep=";", encoding="latin_1",index_col=None)
-        lithoQFIELD = pd.read_csv(lithologies, sep=";", encoding="latin_1",index_col=None)
+
 
         litho=litho.drop(columns=['unitId',' type',' color'])
         litho=litho.rename(columns={' name':'Valeur'})
         litho.Valeur=litho.Valeur.str.lstrip()
         litho['Description']=litho['Valeur']
-
-        for i,lithoObject in litho.itterrows():
-            if(not lithoObject['Description'] in lithoQFIELD['Description']):
-                # New row data
-                new_row = {'Valeur': lithoObject['Description'], 'Description': lithoObject['Description']}
-
-                # Append new row using append()
-                localLithoQFIELD = localLithoQFIELD.append(new_row, ignore_index=True)
-                lithoQFIELD = lithoQFIELD.append(new_row, ignore_index=True)
-
-        localLithoQFIELD.to_csv(local_litho, index=False, sep=";")
         
-        lithoQFIELD.to_csv(lithologies, index=False, sep=";")
+        for i,dic in enumerate([lithoQFIELD,localQField]):
+            newLitho=[]
+            for i,lithoObject in litho.iterrows():
+                if(not lithoObject['Description'] in dic['Description']):
+                    # New row data
+                    new_row = {'Valeur': lithoObject['Description'], 'Description': lithoObject['Description']}
+
+                    # Append new row using append()
+                    self.add_row_to_csv_layer(mainCompGpkgPath, "General__List of all lithologies", new_row)
+                    self.add_row_to_csv_layer(mainCompGpkgPath, "Local lithologies__List of lithologies", new_row)
+
+
+        self.reload_csv(mainCompGpkgPath,"General__List of all lithologies",litho_layer)
+        self.reload_csv(mainCompGpkgPath,"Local lithologies__List of lithologies",local_layer)
+    
+    def add_row_to_csv_layer(self, gpkg_path, layer_name, new_row):
+            """
+            Add a row to a CSV layer in a GeoPackage.
+
+            Parameters:
+                gpkg_path (str): Path to the GeoPackage file.
+                layer_name (str): The name of the CSV layer in the GeoPackage.
+                new_row (dict): A dictionary representing the new row to add.
+                                The keys must match the column names of the layer.
+
+            Returns:
+                None
+            """
+            import fiona
+            try:
+                # Open the GeoPackage layer in read mode to retrieve metadata
+                with fiona.open(gpkg_path, layer=layer_name, mode="r") as src:
+                    layer_crs = src.crs
+                    layer_schema = src.schema
+                    features = list(src)  # Load existing features
+
+                # Validate new_row keys match the schema's properties
+                for key in new_row.keys():
+                    if key not in layer_schema["properties"]:
+                        raise ValueError(
+                            f"Invalid column name '{key}'. Column does not exist in the layer."
+                        )
+
+                # Create a new feature from the new_row
+                new_feature = {
+                    "type": "Feature",
+                    "geometry": None,  # CSV layers typically don't have geometries
+                    "properties": new_row,
+                }
+
+                # Append the new feature to the features list
+                features.append(new_feature)
+
+                """# Create a backup of the original GeoPackage
+                backup_path = f"{gpkg_path}.bak"
+                os.rename(gpkg_path, backup_path)
+                """
+                # Write the updated features back to the GeoPackage
+                with fiona.open(
+                    gpkg_path,
+                    mode="w",
+                    driver="GPKG",
+                    layer=layer_name,
+                    schema=layer_schema,
+                    crs=layer_crs,
+                ) as dst:
+                    dst.writerecords(features)
+
+                # print(f"Row added successfully to the layer '{layer_name}'.")
+                # print(f"A backup of the original GeoPackage was created at: {backup_path}")
+
+            except Exception as e:
+                print(f"Error adding row to the GeoPackage layer: {e}")
+
+                
+    def reload_csv(self,dictionaries_path,current_layer,layer_csv):
+        # Clear all features in the existing layer
+        layer_csv.startEditing()
+        layer_csv.dataProvider().truncate()  # Deletes all features efficiently
+        layer_csv.commitChanges()
+
+        # Load new data from the CSV file
+        new_table = QgsVectorLayer(f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr")
+        
+        if new_table.isValid():
+            # Ensure the schema matches (field names and types)
+            new_fields = new_table.fields()
+            existing_fields = layer_csv.fields()
+            
+            if new_fields.names() != existing_fields.names():
+                print("The schema of the new data does not match the existing layer. Update failed.")
+            else:
+                # Add new features to the existing layer
+                layer_csv.startEditing()
+                features = new_table.getFeatures()
+                for feature in features:
+                    layer_csv.dataProvider().addFeatures([feature])
+                layer_csv.commitChanges()
+        else:
+            print(f"Failed to load new data from {dictionaries_path}.")
+
 
     # import polylines defined as points and convert to polyline layer in memory
     def import_FM_polylines(self):
