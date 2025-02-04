@@ -1,6 +1,6 @@
 # GEOL-QMAPS Digital Geological Mapping Solution ![WAXI icon](icon.png)
 
-*version 3.1.0 - January 2025*
+*version 3.1.0 - February 2025*
 
 
 
@@ -308,18 +308,14 @@ New items become available in the GEOL-QMAPS field data dropdown menus.
 > *Ensure that the symbology of layers using the modified dictionary does not reference outdated or newly added values. If changes are made to the dictionary, update the layer's symbology accordingly to reflect the new items or remove those deleted. To do so, visit the* Symbology *tab after double-clicking on the name of the layer: Adjust the symbols to incorporate new values or remove those no longer valid.* <br>
 >*If this step is not completed before exporting to a QField package, the affected entities will display the default symbol instead of the intended representation.* <br>
 
-#### 6.3.4 Define Default Structural Measurement for Planar Structures
+#### 6.3.4. Define Default Structural Measurement for Planar Structures
 Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.
 
-#### 6.3.5. Toggle Auto-Increment of Stops
-Toggle *Stop #* autoincrementing behaviour for new entries in the **Stop_PT** layer.<br>
-The operational differences between the two modes are detailed in the accompanying ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf).
-
-#### 6.3.6 Save Changes Made to the Field Data Forms
+#### 6.3.5. Save Changes Made to the Field Data Forms
 Enables to save a new `.qlr` QGIS layer definition file in a directory to be supplied. <br>
 This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.
 
-#### 6.3.7. Clip Field Data to Current Canvas
+#### 6.3.6. Clip Field Data to Current Canvas
 Clip GEOL-QMAPS-standardised legacy field data layers to current QGIS Canvas, or select a polygon shapefile to be the clipping polygon.<br>
 Define a new directory to export the QGIS project containing the clipped legacy field data.
 
