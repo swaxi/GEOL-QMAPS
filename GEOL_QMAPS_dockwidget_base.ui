@@ -65,7 +65,7 @@ QTabBar::tab:hover {
 </string>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>
@@ -128,7 +128,7 @@ QTabBar::tab:hover {
 </string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="Step2">
        <property name="styleSheet">
@@ -1877,63 +1877,6 @@ font-size: 12px;</string>
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="groupBox_7">
-      <property name="geometry">
-       <rect>
-        <x>510</x>
-        <y>360</y>
-        <width>261</width>
-        <height>61</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="title">
-       <string>Toggle Auto-Increment of Stops</string>
-      </property>
-      <widget class="QRadioButton" name="autoinc_off_pushButton">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>20</y>
-         <width>51</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Off</string>
-       </property>
-      </widget>
-      <widget class="QRadioButton" name="autoinc_on_pushButton">
-       <property name="geometry">
-        <rect>
-         <x>70</x>
-         <y>20</y>
-         <width>61</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>On</string>
-       </property>
-      </widget>
-     </widget>
      <widget class="QGroupBox" name="groupBox_17">
       <property name="geometry">
        <rect>
@@ -2064,7 +2007,7 @@ border-style: solid;border-width: 1px;border-color: black
        <rect>
         <x>10</x>
         <y>360</y>
-        <width>491</width>
+        <width>761</width>
         <height>61</height>
        </rect>
       </property>
@@ -2137,7 +2080,6 @@ font-style: italic;</string>
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
-     <zorder>groupBox_7</zorder>
      <zorder>groupBox_6</zorder>
      <zorder>groupBox_4</zorder>
      <zorder>groupBox_5</zorder>
