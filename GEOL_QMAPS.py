@@ -78,6 +78,7 @@ from qgis.core import (
     QgsCoordinateTransform,
     QgsCoordinateReferenceSystem,
     QgsApplication,
+    QgsProviderRegistry,
     QgsLayerTreeGroup,
     QgsLayerTreeLayer,
     QgsDefaultValue,
@@ -502,8 +503,8 @@ class GEOL_QMAPS:
 
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
-                    self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
-                    self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)
+                    """self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
+                    self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)"""
 
                     # Stereo
                     self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
@@ -2876,13 +2877,13 @@ class GEOL_QMAPS:
                 dst_path = self.mynormpath(newProjPath + cp_dir)
                 self.safe_copy_tree(src_path, dst_path)
 
-            src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
+            """src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             dst_path = newProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
             self.safe_copy_file(src_path, dst_path)
 
             src_path = oldProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
             dst_path = newProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-            self.safe_copy_file(src_path, dst_path)
+            self.safe_copy_file(src_path, dst_path)"""
 
             src_path = oldProjPath + self.dir_99 + "Dictionaries.gpkg"
             dst_path = newProjPath + self.dir_99 + "Dictionaries.gpkg"
@@ -2937,11 +2938,11 @@ class GEOL_QMAPS:
                     out_pref + "columns_types_structures_WAXI4.csv",
                 ],
                 [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                [in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
+                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
                 [
                     in_pref + "Stops_PT_no_autoinc.qml",
                     out_pref + "Stops_PT_no_autoinc.qml",
-                ],
+                ],"""
                 [in_pref + "Version.txt", out_pref + "Version.txt"],
             ]
 
@@ -3279,7 +3280,7 @@ class GEOL_QMAPS:
         return True
     
     ### Toggle AutoIncrements of stop number ###
-    def toggleAutoInc(self):
+    """def toggleAutoInc(self):
         project = QgsProject.instance()
         proj_file_path = project.fileName()
         head_tail = os.path.split(proj_file_path)
@@ -3315,7 +3316,7 @@ class GEOL_QMAPS:
                 with open(qmapConfigPath, "w") as outfile:
                     json.dump(qmapConfig, outfile, indent=4)
         else:
-            print("An autoinc qml file is missing from the project")
+            print("An autoinc qml file is missing from the project")"""
 
 
     ### Set user by default ###                   #ADD
@@ -3718,10 +3719,29 @@ class GEOL_QMAPS:
         except Exception as e:
             print(f"Error merging text table layers: {e}")
 
+
+    def list_layers_from_gpkg(self,gpkg_path):
+        """
+        Returns a list of layer names contained in a GeoPackage.
+        
+        :param gpkg_path: Path to the GeoPackage file.
+        :return: List of layer names.
+        """
+        layer = QgsVectorLayer(gpkg_path, "temp_layer", "ogr")
+        if not layer.isValid():
+            print(f"Failed to open GeoPackage: {gpkg_path}")
+            return []
+        
+        sub_layers = layer.dataProvider().subLayers()
+        return [subLayer.split('!!::!!')[1] for subLayer in sub_layers]
+
+    
     def merge_current_to_existing(self):
-
-        # set up directory structure and load filename lists
-
+        """
+        Combines layers from source geopackage with matching 'Compilation_' prefixed layers
+        in the target geopackage. Updates target layers with combined data and then clears
+        the source layers while preserving their structure.
+        """
         shp_list = self.mynormpath(
             os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
         )
@@ -3735,70 +3755,127 @@ class GEOL_QMAPS:
         shps = pd.read_csv(shp_list, names=["name", "dir_code"])
         shps = shps.set_index("name")
 
-        currentGpkgPath = self.mynormpath(
+        source_gpkg_path = self.mynormpath(
             main_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
         )
 
-        compilationCompGpkgPath = self.mynormpath(
-            main_project_path + self.dir_1 + "COMPILATION.gpkg"
-        )
-
-        # Remove data from Current geopackage and merge with to Existing geopackage
-        for layer in project.mapLayers().values():
-            # Check if the layer name matches the target name
-            if layer.name() in shps.index.tolist():
-
-                current_layer_path = currentGpkgPath + "|layername=" + layer.name()
-                compilation_layer_path = (
-                    compilationCompGpkgPath + "|layername=Compilation_" + layer.name()
-                )
-
-                # Load the layer into memory
-                layer_temp = QgsVectorLayer(
-                    f"{current_layer_path}", "temp_layer", "ogr"
-                )
-
-                if layer_temp.isValid():
-                    # Add the layer to the project temporarily
-                    QgsProject.instance().addMapLayer(layer_temp)
-
-                    # Perform your operation (e.g., count features)
-                    feature_count = layer_temp.featureCount()
-
-                    # Remove the layer from the project
-                    QgsProject.instance().removeMapLayer(layer_temp)
-
-                else:
-                    print(
-                        f"Error: Could not load layer '{layer_temp}' from '{current_layer_path}'."
-                    )
-
-                if feature_count > 0:
-                    params = {
-                        "LAYERS": [current_layer_path, compilation_layer_path],
-                        "OUTPUT": "ogr:dbname='"
-                        + self.mynormpath(
-                            compilationCompGpkgPath
-                            + "' table=\""
-                            + "Compilation_"
-                            + layer.name()
-                        )
-                        + '"',
-                    }
-                    print("params", params)
-
-                    merged_layers = processing.run("native:mergevectorlayers", params)
+        # Get list of layers from source geopackage
+        source_layers = []
+        source_gpkg = QgsVectorLayer(source_gpkg_path, "source_gpkg", "ogr")
+        for child in source_gpkg.dataProvider().subLayers():
+            layer_name = child.split('!!::!!')[1]  # Get layer name from sublayer string
+            source_layers.append(layer_name)
+        
+        print(f"Found {len(source_layers)} layers in source geopackage")
+        
+        # Process each layer
+        for source_layer_name in source_layers:
+            if source_layer_name in shps.index.tolist():
+                print("Processing source layer:", source_layer_name)
+                try:
+                    # Get the layers by name
+                    source_layer = QgsProject.instance().mapLayersByName(source_layer_name)[0]
+                    compilation_layer = QgsProject.instance().mapLayersByName('Compilation_'+source_layer_name)[0]
                     
-                    self.drop_layer_contents(currentGpkgPath, layer.name())
-                    # Get the layer by its name (replace 'your_layer_name' with the actual name)
-                    self.refresh_layer("Compilation_" + layer.name())
-                    self.refresh_layer(layer.name())
+                    # Find the maximum FID in the compilation layer
+                    max_fid = -1
+                    for feat in compilation_layer.getFeatures():
+                        fid = feat.id()
+                        if fid > max_fid:
+                            max_fid = fid
 
-        self.iface.messageBar().pushMessage(
-            "Current observations moved to Compilation geopackage",
-            level=Qgis.Success,
-            duration=5,
-        )
+                    # Start new FIDs from max_fid + 1000000 to ensure no conflicts
+                    next_fid = max_fid + 1000000
+                    
+                    # Start editing the compilation layer
+                    if not compilation_layer.startEditing():
+                        print(f"Failed to start editing {compilation_layer.name()}")
+                        continue
+                    
+                    # Add features one by one with new FIDs
+                    features_added = 0
+                    errors = []
+                    new_features = []  # Collect features before adding them
+                    
+                    for feature in source_layer.getFeatures():
+                        new_feature = QgsFeature()
+                        new_feature.setFields(compilation_layer.fields())
+                        
+                        # Set attributes
+                        attrs = {}
+                        for field in compilation_layer.fields():
+                            field_name = field.name()
+                            if field_name.lower() == 'fid':
+                                attrs[field_name] = next_fid
+                            else:
+                                try:
+                                    attrs[field_name] = feature[field_name]
+                                except KeyError:
+                                    attrs[field_name] = None
+                        
+                        new_feature.setAttributes([attrs[field.name()] for field in compilation_layer.fields()])
+                        new_feature.setGeometry(feature.geometry())
+                        new_features.append(new_feature)
+                        next_fid += 1
+                    
+                    # Add all features at once
+                    if compilation_layer.addFeatures(new_features):
+                        features_added = len(new_features)
+                    else:
+                        errors.append("Failed to add features batch")
+                    
+                    # Commit the changes to compilation layer
+                    if compilation_layer.commitChanges():
+                        compilation_layer.updateExtents()
+                        compilation_layer.triggerRepaint()
+                        print(f"Successfully added {features_added} features to {compilation_layer.name()}")
+                        
+                        # Now clear the source layer
+                        if source_layer.startEditing():
+                            # Delete all features while preserving structure
+                            feature_ids = [feature.id() for feature in source_layer.getFeatures()]
+                            source_layer.deleteFeatures(feature_ids)
+                            
+                            if source_layer.commitChanges():
+                                print(f"Successfully cleared {source_layer.name()}")
+                                source_layer.updateExtents()
+                                source_layer.triggerRepaint()
+                            else:
+                                print(f"Failed to clear {source_layer.name()}. Errors:", 
+                                    source_layer.commitErrors())
+                                source_layer.rollBack()
+                        else:
+                            print(f"Failed to start editing {source_layer.name()} for clearing")
+                        
+                        if errors:
+                            print("Errors occurred during merge:")
+                            for error in errors:
+                                print(f"  {error}")
+                    else:
+                        print(f"Failed to commit changes to {compilation_layer.name()}. Errors:", 
+                            compilation_layer.commitErrors())
+                        compilation_layer.rollBack()
+                        
+                except IndexError:
+                    print(f"Could not find layer {source_layer_name} or its compilation counterpart")
+                except Exception as e:
+                    print(f"Error processing {source_layer_name}: {str(e)}")
+
+    def delete_gpkg_layer(self,geopackage_path,layer_name):
+        from osgeo import ogr
+        import os
+        # Open the GeoPackage using OGR
+        gpkg_ds = ogr.Open(geopackage_path, 1)  # 1 = Open in update mode
+
+        if gpkg_ds:
+            # Execute the DROP TABLE command
+            sql = f"DROP TABLE \"{layer_name}\""
+            gpkg_ds.ExecuteSQL(sql)
+            gpkg_ds = None  # Close the connection
+            print(f"✅ Layer '{layer_name}' successfully removed from {geopackage_path}.")
+        else:
+            print(f"⚠️ Error: Unable to open GeoPackage '{geopackage_path}'!")
+
 
     def refresh_layer(self, layer_name):
         layer = QgsProject.instance().mapLayersByName(layer_name)[0]
@@ -3953,11 +4030,11 @@ class GEOL_QMAPS:
                     out_pref + "columns_types_structures_WAXI4.csv",
                 ],
                 [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                [in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
+                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
                 [
                     in_pref + "Stops_PT_no_autoinc.qml",
                     out_pref + "Stops_PT_no_autoinc.qml",
-                ],
+                ],"""
                 [in_pref + "Version.txt", out_pref + "Version.txt"],
             ]
 
@@ -4061,7 +4138,7 @@ class GEOL_QMAPS:
             )"""
             file.append(
                 self.geopackage_file_path
-                + "|layername=Compilation_Deformation_zones_PG"
+                + "|layername=Compilation_Deformation zones_PG"
             )
             """file.append(
                 self.geopackage_file_path
@@ -4101,7 +4178,7 @@ class GEOL_QMAPS:
                 "LAYERS": [file[0], file[1], file[2]],
                 "OUTPUT": newLayer,
             }
-
+            
             processing.run("native:mergevectorlayers", params)
 
             # merge lithology data
@@ -4214,9 +4291,207 @@ class GEOL_QMAPS:
     def mynormpath(self, path):
         return r"" + os.path.normpath(path).replace("\\", "/")
 
-    ### Virtual Stops ###
-
     def virtualStops(self):
+        try:
+            distance = self.dlg.lineEdit_53.text()
+            from .dbscan import Basic_DBSCAN
+            from datetime import datetime
+
+            if not self.dlg.lineEdit_53.text():
+                self.iface.messageBar().pushMessage(
+                    "Please enter a distance value", level=Qgis.Warning, duration=5
+                )
+                return
+
+            project = QgsProject.instance()
+            file = []
+            self.geopackage_file_path = self.mynormpath(self.geopackage_file_path)
+
+            layer_names = [
+                "Compilation_Lineations_PT",
+                "Compilation_Folds_PT",
+                "Compilation_Bedding-Lava flow-S0_PT",
+                "Compilation_Foliation-cleavage_PT",
+                "Compilation_Shear zones and faults_PT",
+                "Compilation_Fractures_PT",
+                "Compilation_Veins_PT",
+                "Compilation_Dikes-Sills_PT",
+                "Compilation_Local lithologies_PT",
+                "Compilation_Supergene lithologies_PT",
+                "Compilation_Sedimentary lithologies_PT",
+                "Compilation_Volcanoclastic lithologies_PT",
+                "Compilation_Igneous extrusive lithologies_PT",
+                "Compilation_Igneous intrusive lithologies_PT",
+                "Compilation_Metamorphic lithologies_PT",
+                "Compilation_Lithological contacts_PT",
+                "Compilation_Magnetic susceptibility_PT"
+            ]
+
+            for layer_name in layer_names:
+                file.append(f"{self.geopackage_file_path}|layername={layer_name}")
+
+            print("Starting layer merging process...")
+
+            all_points = []
+            all_features = []
+            field_names = set()
+
+            # Step 1: Find common fields across all layers
+            for i, f in enumerate(file):
+                test_layer = QgsVectorLayer(f, f"Layer_{i}", "ogr")
+                if not test_layer.isValid():
+                    print(f"Warning: Layer {i} is not valid, skipping")
+                    continue
+
+                #print(f"Processing layer {i}: {f}")
+
+                layer_fields = set([field.name() for field in test_layer.fields()])
+                if i == 0:
+                    field_names = layer_fields  # First layer sets the common fields
+                else:
+                    field_names.intersection_update(layer_fields)  # Keep only common fields
+
+                for feature in test_layer.getFeatures():
+                    geom = feature.geometry()
+                    if geom is None or geom.isEmpty():
+                        print(f"Skipping empty geometry in layer {i}")
+                        continue
+
+                    if geom.wkbType() == QgsWkbTypes.Point:
+                        point = geom.asPoint()
+                        all_points.append([point.x(), point.y()])
+                        all_features.append(feature)
+
+            print(f"Total points collected from all layers: {len(all_points)}")
+            print(f"Common fields for all layers: {list(field_names)}")
+
+            if not all_points:
+                self.iface.messageBar().pushMessage(
+                    "No points found", level=Qgis.Warning, duration=45
+                )
+                return
+
+            import numpy as np
+            X = np.array(all_points)
+
+            canvas = self.iface.mapCanvas()
+            if canvas.mapUnits() == 6:
+                distance = float(distance) / 111139.0
+            else:
+                distance = float(distance)
+
+            scanner = Basic_DBSCAN(eps=distance, minPts=1)
+            clusters = scanner.fit_predict(X)
+
+            print(f"Clusters assigned: {set(clusters)}")
+
+            # Step 2: Create memory layer with only common fields
+            merged_layers = QgsVectorLayer("Point?crs=EPSG:4326", "Virtual_Stops", "memory")
+            provider = merged_layers.dataProvider()
+
+            # Add only common fields to the new layer
+            new_fields = [QgsField(field_name, QVariant.String) for field_name in field_names]
+            new_fields.append(QgsField("v_stop", QVariant.String))  # Add v_stop field
+            provider.addAttributes(new_fields)
+            merged_layers.updateFields()
+
+            # Step 3: Insert features dynamically handling missing fields
+            merged_layers.startEditing()
+
+            for i, feature in enumerate(all_features):
+                new_feature = QgsFeature(merged_layers.fields())  # Ensure correct field structure
+                geometry = feature.geometry()
+
+                if geometry is None or geometry.isEmpty():
+                    print(f"Skipping feature {i} due to missing geometry.")
+                    continue
+
+                new_feature.setGeometry(geometry)  # Ensure geometry is set
+
+                # Extract only common field values dynamically
+                feature_attributes = []
+                for field_name in field_names:
+                    try:
+                        field_index = feature.fields().indexFromName(field_name)
+                        if field_index != -1 and field_index < len(feature.attributes()):
+                            feature_attributes.append(feature.attributes()[field_index])
+                        else:
+                            raise IndexError
+                    except IndexError:
+                        print(f"⚠ Warning: Field '{field_name}' missing for feature {i}, setting to None")
+                        feature_attributes.append(None)
+
+                feature_attributes.append(str(clusters[i]))  # Add v_stop value
+
+                # Debugging: Print the extracted attributes for each feature
+                #print(f"Feature {i} attributes: {feature_attributes}")
+
+                new_feature.setAttributes(feature_attributes)
+
+                # Debugging to check if feature is added correctly
+                if provider.addFeature(new_feature):
+                    pass
+                    #print(f"✅ Successfully added feature {i}")
+                else:
+                    print(f"❌ Failed to add feature {i}")
+
+
+            merged_layers.startEditing()
+            if merged_layers.dataProvider().fieldNameIndex("Virtual_ID") == -1:
+                merged_layers.dataProvider().addAttributes(
+                    [QgsField("Virtual_ID", QVariant.String)]
+                )
+                merged_layers.updateFields()
+
+            id_new_col = merged_layers.dataProvider().fieldNameIndex("Virtual_ID")
+
+            for i, feature in enumerate(merged_layers.getFeatures()):
+                if clusters[i] > 0:
+                    merged_layers.changeAttributeValue(
+                        feature.id(), id_new_col, str(clusters[i])
+                    )
+ 
+            print(f"Before commit: merged_layers feature count: {merged_layers.featureCount()}")
+            merged_layers.commitChanges()
+            merged_layers.updateExtents()
+
+            print(f"After commit: merged_layers feature count: {merged_layers.featureCount()}")
+
+            if merged_layers.featureCount() == 0:
+                print("❌ ERROR: No features were added to the memory layer.")
+                return
+
+            output_path = QgsProject.instance().readPath("./") + "/"
+            datestamp = datetime.now().strftime("%d-%b-%Y_%H_%M_%S")
+            params = {
+                "INPUT": merged_layers,
+                "OPTIONS": "-update -nln " + "Virtual_Stops_" + datestamp,
+                "OUTPUT": output_path + self.dir_0 + "CURRENT_MISSION.gpkg",
+            }
+            print("params2", params)
+
+            processing.run("gdal:convertformat", params)
+
+            virtual_path = self.mynormpath(
+                output_path
+                + self.dir_0
+                + "/CURRENT_MISSION.gpkg|layername=Virtual_Stops_"
+                + datestamp
+            )
+            self.iface.addVectorLayer(virtual_path, "Virtual_Stops_" + datestamp, "ogr")
+            self.iface.messageBar().pushMessage(
+                "Virtual Stop layer created", level=Qgis.Success, duration=5
+            )
+
+        except Exception as e:
+            print(f"General error: {str(e)}")
+            self.iface.messageBar().pushMessage(
+                f"General error: {str(e)}", level=Qgis.Critical, duration=5
+            )
+
+
+        
+    def virtualStops_old(self):
         distance = self.dlg.lineEdit_53.text()
         from .dbscan import Basic_DBSCAN
         from datetime import datetime
@@ -4228,7 +4503,7 @@ class GEOL_QMAPS:
             proj_file_path = project.fileName()
 
             file = []
-
+            self.geopackage_file_path=self.mynormpath(self.geopackage_file_path)
             file.append(
                 self.geopackage_file_path + "|layername=Compilation_Lineations_PT"
             )
@@ -4297,12 +4572,17 @@ class GEOL_QMAPS:
 
             merged_layers = processing.run("native:mergevectorlayers", params)["OUTPUT"]
 
+            if not merged_layers.isValid():
+                print("Processing failed.")
+            else:
+                print("Processing succeeded.")
+
             for i, f in enumerate(file):
 
-                if i > 1:
+                if i > 1: # ignore first two as already merged
                     # merge two shapefiles
-                    #print(f)
                     params = {"LAYERS": [merged_layers, f], "OUTPUT": "memory:"}
+                    print("params", params)
 
                     merged_layers = processing.run("native:mergevectorlayers", params)[
                         "OUTPUT"
@@ -4368,6 +4648,8 @@ class GEOL_QMAPS:
                         "OPTIONS": "-update -nln " + "Virtual_Stops_" + datestamp,
                         "OUTPUT": output_path + self.dir_0 + "/CURRENT_MISSION.gpkg",
                     }
+                    print("params2", params)
+
                     processing.run("gdal:convertformat", params)
 
                     virtual_path = self.mynormpath(
@@ -4427,8 +4709,8 @@ class GEOL_QMAPS:
         head_tail = os.path.split(proj_file_path)
 
         qmapConfigPath = head_tail[0] + "/" + self.dir_99 +   "/qmap.json" 
-        no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"
+        """no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
+        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"""""
         layer = project.mapLayersByName("Sampling_PT")[0]
 
         if os.path.exists(qmapConfigPath):
@@ -4439,14 +4721,14 @@ class GEOL_QMAPS:
                 "autoInc": True,
             }
 
-        if qmapConfig["autoInc"]:
+        """if qmapConfig["autoInc"]:
             self.dlg.autoinc_on_pushButton.setChecked(True)
             self.dlg.autoinc_off_pushButton.setChecked(False)
             self.apply_qml_style(layer,auto_filename)
         else:
             self.apply_qml_style(layer,no_auto_filename)
             self.dlg.autoinc_on_pushButton.setChecked(False)
-            self.dlg.autoinc_off_pushButton.setChecked(True)
+            self.dlg.autoinc_off_pushButton.setChecked(True)"""
 
 
         with open(qmapConfigPath, "w") as outfile:
@@ -5000,10 +5282,10 @@ class GEOL_QMAPS:
         Merge_output_tooltip = "<p>Path to directory of newly merged QGIS Project.</p>"
         Csv_list_tooltip = "Select CSV file to add item to"
         Epsilon_tooltip = "The radius of the circle to be created around each data point to check the density (in metres)"
-        Auto_on = (
+        """Auto_on = (
             "Turn on autoincrementing of Stop Number behaviour when a new Stop is added"
         )
-        Auto_off = "Turn off autoincrementing of Stop Number behaviour when a new Stop is added"
+        Auto_off = "Turn off autoincrementing of Stop Number behaviour when a new Stop is added"""""
 
         Clip_tooltip = "Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project"
         Add_item_tooltip = "Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD"
@@ -5011,9 +5293,9 @@ class GEOL_QMAPS:
         Update_tooltip = "Provide new Name and Region info for project"
         Merge_tooltip = "Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed."
         Virtualstop_tooltip = "Combine all point layers to get virtual Stop IDS"
-        Autoincrement_tooltip = (
+        """Autoincrement_tooltip = (
             "Toggle autoincrementing of Stop Number behaviour when a new Stop is added"
-        )
+        )"""
 
         gtCircles_tooltip = (
             "Select Checkbox to switch to Great Circle Display for Stereonet Plugin"
@@ -5033,7 +5315,7 @@ class GEOL_QMAPS:
         self.dlg.groupBox_10.setToolTip(Export_tooltip)
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
         self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
-        self.dlg.groupBox_7.setToolTip(Autoincrement_tooltip)
+        """self.dlg.groupBox_7.setToolTip(Autoincrement_tooltip)"""
 
         # Project Parameters
         self.dlg.projName_pushButton.setToolTip("Update project name")
@@ -5049,7 +5331,7 @@ class GEOL_QMAPS:
         self.dlg.csv_pushButton_2.setToolTip("Delete an item from CSV file")
 
         # Stop
-        #self.dlg.autoinc_pushButton.setToolTip("Toggle Auto-Increment of Stop numbers")
+        """self.dlg.autoinc_pushButton.setToolTip("Toggle Auto-Increment of Stop numbers")"""
         self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
 
         # Import Data
@@ -5085,8 +5367,8 @@ class GEOL_QMAPS:
         # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
 
         # RadioButtons
-        self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
-        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)
+        """self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
+        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)"""
 
         # LineEdit
         self.dlg.lineEdit_38.setToolTip(Value_tooltip)
