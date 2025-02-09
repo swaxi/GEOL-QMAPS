@@ -135,6 +135,7 @@ import hashlib
 
 # Libraries for manipulating Excel files
 import pandas as pd
+import platform
 
 # Library for list copies
 from copy import copy
@@ -202,9 +203,15 @@ class GEOL_QMAPS:
         ## Python library integration
         def install_library(library_name):
             try:
-                subprocess.call(["python", "-m", "pip", "install", library_name])
+                if platform.system() == "Windows":
+                    subprocess.check_call(
+                        ["python", "-m", "pip", "install", library_name]
+                    )
+                else:
+                    subprocess.check_call(
+                        ["python3", "-m", "pip3", "install", library_name]
+                    )
                 print(f"Successfully installed {library_name}")
-                import library_name
             except subprocess.CalledProcessError as e:
                 print(f"Error installing {library_name}: {e}")
 
