@@ -3,14 +3,14 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=GEOL-QMAPS
+name=geol_qmaps
 qgisMinimumVersion=3.36
-description=The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
+description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the geol_qmaps QGIS mapping template developed by the WAXI Team. 
 version=3.1.2
 author=Mark Jessell, Eliott Betend and Julien Perret (University of Western Australia)
 email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
 
-about= The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
+about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the geol_qmaps QGIS mapping template developed by the WAXI Team. 
 
 tracker=https://github.com/swaxi/WAXI_QF/issues
 repository=https://github.com/swaxi/WAXI_QF
@@ -25,7 +25,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=Digital Geological Mapping, Legacy Field Data Import, FieldWork Preparation, Post-Field Processing, West Africa Exploration Initiative
 
-homepage=http://waxi4.org
+homepage=https://github.com/swaxi/WAXI_QF
 category=Plugins
 icon=icon.png
 # experimental flag
