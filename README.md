@@ -55,6 +55,17 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.40.0 (Bratislava)* and
   * a log file (**`List of updates of the different releases.docx`**),
 
 ### *4.2. GEOL-QMAPS QGIS Plugin* 
+*Option 1*
+* The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.
+
+* Open the QGIS Plugin Manager, navigate to the **`Settings`** tab and enable the **Show also Experimental Plugins** option
+
+* Switch to the **`All`** tab and search for *geol_qmaps* in the search bar
+  
+* Select the plugin and click on **Install Experimental Plugin**
+![Installation_Plugin_Repository](Installation_Plugin_Repository.PNG) 
+
+*Option 2*
 * Visit [the GitHub repository of the custom QGIS plugin related to the QGIS plugin](https://github.com/swaxi/WAXI_QF)
 
 * Save **`geol-qmaps-main.zip`** repository to disk as a zip file 
@@ -62,9 +73,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.40.0 (Bratislava)* and
 * Use QGIS Plugin Manager to load directly from zip file
   ![Installation_Plugin](Installation_Plugin.PNG) 
  
-> [!IMPORTANT]
-> *The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.*
-
 
 
 
