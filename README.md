@@ -1,6 +1,6 @@
 # GEOL-QMAPS Digital Geological Mapping Solution ![WAXI icon](icon.png)
 
-*version 3.1.0 - February 2025*
+*version 3.1.1 - March 2025*
 
 
 
@@ -34,7 +34,7 @@ If you use the GEOL-QMAPS mapping solution, we would greatly appreciate it if yo
 
 ## 3. Software Specifications
 
-The current version of GEOL-QMAPS is supported by *QGIS 3.40.0 (Bratislava)* and *QField 3.4.7 (Ebo)*.
+The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *QField 3.5.2 (Fangorn)*.
 
 > [!IMPORTANT] 
 > *Ensure that the GEOL-QMAPS tools are compatible with the version of QGIS installed on your computer, as using an incompatible version may lead to malfunctions, especially for the plugin tools.<br>
