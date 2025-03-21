@@ -65,6 +65,10 @@ from qgis.PyQt.QtWidgets import (
     QListView,
     QButtonGroup,
 )
+
+from PyQt5.QtWidgets import (
+    QHeaderView
+)
 from qgis.core import (
     Qgis,
     QgsProject,
@@ -265,6 +269,80 @@ class GEOL_QMAPS:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("GEOL_QMAPS", message)
+
+   # Lipari colorscale
+    def lipari_color(self, score):
+        """
+        Returns a QColor based on the given normalized score (0 to 100)
+        using a Roma colorscale (Cramieri et al.).
+        """
+        stops = [
+            (0, QColor("#8d390a")),  # brownish red
+            (25, QColor("#b17f2c")),  # golden brown
+            (50, QColor("#FFFFFF")),  # white
+            (75, QColor("#3291c3")),  # blue
+            (100, QColor("#194ca6"))  # dark blue at 100
+        ]
+        if score <= stops[0][0]:
+            return stops[0][1]
+        if score >= stops[-1][0]:
+            return stops[-1][1]
+        for i in range(1, len(stops)):
+            if score <= stops[i][0]:
+                lower_score, lower_color = stops[i - 1]
+                upper_score, upper_color = stops[i]
+                t = (score - lower_score) / (upper_score - lower_score)
+                r = lower_color.red() + t * (upper_color.red() - lower_color.red())
+                g = lower_color.green() + t * (upper_color.green() - lower_color.green())
+                b = lower_color.blue() + t * (upper_color.blue() - lower_color.blue())
+                return QColor(int(r), int(g), int(b))
+
+    # create legend with colorbar
+    def create_legend_widget(self):
+        # Create the legend container widget
+        legend_container = QWidget()
+        legend_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Horizontal layout for the legend container
+        h_layout = QHBoxLayout(legend_container)
+        h_layout.setContentsMargins(0, 0, 0, 0)
+        h_layout.setSpacing(5)
+
+        # Vertical layout for the color bar and top/bottom labels
+        v_layout = QVBoxLayout()
+        v_layout.setContentsMargins(0, 0, 0, 0)
+        v_layout.setSpacing(2)
+
+        top_label = QLabel("highest")
+        top_label.setAlignment(Qt.AlignCenter)
+        top_label.setFont(QFont("Arial", 6))
+
+        bottom_label = QLabel("lowest")
+        bottom_label.setAlignment(Qt.AlignCenter)
+        bottom_label.setFont(QFont("Arial", 6))
+
+        # Create the color bar widget (set fixed width and allow vertical expansion)
+        color_bar = QLabel()
+        color_bar.setFixedWidth(40)
+        color_bar.setMinimumHeight(200)
+        color_bar.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        color_bar.setStyleSheet(
+            "background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, "
+            "stop:0 #8d390a, stop:0.25 #b17f2c, stop:0.5 #FFFFFF, stop:0.75 #3291c3, stop:1 #194ca6);"
+            "border: 1px solid black;"
+        )
+
+        # Add widgets to the vertical layout with the color bar taking extra space
+        v_layout.addWidget(top_label, 0)
+        v_layout.addWidget(color_bar, 1)
+        v_layout.addWidget(bottom_label, 0)
+
+        # Add the vertical layout to the horizontal layout, then add stretch for centering
+        h_layout.addLayout(v_layout)
+        h_layout.addStretch()
+
+        legend_container.setLayout(h_layout)
+        return legend_container
 
     def add_action(
         self,
@@ -577,10 +655,10 @@ class GEOL_QMAPS:
                         lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/"))
                     )
 
-                    # Connection to the help file  : http://13.210.3.244/manual_qfield_plugin/
+                    # Connection to the help file  : https://github.com/swaxi/GEOL-QMAPS/tree/main#5-workflow
                     self.dlg.pushButton_21.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("http://13.210.3.244/manual_qfield_plugin/")
+                            QUrl("https://github.com/swaxi/GEOL-QMAPS/tree/main#5-workflow")
                         )
                     )
 
@@ -594,10 +672,10 @@ class GEOL_QMAPS:
                     #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
                     # )
 
-                    #  Connection to the Zenodo site : https://zenodo.org/records/10147786
+                    #  Connection to the Zenodo repository for the latest release (always resolved) : https://doi.org/10.5281/zenodo.7834717
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://zenodo.org/records/10692516")
+                            QUrl("https://doi.org/10.5281/zenodo.7834717")
                         )
                     )
 
@@ -886,34 +964,58 @@ class GEOL_QMAPS:
         self.dlg.tableWidget1.setColumnCount(3)
         column_names1 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
+        self.dlg.tableWidget1.setColumnWidth(0, 185)
+        self.dlg.tableWidget1.setColumnWidth(1, 185)
+        self.dlg.tableWidget1.setColumnWidth(2, 185)
+        self.dlg.tableWidget1.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) #fixed width of the columns
+        self.dlg.tableWidget1.verticalHeader().setVisible(False) #vertical header (1 to n) invisible
+
+        # Set the header font size
+        header_font = self.dlg.tableWidget1.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget1.horizontalHeader().setFont(header_font)
+
+        # Create a new legend widget and set it in the legend box for Table1
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox_3)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox_3.setLayout(legend_main_layout)
+
+        # Compute the real maximum score among all rows (ignoring "Geometry")
+        valid_scores = [score for (old, new, score) in list_trio_columns_trie if old != "Geometry"]
+        max_score = max(valid_scores) if valid_scores else 1  # avoid division by zero
 
         current_row_count = 1
         for k, (old, new, score) in enumerate(list_trio_columns_trie):
             if old != "Geometry":
                 self.dlg.tableWidget1.setRowCount(current_row_count)
-                self.dlg.tableWidget1.setItem(k, 0, QTableWidgetItem(str(old)))
-                self.dlg.tableWidget1.setItem(k, 1, QTableWidgetItem(str(new)))
 
-                # Calculate initial colour based on original score (if needed)
-                score_normalized = (score / 8) / 100  # assuming maximum score is 800
-                teinte = int(score_normalized * 120)
-                saturation = 140
-                value = 250
-                color = QColor.fromHsv(teinte, saturation, value)
+                # Create and set the legacy value item with custom font
+                legacy_item = QTableWidgetItem(str(old))
+                legacy_item.setFont(QFont("Arial", 8))  # Adjust font family and size as needed
+                self.dlg.tableWidget1.setItem(k, 0, legacy_item)
+
+                # Create and set the assigned value item with custom font
+                assigned_item = QTableWidgetItem(str(new))
+                assigned_item.setFont(QFont("Arial", 8))
+                self.dlg.tableWidget1.setItem(k, 1, assigned_item)
+
+                # Normalize the current row score based on the maximum score found
+                new_score = (score / max_score) * 100.0 if max_score > 0 else 0
+
+                # Use the Lipari colorscale helper to get the corresponding color
+                new_color = self.lipari_color(new_score)
+
+                # Apply the new color to both legacy and assigned cells
                 for column in range(2):
                     item = self.dlg.tableWidget1.item(k, column)
                     if item:
-                        item.setBackground(color)
-
-                # Legend code (typically set up outside the loop) omitted for brevity
+                        item.setBackground(new_color)
 
                 # Forbid editing of the first two columns
-                item1 = self.dlg.tableWidget1.item(k, 0)
-                item2 = self.dlg.tableWidget1.item(k, 1)
-                if item1:
-                    item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-                if item2:
-                    item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+                legacy_item.setFlags(legacy_item.flags() & ~Qt.ItemIsEditable)
+                assigned_item.setFlags(assigned_item.flags() & ~Qt.ItemIsEditable)
 
                 # Create composite widget for "Modify the assigned value" column:
                 modify_widget = QWidget(self.dlg)
@@ -945,9 +1047,9 @@ class GEOL_QMAPS:
 
                 # Set cell dimensions
                 self.dlg.tableWidget1.setRowHeight(k, 28)
-                self.dlg.tableWidget1.setColumnWidth(0, 160)
-                self.dlg.tableWidget1.setColumnWidth(1, 160)
-                self.dlg.tableWidget1.setColumnWidth(2, 160)
+                self.dlg.tableWidget1.setColumnWidth(0, 185)
+                self.dlg.tableWidget1.setColumnWidth(1, 185)
+                self.dlg.tableWidget1.setColumnWidth(2, 185)
 
                 current_row_count += 1
 
@@ -1088,32 +1190,59 @@ class GEOL_QMAPS:
     #Update assigned value
     def update_assigned_value(self, row, new_alias):
         from fuzzywuzzy import fuzz  # ensure fuzz is imported
-        # Retrieve the legacy value from column 0
         legacy_item = self.dlg.tableWidget1.item(row, 0)
         if legacy_item is None:
             return
         legacy_value = legacy_item.text()
-
-        # Recalculate matching score between legacy_value and new_alias
-        new_score = fuzz.token_set_ratio(legacy_value, new_alias)
-
-        # Update the assigned value cell in column 1 with the new alias
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)  # new_score in [0, 100]
         assigned_item = self.dlg.tableWidget1.item(row, 1)
         if assigned_item:
             assigned_item.setText(new_alias)
         else:
-            # In case it is missing, create it
             assigned_item = QTableWidgetItem(new_alias)
             self.dlg.tableWidget1.setItem(row, 1, assigned_item)
-
-        # Update the background colour based on the new_score
-        # Here we assume new_score is between 0 and 100; scale it accordingly:
-        teinte = int(new_score * 1.2)  # 100 -> 120, 0 -> 0
-        saturation = 140
-        value = 250
-        new_color = QColor.fromHsv(teinte, saturation, value)
+        # Instead of using HSV, use lipari_color helper:
+        new_color = self.lipari_color(new_score)
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
 
         # Set the new background colour for both legacy and assigned value cells
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
+    def update_assigned_value2(self, row, new_alias):
+        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        legacy_item = self.dlg.tableWidget2.item(row, 0)
+        if legacy_item is None:
+            return
+        legacy_value = legacy_item.text()
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)  # new_score in [0, 100]
+        assigned_item = self.dlg.tableWidget1.item(row, 1)
+        if assigned_item:
+            assigned_item.setText(new_alias)
+        else:
+            assigned_item = QTableWidgetItem(new_alias)
+            self.dlg.tableWidget1.setItem(row, 1, assigned_item)
+        # Instead of using HSV, use lipari_color helper:
+        new_color = self.lipari_color(new_score)
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
+    def update_assigned_value3(self, row, new_alias):
+        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        legacy_item = self.dlg.tableWidget3.item(row, 0)
+        if legacy_item is None:
+            return
+        legacy_value = legacy_item.text()
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)  # new_score in [0, 100]
+        assigned_item = self.dlg.tableWidget1.item(row, 1)
+        if assigned_item:
+            assigned_item.setText(new_alias)
+        else:
+            assigned_item = QTableWidgetItem(new_alias)
+            self.dlg.tableWidget1.setItem(row, 1, assigned_item)
+        # Instead of using HSV, use lipari_color helper:
+        new_color = self.lipari_color(new_score)
         legacy_item.setBackground(new_color)
         assigned_item.setBackground(new_color)
 
@@ -1375,71 +1504,61 @@ class GEOL_QMAPS:
 
         ###    Filling 2 : LITHOLOGIES NAME ## input = list_couple     ###
 
-        # Setting the number of columns in the QTableWidget
+        ### Populate the table "Lithology Names"
         self.dlg.tableWidget2.setColumnCount(3)
-
-        # Headers of the QTableWidget
-        column_names2 = [
-            "Legacy data value",
-            "Assigned standard value",
-            "Modify the assigned value",
-        ]
+        column_names2 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
+        self.dlg.tableWidget2.setColumnWidth(0, 185)
+        self.dlg.tableWidget2.setColumnWidth(1, 185)
+        self.dlg.tableWidget2.setColumnWidth(2, 185)
+        self.dlg.tableWidget2.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)  # fixed width of the columns
+        self.dlg.tableWidget2.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
 
-        # Re-organizing the list by descending score
+        # Set the header font size
+        header_font = self.dlg.tableWidget2.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget2.horizontalHeader().setFont(header_font)
+
+        # Create a new legend widget and set it in the legend box
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox.setLayout(legend_main_layout)
+
+        # Re-organize the list of unique lithology pairs (sorted in ascending order of score)
         list_trio_unique = sorted(list_trio_unique, key=lambda x: x[2], reverse=False)
+
+        # Dynamically compute the maximum score (ignoring any rows with a "-" legacy value)
+        valid_scores = [score for (old, new, score) in list_trio_unique if old != "-"]
+        max_score = max(valid_scores) if valid_scores else 1  # Avoid division by zero
+
         current_row_count = 1
-
         for k, (old, new, score) in enumerate(list_trio_unique):
-
             # Add a new row
             self.dlg.tableWidget2.setRowCount(current_row_count)
 
-            # Filling the 2 columns
-            self.dlg.tableWidget2.setItem(
-                k, 0, QTableWidgetItem(str(old) + " : " + str(value_counts[old]) + "")
-            )
-            self.dlg.tableWidget2.setItem(k, 1, QTableWidgetItem(str(new)))
+            # Prepare the legacy text; here we append the count if available
+            legacy_text = str(old) + " : " + str(value_counts.get(old, 0))
+            legacy_item = QTableWidgetItem(legacy_text)
+            legacy_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget2.setItem(k, 0, legacy_item)
 
-            ### Creation of a color scale according to score: red for the lowest scores and green for the highest
+            # Set the assigned value cell
+            assigned_item = QTableWidgetItem(str(new))
+            assigned_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget2.setItem(k, 1, assigned_item)
 
-            # Score between 0 and 100 normalized
-            score_normalized = score / 100
+            # Normalize the current row's score relative to the dynamic maximum
+            new_score = (score / max_score) * 100.0 if max_score > 0 else 0
+            # Get the corresponding color from the Lipari colorscale
+            new_color = self.lipari_color(new_score)
 
-            # Linear interpolation between red and green
-            teinte = int(score_normalized * 120)
-            saturation = 140
-            value = 250
-
-            # Color calculation using HSV color space
-            color = QColor.fromHsv(teinte, saturation, value)
-
+            # Apply the color to both legacy and assigned cells
             for column in range(2):
                 item = self.dlg.tableWidget2.item(k, column)
                 if item:
-                    item.setBackground(color)
-
-            # Legend for color scale
-            score_ranges = [0, 20, 40, 60, 80, 100]
-            legend_colors = [
-                QColor.fromHsv(12, 140, 250),
-                QColor.fromHsv(36, 140, 250),
-                QColor.fromHsv(60, 140, 250),
-                QColor.fromHsv(84, 140, 250),
-                QColor.fromHsv(108, 140, 250),
-            ]
-
-            # Creation of a widget for the caption
-            legendbox_layout = QVBoxLayout(self.dlg.legendbox)
-
-            for i in range(len(score_ranges) - 1):
-                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
-                color_label = QLabel()
-                color_label.setStyleSheet(
-                    f"background-color: {legend_colors[i].name()}; border: 2px solid black;"
-                )
-                legendbox_layout.addWidget(color_label)
-                legendbox_layout.addWidget(QLabel(range_label))
+                    item.setBackground(new_color)
 
             # Forbid editing of first 2 columns
             item1 = self.dlg.tableWidget2.item(k, 0)
@@ -1447,32 +1566,41 @@ class GEOL_QMAPS:
             item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
             item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
 
-            # Add a column with "Delete" and "Modify" buttons for each row
+            # Delete and Edit actions:
+            modify_widget = QWidget(self.dlg)
+            h_layout = QHBoxLayout(modify_widget)
+            h_layout.setContentsMargins(0, 0, 0, 0)
 
-            button_widget = QWidget(self.dlg)
+            # QComboBox with lithology options (using the reference list of lithologies)
+            combo = QComboBox(modify_widget)
+            for litho in list_lithology_reference:
+                combo.addItem(litho)
+            if new in list_lithology_reference:
+                combo.setCurrentIndex(list_lithology_reference.index(new))
+            else:
+                combo.setCurrentIndex(0)
+            h_layout.addWidget(combo)
 
-            btn_modifier = QPushButton("Edit", button_widget)
-            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit2(row))
-            btn_modifier.setMinimumHeight(17)
+            # Connect the combo box change signal to update the assigned value and recalc the matching score
+            combo.currentIndexChanged.connect(
+                lambda idx, row=k, combo=combo: self.update_assigned_value2(row, combo.currentText()))
 
-            btn_supprimer = QPushButton("Delete", button_widget)
-            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete2(row))
-            btn_supprimer.setMinimumHeight(17)
+            # "Delete" button remains
+            btn_delete = QPushButton("Delete", modify_widget)
+            btn_delete.setMinimumHeight(17)
+            btn_delete.clicked.connect(lambda state, row=k: self.button_delete2(row))
+            h_layout.addWidget(btn_delete)
 
-            layout = QHBoxLayout(button_widget)
-            layout.addWidget(btn_modifier)
-            layout.addWidget(btn_supprimer)
-            button_widget.setLayout(layout)
-
-            self.dlg.tableWidget2.setCellWidget(k, 2, button_widget)
+            modify_widget.setLayout(h_layout)
+            self.dlg.tableWidget2.setCellWidget(k, 2, modify_widget)
 
             # Cells size
 
             self.dlg.tableWidget2.setRowHeight(k, 28)
 
-            self.dlg.tableWidget2.setColumnWidth(0, 150)
-            self.dlg.tableWidget2.setColumnWidth(1, 150)
-            self.dlg.tableWidget2.setColumnWidth(2, 150)
+            self.dlg.tableWidget2.setColumnWidth(0, 185)
+            self.dlg.tableWidget2.setColumnWidth(1, 185)
+            self.dlg.tableWidget2.setColumnWidth(2, 185)
 
             current_row_count += 1
 
@@ -1989,99 +2117,94 @@ class GEOL_QMAPS:
 
         ###    Filling 3 : STRUCTURE NAME ## input = list_trio_unique2     ###
 
-        # Setting the number of columns in the QTableWidget
+        ### Populate the table "Structures Types"
         self.dlg.tableWidget3.setColumnCount(3)
-
-        # Headers of the QTableWidget
-        column_names3 = [
-            "Legacy data value",
-            "Assigned standard value",
-            "Modify the assigned value",
-        ]
+        column_names3 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
+        self.dlg.tableWidget3.setColumnWidth(0, 185)
+        self.dlg.tableWidget3.setColumnWidth(1, 185)
+        self.dlg.tableWidget3.setColumnWidth(2, 185)
+        self.dlg.tableWidget3.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)  # fixed width of the columns
+        self.dlg.tableWidget3.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
 
-        # Re-organize list by descending score
+        # Set the header font size
+        header_font = self.dlg.tableWidget3.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget3.horizontalHeader().setFont(header_font)
+
+        # Create a new legend widget and set it in the legend box
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox_2)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox_2.setLayout(legend_main_layout)
+
+        # Assume list_trio_unique2 is a list of structure pairs (old, new, score)
         list_trio_unique2 = sorted(list_trio_unique2, key=lambda x: x[2], reverse=False)
+
+        # Dynamically compute the maximum score among rows (ignoring rows where legacy is "-")
+        valid_scores = [score for (old, new, score) in list_trio_unique2 if old != "-"]
+        max_score = max(valid_scores) if valid_scores else 1  # Avoid division by zero
+
         current_row_count = 1
-
         for k, (old, new, score) in enumerate(list_trio_unique2):
-
-            # Add a row
+            # Add a new row to the table widget
             self.dlg.tableWidget3.setRowCount(current_row_count)
 
-            self.dlg.tableWidget3.setItem(k, 0, QTableWidgetItem(str(old)))
-            self.dlg.tableWidget3.setItem(k, 1, QTableWidgetItem(str(new)))
+            # Create and set the legacy value item with custom font
+            legacy_item = QTableWidgetItem(str(old))
+            legacy_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget3.setItem(k, 0, legacy_item)
 
-            ### Creation of a color scale according to score : red for the lowest scores and green for the highest
+            # Create and set the assigned value item with custom font
+            assigned_item = QTableWidgetItem(str(new))
+            assigned_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget3.setItem(k, 1, assigned_item)
 
-            # Score between 0 and 100 normalized
-            score_normalized = score / 100
+            # Normalize the score dynamically relative to the real maximum
+            new_score = (score / max_score) * 100.0 if max_score > 0 else 0
+            # Get the color using Lipari colorscale helper (which maps 0-100 to a continuous color)
+            new_color = self.lipari_color(new_score)
 
-            # Linear interpolation between red and green
-            teinte = int(score_normalized * 120)
-            saturation = 140
-            value = 250
+            # Apply the new color as the background for both cells
+            for col in range(2):
+                item = self.dlg.tableWidget3.item(k, col)
+                if item:
+                    item.setBackground(new_color)
 
-            # Color calculation using HSV color space
-            color = QColor.fromHsv(teinte, saturation, value)
+            # Create composite widget for "Modify the assigned value" column:
+            modify_widget = QWidget(self.dlg)
+            h_layout = QHBoxLayout(modify_widget)
+            h_layout.setContentsMargins(0, 0, 0, 0)
 
-            for column in range(2):
-                item2 = self.dlg.tableWidget3.item(k, column)
-                if item2:
-                    item2.setBackground(color)
+            # Create a QComboBox for structure choices.
+            # (Assuming you extract structure options from your DataFrame; here we use columns 1 onward as an example.)
+            structure_options = list(Dataframe.columns[1:]) if 'Dataframe' in globals() else []
+            combo = QComboBox(modify_widget)
+            for option in structure_options:
+                combo.addItem(option)
+            if new in structure_options:
+                combo.setCurrentIndex(structure_options.index(new))
+            else:
+                combo.setCurrentIndex(0)
+            h_layout.addWidget(combo)
 
-            # Legend for color scale
-            score_ranges = [0, 20, 40, 60, 80, 100]
-            legend_colors = [
-                QColor.fromHsv(12, 140, 250),
-                QColor.fromHsv(36, 140, 250),
-                QColor.fromHsv(60, 140, 250),
-                QColor.fromHsv(84, 140, 250),
-                QColor.fromHsv(108, 140, 250),
-            ]
+            # Connect the combo box signal to update the assigned value and recalc the matching score.
+            combo.currentIndexChanged.connect(
+                lambda idx, row=k, combo=combo: self.update_assigned_value3(row, combo.currentText())
+            )
 
-            # Create a widget for the legend
-            legendbox_layout2 = QVBoxLayout(self.dlg.legendbox_2)
+            # Create the Delete button.
+            btn_delete = QPushButton("Delete", modify_widget)
+            btn_delete.setMinimumHeight(17)
+            btn_delete.clicked.connect(lambda state, row=k: self.button_delete3(row))
+            h_layout.addWidget(btn_delete)
 
-            # Add labels with colors and score ranges
-            for i in range(len(score_ranges) - 1):
-                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
-                color_label = QLabel()
-                color_label.setStyleSheet(
-                    f"background-color: {legend_colors[i].name()}; border: 2px solid black;"
-                )
-                legendbox_layout2.addWidget(color_label)
-                legendbox_layout2.addWidget(QLabel(range_label))
+            modify_widget.setLayout(h_layout)
+            self.dlg.tableWidget3.setCellWidget(k, 2, modify_widget)
 
-            # Forbid editing of first 2 columns
-            item1 = self.dlg.tableWidget3.item(k, 0)
-            item2 = self.dlg.tableWidget3.item(k, 1)
-            item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-            item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
-
-            # Add a column with "Delete" and "Modify" buttons for each row
-
-            button_widget = QWidget(self.dlg)
-
-            btn_modifier = QPushButton("Edit", button_widget)
-            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit3(row))
-            btn_modifier.setMinimumHeight(17)
-
-            btn_supprimer = QPushButton("Delete", button_widget)
-            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete3(row))
-            btn_supprimer.setMinimumHeight(17)
-
-            layout = QHBoxLayout(button_widget)
-            layout.addWidget(btn_modifier)
-            layout.addWidget(btn_supprimer)
-            button_widget.setLayout(layout)
-
-            self.dlg.tableWidget3.setCellWidget(k, 2, button_widget)
-
-            # Cells size
-
+            # Set row and column sizes
             self.dlg.tableWidget3.setRowHeight(k, 28)
-
             self.dlg.tableWidget3.setColumnWidth(0, 150)
             self.dlg.tableWidget3.setColumnWidth(1, 150)
             self.dlg.tableWidget3.setColumnWidth(2, 150)

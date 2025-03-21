@@ -108,7 +108,7 @@ QTabBar::tab {
 	background-color: rgb(220, 220, 220);
   	border-radius: 2px;	
 	font-weight: bold;
-	font-size: 13px;
+	font-size: 8pt;
 	qproperty-alignment: 'AlignCenter';  
 	font-family: Arial; 
 border: 1px solid #000000;
@@ -151,17 +151,21 @@ QTabBar::tab:hover {
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>9</pointsize>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">font-family: Arial; </string>
+         <string notr="true">font-family: Arial; 
+font: 8pt &quot;Arial&quot;;</string>
         </property>
         <property name="lineWidth">
          <number>5</number>
         </property>
         <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustToContents</enum>
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
         <property name="showGrid">
          <bool>true</bool>
@@ -211,7 +215,7 @@ QTabBar::tab:hover {
         <row/>
         <column>
          <property name="text">
-          <string>Legacy Data Value</string>
+          <string>Legacy data value</string>
          </property>
          <property name="font">
           <font>
@@ -224,7 +228,7 @@ QTabBar::tab:hover {
         </column>
         <column>
          <property name="text">
-          <string>Assigned Standard Value</string>
+          <string>Assigned standard value</string>
          </property>
          <property name="font">
           <font>
@@ -237,7 +241,7 @@ QTabBar::tab:hover {
         </column>
         <column>
          <property name="text">
-          <string>Modify the Assigned Value</string>
+          <string>Modify the assigned value</string>
          </property>
          <property name="font">
           <font>
@@ -303,9 +307,15 @@ font-size: 12px;</string>
           <height>371</height>
          </rect>
         </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
         <property name="styleSheet">
          <string notr="true">font-family: Arial; 
-font-size: 12px;</string>
+font-size: 8pt;</string>
         </property>
         <property name="title">
          <string>Matching Score</string>
@@ -353,10 +363,33 @@ font-style: italic;</string>
         <property name="font">
          <font>
           <family>Arial</family>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true">font-family: Arial; 
+font: 8pt &quot;Arial&quot;;</string>
+        </property>
+        <property name="lineWidth">
+         <number>5</number>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
+        </property>
+        <property name="showGrid">
+         <bool>true</bool>
+        </property>
+        <property name="gridStyle">
+         <enum>Qt::SolidLine</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="cornerButtonEnabled">
+         <bool>true</bool>
         </property>
         <property name="rowCount">
          <number>16</number>
@@ -394,7 +427,7 @@ font-style: italic;</string>
         <row/>
         <column>
          <property name="text">
-          <string>Legacy Data Value</string>
+          <string>Legacy data value</string>
          </property>
          <property name="font">
           <font>
@@ -407,7 +440,7 @@ font-style: italic;</string>
         </column>
         <column>
          <property name="text">
-          <string>Assigned Standard Value</string>
+          <string>Assigned standard value</string>
          </property>
          <property name="font">
           <font>
@@ -420,7 +453,7 @@ font-style: italic;</string>
         </column>
         <column>
          <property name="text">
-          <string>Modify the Assigned Value</string>
+          <string>Modify the assigned value</string>
          </property>
          <property name="font">
           <font>
@@ -481,9 +514,15 @@ font-size: 12px;</string>
           <height>371</height>
          </rect>
         </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
         <property name="styleSheet">
          <string notr="true">font-family: Arial; 
-font-size: 12px;</string>
+font-size: 8pt;</string>
         </property>
         <property name="title">
          <string>Matching Score</string>
@@ -568,10 +607,33 @@ font-size: 12px;</string>
         <property name="font">
          <font>
           <family>Arial</family>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true"/>
+         <string notr="true">font-family: Arial; 
+font: 8pt &quot;Arial&quot;;</string>
+        </property>
+        <property name="lineWidth">
+         <number>5</number>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
+        </property>
+        <property name="showGrid">
+         <bool>true</bool>
+        </property>
+        <property name="gridStyle">
+         <enum>Qt::SolidLine</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="cornerButtonEnabled">
+         <bool>true</bool>
         </property>
         <property name="rowCount">
          <number>16</number>
@@ -579,6 +641,9 @@ font-size: 12px;</string>
         <property name="columnCount">
          <number>3</number>
         </property>
+        <attribute name="horizontalHeaderMinimumSectionSize">
+         <number>29</number>
+        </attribute>
         <attribute name="horizontalHeaderDefaultSectionSize">
          <number>182</number>
         </attribute>
@@ -606,7 +671,7 @@ font-size: 12px;</string>
         <row/>
         <column>
          <property name="text">
-          <string>Legacy Data Value</string>
+          <string>Legacy data value</string>
          </property>
          <property name="font">
           <font>
@@ -626,7 +691,7 @@ font-size: 12px;</string>
         </column>
         <column>
          <property name="text">
-          <string>Assigned Standard Value</string>
+          <string>Assigned standard value</string>
          </property>
          <property name="font">
           <font>
@@ -639,7 +704,7 @@ font-size: 12px;</string>
         </column>
         <column>
          <property name="text">
-          <string>Modify the Assigned Value</string>
+          <string>Modify the assigned value</string>
          </property>
          <property name="font">
           <font>
@@ -663,13 +728,13 @@ font-size: 12px;</string>
         <property name="font">
          <font>
           <family>Arial</family>
-          <pointsize>-1</pointsize>
+          <pointsize>8</pointsize>
           <kerning>false</kerning>
          </font>
         </property>
         <property name="styleSheet">
          <string notr="true">font-family: Arial; 
-font-size: 12px;</string>
+font-size: 8pt;</string>
         </property>
         <property name="title">
          <string>Matching Score</string>
@@ -3237,7 +3302,7 @@ font-weight: bold;</string>
       </widget>
       <widget class="QPushButton" name="pushButton_21">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="geometry">
         <rect>
