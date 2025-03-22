@@ -277,11 +277,9 @@ class GEOL_QMAPS:
         using a Roma colorscale (Cramieri et al.).
         """
         stops = [
-            (0, QColor("#8d390a")),  # brownish red
-            (25, QColor("#b17f2c")),  # golden brown
+            (0, QColor("#FF0000")),  # red
             (50, QColor("#FFFFFF")),  # white
-            (75, QColor("#3291c3")),  # blue
-            (100, QColor("#194ca6"))  # dark blue at 100
+            (100, QColor("#00FF00"))  # green
         ]
         if score <= stops[0][0]:
             return stops[0][1]
@@ -328,7 +326,7 @@ class GEOL_QMAPS:
         color_bar.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         color_bar.setStyleSheet(
             "background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, "
-            "stop:0 #8d390a, stop:0.25 #b17f2c, stop:0.5 #FFFFFF, stop:0.75 #3291c3, stop:1 #194ca6);"
+            "stop:0 #FF0000, stop:0.5 #FFFFFF, stop:1 #00FF00);"
             "border: 1px solid black;"
         )
 
@@ -672,10 +670,10 @@ class GEOL_QMAPS:
                     #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
                     # )
 
-                    #  Connection to the Zenodo repository for the latest release (always resolved) : https://doi.org/10.5281/zenodo.7834717
+                    #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://doi.org/10.5281/zenodo.7834717")
+                            QUrl("https://doi.org/10.5281/zenodo.15067027")
                         )
                     )
 
