@@ -1,6 +1,6 @@
 # GEOL-QMAPS Digital Geological Mapping Solution ![WAXI icon](icon.png)
 
-*version 3.1.1 - March 2025*
+*version 3.1.2 - March 2025*
 
 
 
