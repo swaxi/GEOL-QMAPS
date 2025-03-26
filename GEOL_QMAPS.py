@@ -2810,22 +2810,13 @@ class GEOL_QMAPS:
 
             copies = [
                 [oldGpkgPath, newGpkgPath],
-                [
-                    in_pref + "columns_reference_WAXI4.csv",
-                    out_pref + "columns_reference_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_types_structures_WAXI4.csv",
-                    out_pref + "columns_types_structures_WAXI4.csv",
-                ],
+                [in_pref + "columns_reference_WAXI4.csv", out_pref + "columns_reference_WAXI4.csv"],
+                [in_pref + "columns_types_structures_WAXI4.csv", out_pref + "columns_types_structures_WAXI4.csv"],
                 [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
-                [
-                    in_pref + "Stops_PT_no_autoinc.qml",
-                    out_pref + "Stops_PT_no_autoinc.qml",
-                ],"""[
-                    in_pref + "Version.txt", out_pref + "Version.txt"
-                ],
+                [in_pref + "Version.txt", out_pref + "Version.txt"],
+                [in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv", out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv"],
+                [in_pref + "Dictionaries.gpkg", out_pref + "Dictionaries.gpkg"],
+                [in_pref + "qmap.json", out_pref + "qmap.json"],
             ]
 
             for pairs in copies:
