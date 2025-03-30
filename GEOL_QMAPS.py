@@ -203,6 +203,12 @@ class GEOL_QMAPS:
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
 
+        # Initialize the attributes so they exist when used later.
+        self.create_lithologies = False 
+        self.create_structures = False
+        self.fichier_output_lithology = None
+        self.fichier_output_structures = None
+
         ## Python library integration
         def install_library(library_name):
             try:
@@ -1931,6 +1937,12 @@ class GEOL_QMAPS:
                 ligne.append(fichier_output.at[k, alias_for_col])
             else:
                 ligne.append("")
+
+        # If "Reference" is in the columns and not assigned in the DAtabase Fields table, set it to the imported layer name.
+        if "Reference" in header_local and "Reference" not in list_columns_check3:
+            ref_index = header_local.get_loc("Reference")
+            ligne[ref_index] = filename_without_extension
+            
         fichier_output_lithology[full_name].loc[len(fichier_output_lithology[full_name])] = ligne
         return fichier_output_lithology
 
@@ -2210,28 +2222,71 @@ class GEOL_QMAPS:
     def recup_contenu_3(self):
         """
         Collects the final user-verified mapping for Structures from tableWidget3.
-        Returns a list of [old_legacy_value, new_assigned_value].
+        Returns a list of sublists, each of the form:
+          [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
         """
         structure_map = []
+        # List of standard mappings: each sublist is
+        # [legacy value, standard "Structures - Structure Type", standard layer, Type, Kinematics]
+        AssignedStructures = [
+            ['Lineations - Unknown Kinematics', 'Lineations_PT', 'Unknown', 'Unknown'],
+            ['Lineations - Normal-Slip', 'Lineations_PT', 'Unknown', 'Normal-slip'],
+            ['Lineations - Reverse-Slip', 'Lineations_PT', 'Unknown', 'Reverse-slip'],
+            ['Lineations - Dextral-Slip', 'Lineations_PT', 'Unknown', 'Dextral-slip'],
+            ['Lineations - Sinistral-Slip', 'Lineations_PT', 'Unknown', 'Sinistral-slip'],
+            ['Lineations_PT - Paleoflow Direction', 'Lineations_PT', 'Paleoflow direction', 'Unknown'],
+            ['Lineations_PT - UST', 'Lineations_PT', 'UST', 'Unknown'],
+            ['Lineations_PT - Bearing', 'Lineations_PT', 'Bearing lineation', 'Unknown'],
+            ['Bedding-Lava flow-S0_PT - Unknown Polarity', 'Bedding-Lava flow-S0_PT', 'Unknown', ''],
+            ['Bedding-Lava flow-S0_PT - Normal Polarity', 'Bedding-Lava flow-S0_PT', 'Normal', ''],
+            ['Bedding-Lava flow-S0_PT - Reverse Polarity', 'Bedding-Lava flow-S0_PT', 'Inverted', ''],
+            ['Foliation-cleavage_PT', 'Foliation-cleavage_PT', '', ''],
+            ['Shear zones and faults_PT - Unknown Kinematics', 'Shear zones and faults_PT', 'Unknown', ''],
+            ['Shear zones and faults_PT - Normal-Slip', 'Shear zones and faults_PT', 'Normal-slip', ''],
+            ['Shear zones and faults_PT - Low-Angle Detachment', 'Shear zones and faults_PT', 'Low-angle detachment',
+             ''],
+            ['Shear zones and faults_PT - Reverse-Slip', 'Shear zones and faults_PT', 'Reverse-slip', ''],
+            ['Shear zones and faults_PT - Dextral-Slip', 'Shear zones and faults_PT', 'Dextral-slip', ''],
+            ['Shear zones and faults_PT - Sinistral-Slip', 'Shear zones and faults_PT', 'Sinistral-slip', ''],
+            ['Folds_PT - Unknown, Recumbent, Vertical', 'Folds_PT', 'Unknown', ''],
+            ['Folds_PT - Anticline-Antiform', 'Folds_PT', 'Antiform', ''],
+            ['Folds_PT - Syncline-Synform', 'Folds_PT', 'Synform', ''],
+            ['Folds_PT - M-shaped', 'Folds_PT', 'M fold', ''],
+            ['Folds_PT - S-shaped', 'Folds_PT', 'S fold', ''],
+            ['Folds_PT - Z-shaped', 'Folds_PT', 'Z fold', ''],
+            ['Fractures_PT', 'Fractures_PT', '', ''],
+            ['Veins_PT', 'Veins_PT', '', ''],
+            ['Dikes - Sills_PT', 'Dikes - Sills_PT', '', ''],
+            ['Lithological contacts_PT', 'Lithological contacts_PT', '', ''],
+        ]
+        # Loop through tableWidget3 rows
         for row in range(self.dlg.tableWidget3.rowCount()):
-            # Skip rows that have been 'deleted'
             if self.dlg.tableWidget3.item(row, 0) is None:
                 continue
             old_value = self.dlg.tableWidget3.item(row, 0).text().strip()
             if old_value == "-":
                 continue
 
-            # Retrieve the assigned value from column 1
+            # Retrieve assigned value from column 1
             if isinstance(self.dlg.tableWidget3.cellWidget(row, 1), QComboBox):
                 assigned_value = self.dlg.tableWidget3.cellWidget(row, 1).currentText().strip()
             else:
                 assigned_item = self.dlg.tableWidget3.item(row, 1)
                 assigned_value = assigned_item.text().strip() if assigned_item else "NULL"
 
-            # Optionally convert the assigned alias back to a real name if needed:
-            # assigned_value = self.reverse_alias_mapping.get(assigned_value, assigned_value)
-
-            structure_map.append([old_value, assigned_value])
+            # Find a matching mapping from AssignedStructures based on the assigned_value
+            matching = None
+            for mapping in AssignedStructures:
+                if mapping[0] == assigned_value:
+                    matching = mapping
+                    break
+            if matching:
+                # Create a sublist with five elements:
+                # [old_value, assigned_value, standard_layer, Type, Kinematics]
+                structure_map.append([old_value, assigned_value, matching[1], matching[2], matching[3]])
+            else:
+                # No mapping found: use defaults ("Unknown" for layer, empty strings for Type/Kinematics)
+                structure_map.append([old_value, assigned_value, "Unknown", "", ""])
         return structure_map
 
     ###############################################################################
@@ -2243,74 +2298,109 @@ class GEOL_QMAPS:
                           structure_map: list,
                           list_columns_check3: list,
                           name_input_file: str) -> dict:
-            """ Sorts the rows in fichier_output into multiple structure-type DataFrames based on user-confirmed mapping in 'structure_mapping'. 'structure_mapping' is typically a list of [old_legacy_value, new_assigned_value]. """
-    
-            # 1) Convert the list of pairs into a dictionary for fast lookups # e.g. { 'vein' : 'Veins_PT', 'fold' : 'Folds_PT', ... }
-            map_dict = {old.strip(): new.strip() for (old, new) in structure_map}
-    
-            # 2) Overwrite the old structure values in fichier_output with the new assigned ones
-            #    so that the sorting checks will actually match.
-            if "Structures - Structure Type" in fichier_output.columns:
-                for i in range(len(fichier_output)):
-                    old_val = fichier_output.loc[i, "Structures - Structure Type"].strip()
-                    if old_val in map_dict:
-                        fichier_output.loc[i, "Structures - Structure Type"] = map_dict[old_val]
-                    else:
-                        fichier_output.loc[i, "Structures - Structure Type"] = "Unknown"
-    
-            # 2) Create empty DataFrames matching each structure layer's schema
-            project = QgsProject.instance()
-            structure_layer_names = [
-                "Lineations_PT",
-                "Bedding-Lava flow-S0_PT",
-                "Foliation-cleavage_PT",
-                "Shear zones and faults_PT",
-                "Folds_PT",
-                "Fractures_PT",
-                "Veins_PT",
-                "Dikes-Sills_PT",
-                "Lithological contacts_PT"
-            ]
-    
-            fichier_output_structures = {}
-            base_filename = os.path.splitext(os.path.basename(name_input_file))[0]
-    
-            # For each known structure layer in your project, create an empty DataFrame with the same fields
-            for struct_layer_name in structure_layer_names:
-                layer = project.mapLayersByName(struct_layer_name)
-                if not layer:
-                    continue  # skip if layer is not found in the project
-                header = [field.name() for field in layer[0].fields()]
-                df_key = f"{struct_layer_name}_{base_filename}"
-                fichier_output_structures[df_key] = pd.DataFrame(columns=header)
-    
-            # 4) Append each row of fichier_output to the appropriate structure-type DataFrame
+        """
+        Sorts the rows in fichier_output into multiple structure-type DataFrames
+        based on the user-confirmed mapping.
+        Each mapping in structure_map is a list with:
+          [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
+        """
+        # 1) Build the mapping dictionary.
+        map_dict = {}
+        for entry in structure_map:
+            if len(entry) < 2:
+                continue
+            old_val = entry[0].strip() if isinstance(entry[0], str) else str(entry[0]).strip()
+            assigned = entry[1].strip() if len(entry) > 1 and isinstance(entry[1], str) else str(entry[1]).strip()
+            layer = entry[2].strip() if len(entry) > 2 and isinstance(entry[2], str) else "Unknown"
+            type_val = entry[3].strip() if len(entry) > 3 and isinstance(entry[3], str) and entry[
+                3].strip() != "" else None
+            kinematics_val = entry[4].strip() if len(entry) > 4 and isinstance(entry[4], str) and entry[
+                4].strip() != "" else None
+            map_dict[old_val] = {
+                "assigned": assigned,
+                "layer": layer,
+                "Type": type_val,
+                "Kinematics": kinematics_val
+            }
+
+        # 2) Update fichier_output with new structure values and auto-fill additional fields.
+        if "Structures - Structure Type" in fichier_output.columns:
+            if "Type" not in fichier_output.columns:
+                fichier_output["Type"] = ""
+            if "Kinematics" not in fichier_output.columns:
+                fichier_output["Kinematics"] = ""
+            if "Standard_Layer" not in fichier_output.columns:
+                fichier_output["Standard_Layer"] = ""
             for i in range(len(fichier_output)):
-                assigned_structure = fichier_output.loc[i, "Structures - Structure Type"]
-                # If assigned_structure matches a known layer name, copy the row
-                if assigned_structure in structure_layer_names:
-                    # Which DataFrame are we writing into?
-                    df_key = f"{assigned_structure}_{base_filename}"
-                    if df_key not in fichier_output_structures:
-                        continue
-                    target_df = fichier_output_structures[df_key]
-    
-                    # Build a new row, matching the QGIS layer’s field order
-                    row_to_append = []
-                    for col_reference in target_df.columns:
-                        # Convert from real name → alias if needed (mirroring your lithologies code)
+                old_val = fichier_output.loc[i, "Structures - Structure Type"].strip()
+                if old_val in map_dict:
+                    mapping = map_dict[old_val]
+                    fichier_output.loc[i, "Structures - Structure Type"] = mapping["assigned"]
+                    fichier_output.loc[i, "Standard_Layer"] = mapping["layer"]
+                    if mapping["Type"]:
+                        fichier_output.loc[i, "Type"] = mapping["Type"]
+                    if mapping["Kinematics"]:
+                        fichier_output.loc[i, "Kinematics"] = mapping["Kinematics"]
+                else:
+                    fichier_output.loc[i, "Structures - Structure Type"] = "Unknown"
+
+        # 3) Create empty DataFrames for each known structure layer.
+        project = QgsProject.instance()
+        structure_layer_names = [
+            "Lineations_PT",
+            "Bedding-Lava flow-S0_PT",
+            "Foliation-cleavage_PT",
+            "Shear zones and faults_PT",
+            "Folds_PT",
+            "Fractures_PT",
+            "Veins_PT",
+            "Dikes-Sills_PT",
+            "Lithological contacts_PT"
+        ]
+        fichier_output_structures = {}
+        base_filename = os.path.splitext(os.path.basename(name_input_file))[0]
+
+        for struct_layer_name in structure_layer_names:
+            layer_list = project.mapLayersByName(struct_layer_name)
+            if not layer_list:
+                continue
+            # For each found layer, define the header from its fields:
+            header = [field.name() for field in layer_list[0].fields()]
+            # Only add "Reference" if it was not assigned in Table1.
+            if "Reference" not in list_columns_check3 and "Reference" not in header:
+                header.append("Reference")
+            df_key = f"{struct_layer_name}_{base_filename}"
+            # Create a new DataFrame with this header.
+            fichier_output_structures[df_key] = pd.DataFrame(columns=header)
+
+        # 4) Append each row of fichier_output to the appropriate structure-type DataFrame.
+        for i in range(len(fichier_output)):
+            standard_layer = (fichier_output.loc[i, "Standard_Layer"]
+                              if "Standard_Layer" in fichier_output.columns
+                              else fichier_output.loc[i, "Structures - Structure Type"])
+            if standard_layer in structure_layer_names:
+                df_key = f"{standard_layer}_{base_filename}"
+                if df_key not in fichier_output_structures:
+                    continue
+                target_df = fichier_output_structures[df_key]
+                row_to_append = []
+                for col_reference in target_df.columns:
+                    # For the "Kinematics" field, copy directly from fichier_output.
+                    if col_reference.lower() == "kinematics":
+                        row_to_append.append(fichier_output.at[i, "Kinematics"])
+                    else:
                         alias_for_col = self.alias_mapping.get(col_reference, col_reference)
-                        # If that alias is in fichier_output, use it
                         if alias_for_col in fichier_output.columns:
                             row_to_append.append(fichier_output.at[i, alias_for_col])
                         else:
                             row_to_append.append("")
-                    # Append
-                    target_df.loc[len(target_df)] = row_to_append
-    
-            # Return the dictionary of DataFrames
-            return fichier_output_structures
+                # If "Reference" exists and was not assigned in Table1, fill it.
+                if "Reference" in target_df.columns and "Reference" not in list_columns_check3:
+                    ref_index = target_df.columns.get_loc("Reference")
+                    row_to_append[ref_index] = base_filename
+                target_df.loc[len(target_df)] = row_to_append
 
+        return fichier_output_structures
 
 
     ###############################################################################
@@ -2512,6 +2602,15 @@ class GEOL_QMAPS:
             "Names of columns checked ", "OK", level=Qgis.Success, duration=45
         )
 
+        # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.
+        if "Structures - Structure Type" in list_columns_check3:
+            self.iface.messageBar().pushMessage(
+                "Warning",
+                "If your data source includes both linear and planar measurements, but dip direction and trend/plunge direction (or dip and plunge, respectively) share the same data fields, please ensure that you import them separately. For planar measurements, assign legacy fields to standard values as follows: select \"Structures – Planar Measurements / Dip Direction\" and \"Structures – Planar Measurements / Dip\". For linear measurements, assign them using \"Structures – Linear Measurements / Trend – Plunge Direction\" and \"Structures – Linear Measurements / Trend – Plunge\".",
+                level=Qgis.Warning,
+                duration=45
+            )
+
         return fichier_output, list_columns_check3
 
     #Check lithologies and get the files ready for export to scratch standard layers
@@ -2530,10 +2629,6 @@ class GEOL_QMAPS:
             list_lithologies_unique_check_OK,
             name_layer_to_import,
         )
-        self.iface.messageBar().pushMessage(
-            "Names of lithologies checked ", "OK", level=Qgis.Success, duration=45
-        )
-        print(fichier_output_lithology)
         return fichier_output_lithology
 
     #Check Structures and get the files ready for export to scratch standard layers
@@ -2547,15 +2642,12 @@ class GEOL_QMAPS:
         )
 
         # Step 3: actually return that dictionary
-        print(fichier_output_structures)
         return fichier_output_structures
 
-    def method_import_data_as_layers(
-        self, fichier_output_lithology, fichier_output_structures):
+    def method_import_data_as_layers(self, fichier_output_lithology, fichier_output_structures):
 
         # Step 7 : Import the Excel file into QGIS and create different QGIS files
-        self.import_Excel_create_QGISfile(
-            fichier_output_lithology, fichier_output_structures)
+        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures)
         self.iface.messageBar().pushMessage(
             "Data imported in the QGIS project ", "OK", level=Qgis.Success, duration=45
         )
@@ -2611,8 +2703,7 @@ class GEOL_QMAPS:
         """
         self.fichier_output_lithology = self.method_lithologies_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
         self.create_lithologies = True
-        # Optionally, notify the user
-        self.iface.messageBar().pushMessage("Lithologies check complete.", level=Qgis.Info, duration=5)
+        self.iface.messageBar().pushMessage("Names of lithologies checked ", "OK", level=Qgis.Success, duration=45)
 
     def click_structure_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
         """
@@ -2621,8 +2712,7 @@ class GEOL_QMAPS:
         """
         self.fichier_output_structures = self.method_structures_check_OK(fichier_output, list_columns_check3, name_layer_to_import)
         self.create_structures = True
-        # Optionally, notify the user
-        self.iface.messageBar().pushMessage("Structures check complete.", level=Qgis.Info, duration=5)
+        self.iface.messageBar().pushMessage("Types of structures checked ", "OK", level=Qgis.Success, duration=45)
 
     def Generate_Output_QGIS_Layers(self):
         """
@@ -2631,19 +2721,19 @@ class GEOL_QMAPS:
         If both were checked, layers for both are generated.
         """
         # Generate lithologies layers if the flag is set
-        if self.create_lithologies and self.fichier_output_lithology and self.create_structures and self.fichier_output_structures is not None:
+        if self.create_lithologies is not None and self.fichier_output_lithology is not None and self.create_structures is not None and self.fichier_output_structures is not None:
             self.iface.messageBar().pushMessage("Generating lithologies and structures layers...", level=Qgis.Info, duration=10)
             self.method_import_data_as_layers(self.fichier_output_lithology, self.fichier_output_structures)
 
         # Generate structures layers if the flag is set
-        if self.create_structures is not None and self.fichier_output_structures is not None and self.create_structures is None and self.fichier_output_structures is None:
-            self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info, duration=10)
-            self.method_import_data_as_layers(None, self.fichier_output_structures)
-
-        # Generate structures layers if the flag is set
-        if self.create_structures is None and self.fichier_output_structures is None and self.create_structures is not None and self.fichier_output_structures is not None:
+        elif self.create_lithologies is not None and self.fichier_output_lithology is not None:
             self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info, duration=10)
             self.method_import_data_as_layers(self.fichier_output_lithology, None)
+
+        # Generate structures layers if the flag is set
+        elif self.create_structures is None and self.fichier_output_structures is None:
+            self.iface.messageBar().pushMessage("Generating structures layers...", level=Qgis.Info, duration=10)
+            self.method_import_data_as_layers(None, self.fichier_output_structures)
 
         # Reset the flags after generation
         self.create_lithologies = False
