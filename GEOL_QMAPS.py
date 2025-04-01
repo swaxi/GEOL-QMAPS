@@ -671,8 +671,6 @@ class GEOL_QMAPS:
 
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
-                    """self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
-                    self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)"""
 
                     # Stereo
                     self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
@@ -683,7 +681,7 @@ class GEOL_QMAPS:
                     )
 
                     # auto inc
-                    self.set_qmapsConfig()
+                    """self.set_qmapsConfig()"""
 
                     # CSV
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
@@ -2849,14 +2847,6 @@ class GEOL_QMAPS:
                 dst_path = self.mynormpath(newProjPath + cp_dir)
                 self.safe_copy_tree(src_path, dst_path)
 
-            """src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
-            dst_path = newProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
-            self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-            dst_path = newProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-            self.safe_copy_file(src_path, dst_path)"""
-
             src_path = oldProjPath + self.dir_99 + "Dictionaries.gpkg"
             dst_path = newProjPath + self.dir_99 + "Dictionaries.gpkg"
 
@@ -3258,45 +3248,6 @@ class GEOL_QMAPS:
         layer.triggerRepaint()
 
         return True
-
-    ### Toggle AutoIncrements of stop number ###
-    """def toggleAutoInc(self):
-        project = QgsProject.instance()
-        proj_file_path = project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"
-        layer = project.mapLayersByName("Stops_PT")[0]
-        qmapConfigPath = head_tail[0] + "/" + self.dir_99 +   "/qmap.json"
-        if(os.path.exists(no_auto_filename) and os.path.exists(auto_filename)):
-            if self.dlg.autoinc_on_pushButton.isChecked():
-                self.apply_qml_style(layer,auto_filename)
-                self.iface.messageBar().pushMessage(
-                    "Auto Incrementing Stop Numbers turned ON",
-                    level=Qgis.Success,
-                    duration=15,
-                )
-                qmapConfig = {
-                    "autoInc": True,
-                }
-
-            else:
-                self.apply_qml_style(layer,no_auto_filename)
-                self.iface.messageBar().pushMessage(
-                    "Auto Incrementing Stop Numbers turned OFF",
-                    level=Qgis.Success,
-                    duration=15,
-                )
-                qmapConfig = {
-                    "autoInc": False,
-                }
-
-            if os.path.exists(qmapConfigPath):
-                with open(qmapConfigPath, "w") as outfile:
-                    json.dump(qmapConfig, outfile, indent=4)
-        else:
-            print("An autoinc qml file is missing from the project")"""
 
     ### Set user by default ###                   #ADD
 
@@ -4033,14 +3984,14 @@ class GEOL_QMAPS:
                     in_pref + "columns_types_structures_WAXI4.csv",
                     out_pref + "columns_types_structures_WAXI4.csv",
                 ],
-                [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
                 [
-                    in_pref + "Stops_PT_no_autoinc.qml",
-                    out_pref + "Stops_PT_no_autoinc.qml",
-                ],"""[
-                    in_pref + "Version.txt", out_pref + "Version.txt"
+                    in_pref + "stereonet.json",
+                    out_pref + "stereonet.json"
                 ],
+                [
+                    in_pref + "Version.txt",
+                    out_pref + "Version.txt"
+                ]
             ]
 
             for pairs in copies:
@@ -4728,14 +4679,12 @@ class GEOL_QMAPS:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    def set_qmapsConfig(self):
+    """def set_qmapsConfig(self):
         project = QgsProject.instance()
         proj_file_path = project.fileName()
         head_tail = os.path.split(proj_file_path)
 
         qmapConfigPath = head_tail[0] + "/" + self.dir_99 + "/qmap.json"
-        """no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml""" ""
         layer = project.mapLayersByName("Sampling_PT")[0]
 
         if os.path.exists(qmapConfigPath):
@@ -4746,17 +4695,8 @@ class GEOL_QMAPS:
                 "autoInc": True,
             }
 
-        """if qmapConfig["autoInc"]:
-            self.dlg.autoinc_on_pushButton.setChecked(True)
-            self.dlg.autoinc_off_pushButton.setChecked(False)
-            self.apply_qml_style(layer,auto_filename)
-        else:
-            self.apply_qml_style(layer,no_auto_filename)
-            self.dlg.autoinc_on_pushButton.setChecked(False)
-            self.dlg.autoinc_off_pushButton.setChecked(True)"""
-
         with open(qmapConfigPath, "w") as outfile:
-            json.dump(qmapConfig, outfile, indent=4)
+            json.dump(qmapConfig, outfile, indent=4)"""
 
     ### Merge 2 layers old version###
 
@@ -5300,21 +5240,12 @@ class GEOL_QMAPS:
         Merge_output_tooltip = "<p>Path to directory of newly merged QGIS Project.</p>"
         Csv_list_tooltip = "Select CSV file to add item to"
         Epsilon_tooltip = "The radius of the circle to be created around each data point to check the density (in metres)"
-        """Auto_on = (
-            "Turn on autoincrementing of Stop Number behaviour when a new Stop is added"
-        )
-        Auto_off = "Turn off autoincrementing of Stop Number behaviour when a new Stop is added""" ""
-
         Clip_tooltip = "Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project"
         Add_item_tooltip = "Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD"
         Export_tooltip = "Provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)"
         Update_tooltip = "Provide new Name and Region info for project"
         Merge_tooltip = "Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed."
         Virtualstop_tooltip = "Combine all point layers to get virtual Stop IDS"
-        """Autoincrement_tooltip = (
-            "Toggle autoincrementing of Stop Number behaviour when a new Stop is added"
-        )"""
-
         gtCircles_tooltip = (
             "Select Checkbox to switch to Great Circle Display for Stereonet Plugin"
         )
@@ -5333,7 +5264,6 @@ class GEOL_QMAPS:
         self.dlg.groupBox_10.setToolTip(Export_tooltip)
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
         self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
-        """self.dlg.groupBox_7.setToolTip(Autoincrement_tooltip)"""
 
         # Project Parameters
         self.dlg.projName_pushButton.setToolTip("Update project name")
@@ -5349,7 +5279,6 @@ class GEOL_QMAPS:
         self.dlg.csv_pushButton_2.setToolTip("Delete an item from CSV file")
 
         # Stop
-        """self.dlg.autoinc_pushButton.setToolTip("Toggle Auto-Increment of Stop numbers")"""
         self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
 
         # Import Data
@@ -5386,10 +5315,6 @@ class GEOL_QMAPS:
 
         # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
         # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
-
-        # RadioButtons
-        """self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
-        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)"""
 
         # LineEdit
         self.dlg.lineEdit_38.setToolTip(Value_tooltip)
