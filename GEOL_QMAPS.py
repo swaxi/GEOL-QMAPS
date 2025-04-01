@@ -562,6 +562,7 @@ class GEOL_QMAPS:
         ]
         self.layers_names_all = [
             "Magnetic susceptibility_PT",
+            "Density_PT",
             "Observations_PT",
             "Photographs_PT",
             "Sampling_PT",
@@ -4329,6 +4330,7 @@ class GEOL_QMAPS:
                 "Compilation_Metamorphic lithologies_PT",
                 "Compilation_Lithological contacts_PT",
                 "Compilation_Magnetic susceptibility_PT",
+                "Compilation_Density_PT",
             ]
 
             for layer_name in layer_names:
@@ -4585,6 +4587,11 @@ class GEOL_QMAPS:
                 + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
+            file.append(
+                self.geopackage_file_path
+                + "|layername=Compilation_Density_PT"
+            )
+
             # Merge two shapefiles
             params = {"LAYERS": [file[0], file[1]], "OUTPUT": "memory:"}
 
@@ -4813,52 +4820,44 @@ class GEOL_QMAPS:
 
         if layer1 != layer2:
 
-            columns_layer1 = [field.name() for field in layer1.fields()]
-            columns_layer2 = [field.name() for field in layer2.fields()]
-
-            ## Loop on first layer entities
-
+            # Create a dictionary of attributes for each feature in layer1, keyed by field name.
             for feature1 in layer1.getFeatures():
-                # Creation of a new entity for the second layer
-                new_feature = QgsFeature()
-
-                # Copy geometry
+                new_feature = QgsFeature(layer2.fields())
                 new_feature.setGeometry(feature1.geometry())
 
-                # Copy attributes
-                new_feature.setAttributes(feature1.attributes())
-
-                # Add entity to second layer
+                # Build a dictionary for layer1 attributes
+                feat1_attr = {f.name(): feature1[f.name()] for f in layer1.fields()}
+                new_attrs = []
+                for field in layer2.fields():
+                    # First, try to find an exact match by field name.
+                    if field.name() in feat1_attr:
+                        new_attrs.append(feat1_attr[field.name()])
+                    else:
+                        new_attrs.append(None)
+                        print('field name correspondance WRONG: ', field.name())
+                        
+                new_feature.setAttributes(new_attrs)
                 layer2.dataProvider().addFeatures([new_feature])
 
             # extra code to handle storage of original data as dict in json field
             if not layer2.isEditable():
                 layer2.startEditing()
-            for feature in layer2.getFeatures():
 
+            for feature in layer2.getFeatures():
                 if feature["UUID"] in self.sheetHashUUID:
                     new_text = self.sheetHashUUID[feature["UUID"]][0]
-
                     feature["Existing databases - raw data"] = new_text
 
                 # Update the feature in the layer
                 layer2.updateFeature(feature)
 
-            # extra code to handle Lineations_PT
-            if not layer2.isEditable():
-                layer2.startEditing()
-            # for feature in layer2.getFeatures():
-            #    if "Lineations_PT" in self.dlg.comboBox_merge1_2.currentText():
-            #        if feature["Measure"] == "Vertical plane":
-            #            print("found it")
-            # print(feature["Existing databases - raw data"][" DIP "])
-            # Refinishing the second layer
             layer2.updateFields()
             layer2.commitChanges()
             layer2.triggerRepaint()
 
             # Removing the first layer
             QgsProject.instance().removeMapLayer(layer1.id())
+
 
     # Delete contents of a geopackage layer
     def drop_layer_contents(self, gpkg_path, layer_name):
