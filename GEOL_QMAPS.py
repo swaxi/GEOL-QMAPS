@@ -5456,10 +5456,9 @@ class GEOL_QMAPS:
         clipDirectory=greatgrandparent_directory+"/test_clip/"
         exportDirectory=greatgrandparent_directory+"/test_export/"
         qlmDirectory=greatgrandparent_directory+"/test_qlm/"
-        virtualDirectory=greatgrandparent_directory+"/test_virtual/"
         phtotDirectory=greatgrandparent_directory+"/test_photo/"
 
-        newDirs=[mergeDirectory,clipDirectory,exportDirectory,qlmDirectory,virtualDirectory,phtotDirectory]
+        newDirs=[mergeDirectory,clipDirectory,exportDirectory,qlmDirectory,phtotDirectory]
         for directory in newDirs:
             # Check if directory exists
             if os.path.exists(directory) and os.path.isdir(directory):
