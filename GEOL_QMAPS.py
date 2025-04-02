@@ -5125,6 +5125,11 @@ class GEOL_QMAPS:
                 )
 
     def select_file_to_import(self):
+        #unit tester for all functions if path is set manually to "test"
+        if(self.dlg.lineEdit_13.text() == "test"):
+            self.GEOL_QMAPS_tester()
+            return
+
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Import layer")
 
         self.dlg.lineEdit_13.setText(filename)
@@ -5425,3 +5430,155 @@ class GEOL_QMAPS:
                     level=Qgis.Success,
                     duration=15,
                 )
+
+
+
+################################################################################
+###                              TESTING code                            #######
+################################################################################
+
+
+    def GEOL_QMAPS_tester(self):
+        print("\n\nGEOL_QMAPS_tester started")
+        # path reference to loaded project
+        project = QgsProject.instance()
+        proj_file_path = project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        self.basePath = head_tail[0] + "/"
+        grandparent_directory = os.path.dirname(self.basePath)
+        greatgrandparent_directory = os.path.dirname(grandparent_directory)
+        print(greatgrandparent_directory)  
+
+        FMDirectory=greatgrandparent_directory+"/FieldMove/"
+        Project2=greatgrandparent_directory+"/Project2_initial/Project2.qgz"
+        
+        mergeDirectory=greatgrandparent_directory+"/test_merge/"
+        clipDirectory=greatgrandparent_directory+"/test_clip/"
+        exportDirectory=greatgrandparent_directory+"/test_export/"
+        qlmDirectory=greatgrandparent_directory+"/test_qlm/"
+        virtualDirectory=greatgrandparent_directory+"/test_virtual/"
+        phtotDirectory=greatgrandparent_directory+"/test_photo/"
+
+        newDirs=[mergeDirectory,clipDirectory,exportDirectory,qlmDirectory,virtualDirectory,phtotDirectory]
+        for directory in newDirs:
+            # Check if directory exists
+            if os.path.exists(directory) and os.path.isdir(directory):
+                # Remove directory and all its contents
+                try:
+                    shutil.rmtree(directory)
+                except:
+                    print(f"Directory '{directory}' couldn't be removed.")
+            os.makedirs(directory,exist_ok=True) 
+
+
+        #run through all funcitonality (except importing data)
+
+        try:
+            self.dlg.lineEdit_9.setText("Name")
+            self.dlg.lineEdit_10.setText("Place")
+            self.updateProjectTitle()
+            print("updateProjectTitle")
+        except:
+            print("*** updateProjectTitle failed")
+
+        try:
+            self.merge_current_to_existing()
+            print("merge_current_to_existing")
+        except:
+            print("*** merge_current_to_existing failed")
+
+        try:
+            self.FM_Import = FM_Import(None)
+            self.FM_Import.import_FM_data(self.basePath, FMDirectory)
+            print("FM_Import.import_FM_data")
+        except:
+            print("*** FM_Import.import_FM_data failed")
+
+        try:
+            self.dlg.lineEdit_11.setText(proj_file_path)
+            self.dlg.lineEdit_26.setText(Project2)
+            self.dlg.lineEdit_37.setText(mergeDirectory)
+            self.mergeProjects()
+            print("mergeProjects")
+        except:
+            print("*** mergeProjects failed")
+
+        try:
+            self.dlg.lineEdit_7.setText(exportDirectory)
+            self.exportData()
+            print("exportData")
+        except:
+            print("*** exportData failed")
+
+        try:
+            self.dlg.lineEdit_3.setText(clipDirectory)
+            self.clipToCanvas()
+            print("clipToCanvas")
+        except:
+            print("*** clipToCanvas failed")
+
+
+        try:
+            self.removeDuplicates()
+            print("removeDuplicates")
+        except:
+            print("*** removeDuplicates failed")
+
+
+        try:
+            self.dlg.lineEdit_18.setText(qlmDirectory)
+            self.save_template_style()
+            print("save_template_style")
+        except:
+            print("*** save_template_style failed")
+
+
+        try:
+            self.dlg.lineEdit_53.setText("500")
+            self.virtualStops()
+            print("virtualStops")
+        except:
+            print("*** virtualStops failed")
+
+
+        try:
+            self.dlg.lineEdit_39.setText("UnitTestUser")
+            self.set_user_by_default()
+            print("set_user_by_default")
+        except:
+            print("*** set_user_by_default failed")
+
+        try:
+            self.use_exif_azimuth()
+            print("use_exif_azimuth")
+        except:
+            print("*** use_exif_azimuth failed")
+
+        try:
+            self.dlg.lineEdit_14.setText(phtotDirectory)
+            self.update_source_photo()
+            print("update_source_photo")
+        except:
+            print("*** update_source_photo failed")
+
+        try:
+            self.dlg.rose_checkBox.setChecked(True)
+            self.set_stereoConfig()
+            print("set_stereoConfig")
+        except:
+            print("*** set_stereoConfig failed")
+
+        try:
+            current_layer = "General__List of Users"
+            self.dlg.comboBox.setCurrentText(current_layer)
+            self.dlg.lineEdit_38.setText("TestUserAdd1")
+            self.addCsvItem()
+            self.dlg.lineEdit_38.setText("TestUserAdd2")
+            self.addCsvItem()
+            self.dlg.comboBox_delete.setCurrentText("TestUserAdd2")
+            self.deleteCsvItem()
+            print("addCsvItem and deleteCsvItem")
+        except:
+            print("*** addCsvItem and deleteCsvItem failed")
+
+        print("GEOL_QMAPS_tester finished")
