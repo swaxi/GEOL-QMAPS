@@ -1883,6 +1883,9 @@ font-size: 12px;
        <property name="text">
         <string> Change for All Layers (1-2 min-long processing)</string>
        </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QRadioButton" name="radioButton_Some">
        <property name="geometry">
@@ -2621,7 +2624,7 @@ font-size: 12px;
        </font>
       </property>
       <property name="title">
-       <string>Stereographic projection settings</string>
+       <string>Stereographic Projection Settings</string>
       </property>
       <widget class="QLabel" name="label_24">
        <property name="enabled">

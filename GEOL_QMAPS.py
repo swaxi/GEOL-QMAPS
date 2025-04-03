@@ -570,7 +570,6 @@ class GEOL_QMAPS:
         ]
         self.layers_names_all = self.layers_names_all + self.layers_names
 
-        # self.templateCSV_path = self.basePath + self.dir_99 + "/CSV FILES/"
         self.FM_Import = FM_Import(None)
 
         if os.path.exists(self.geopackage_file_path):
@@ -2996,6 +2995,11 @@ class GEOL_QMAPS:
                 layer_schema = src.schema
                 features = list(src)  # Load existing features
 
+            # Remove existing 'id' keys from all features so new IDs are generated
+            for feat in features:
+                if "fid" in feat:
+                    del feat["fid"]
+
             # Validate new_row keys match the schema's properties
             for key in new_row.keys():
                 if key not in layer_schema["properties"]:
@@ -3066,6 +3070,11 @@ class GEOL_QMAPS:
                 if feature["properties"][column_name] != value_to_delete
             ]
 
+            # Remove 'id' keys from the updated features so new IDs are assigned
+            for feat in updated_features:
+                if "fid" in feat:
+                    del feat["fid"]
+
             # Create a backup of the original GeoPackage
             # backup_path = f"{gpkg_path}.bak"
             # os.rename(gpkg_path, backup_path)
@@ -3081,24 +3090,21 @@ class GEOL_QMAPS:
             ) as dst:
                 dst.writerecords(updated_features)
 
-            print(f"Rows with {column_name} = {value_to_delete} have been removed successfully.")
-            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
-
         except Exception as e:
             print(f"Error processing the GeoPackage layer: {e}")
 
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        """#Clear all features in the existing layer
+        '''#Clear all features in the existing layer
         layer_csv.startEditing()
         layer_csv.dataProvider().truncate()  # Deletes all features efficiently
         layer_csv.commitChanges()
-        print(layer_csv, ' is cleared of all existing values')"""
+        print(layer_csv, ' is cleared of all existing values')'''
 
         # Load new data from the CSV file
         new_table = QgsVectorLayer(
             f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
         )
-        
+
         if new_table.featureCount() == 0:
             print('New table is empty, issue!')
 
@@ -3116,10 +3122,25 @@ class GEOL_QMAPS:
                 layer_csv.startEditing()
                 features = new_table.getFeatures()
 
+                # Retrieve and print the header (field names) --> For checking
+                headers = [field.name() for field in new_table.fields()]
+                print(" | ".join(headers))
+
+                # Iterate over each feature and print the attribute values --> For checking
                 for feature in features:
+                    # Convert each attribute to string and join using a separator
+                    values = [str(feature[field]) for field in headers]
+                    print(" | ".join(values))
+
+                for feature in features:
+                    # Dealing with fid for new entries
+                    if feature.attribute(0) >= -1:
+                        feature.setAttribute(0, None)
+
                     layer_csv.dataProvider().addFeatures([feature])
 
                 layer_csv.commitChanges()
+
         else:
             print(f"Failed to load new data from {dictionaries_path}.")
 
@@ -5230,7 +5251,7 @@ class GEOL_QMAPS:
         for layerId, layer in layers.items():
 
             # Select all non CSV layers of the QGIS project
-            if isinstance(layer, QgsVectorLayer) and layer.name() in self.layers_names:
+            if isinstance(layer, QgsVectorLayer) and layer.name() in self.layers_names_all:
                 self.dlg.comboBox_layers_user.addItem(layer.name(), layerId)
 
     def update_ComboBox(self):
