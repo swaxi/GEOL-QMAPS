@@ -3993,11 +3993,8 @@ class GEOL_QMAPS:
             )
             shutil.copyfile(src_file, dst_file)
 
-            proj_name = os.path.basename(self.dlg.lineEdit_11.text())
-            shutil.copyfile(
-                self.dlg.lineEdit_11.text(),
-                merge_project_path + "/" + proj_name,
-            )
+            proj_name = "MergedProject.qgs"
+            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))           
 
             in_pref = main_project_path + self.dir_99
             out_pref = merge_project_path + self.dir_99

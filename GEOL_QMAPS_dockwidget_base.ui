@@ -2300,8 +2300,11 @@ border-style: solid;border-width: 1px;border-color: black
 }
 </string>
        </property>
+       <property name="text">
+        <string/>
+       </property>
        <property name="placeholderText">
-        <string>***sub-project-repository***</string>
+        <string>***sub-project.qgz***</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_20">
@@ -2344,8 +2347,11 @@ border-style: solid;border-width: 1px;border-color: black
 }
 </string>
        </property>
+       <property name="text">
+        <string/>
+       </property>
        <property name="placeholderText">
-        <string>***main-project-repository***</string>
+        <string>***main-project.qgz***</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_27">
