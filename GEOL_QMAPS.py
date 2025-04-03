@@ -2951,6 +2951,89 @@ class GEOL_QMAPS:
             )
 
     ### CSV TOOLS ###
+    def get_csv_items(self, layer_name):
+        """
+        Returns a list of all 'Valeur' entries from the CSV dictionary corresponding to layer_name.
+        Assumes the CSV is stored in self.dictionaries_path and is accessible via pandas.
+        """
+        try:
+            ds = ogr.Open(self.dictionaries_path)
+            if ds is None:
+                raise Exception("Could not open geopackage: " + self.dictionaries_path)
+            lyr = ds.GetLayer(layer_name)
+            if lyr is None:
+                raise Exception("Layer '{}' not found in geopackage.".format(layer_name))
+            items = []
+            for feat in lyr:
+                value = feat.GetField("Valeur")
+                if value is not None:
+                    items.append(str(value))
+            return items
+
+        except Exception as e:
+            print("Error reading dictionary for {}: {}".format(layer_name, e))
+            return []
+
+    def add_row_to_csv_layer(self, gpkg_path, layer_name, new_row):
+        """
+        Add a row to a CSV layer in a GeoPackage.
+
+        Parameters:
+            gpkg_path (str): Path to the GeoPackage file.
+            layer_name (str): The name of the CSV layer in the GeoPackage.
+            new_row (dict): A dictionary representing the new row to add.
+                            The keys must match the column names of the layer.
+
+        Returns:
+            None
+        """
+        import fiona
+
+        try:
+            # Open the GeoPackage layer in read mode to retrieve metadata
+            with fiona.open(gpkg_path, layer=layer_name, mode="r") as src:
+                layer_crs = src.crs
+                layer_schema = src.schema
+                features = list(src)  # Load existing features
+
+            # Validate new_row keys match the schema's properties
+            for key in new_row.keys():
+                if key not in layer_schema["properties"]:
+                    raise ValueError(
+                        f"Invalid column name '{key}'. Column does not exist in the layer."
+                    )
+
+            # Create a new feature from the new_row
+            new_feature = {
+                "type": "Feature",
+                "geometry": None,  # CSV layers typically don't have geometries
+                "properties": new_row,
+            }
+
+            # Append the new feature to the features list
+            features.append(new_feature)
+
+            """# Create a backup of the original GeoPackage
+            backup_path = f"{gpkg_path}.bak"
+            os.rename(gpkg_path, backup_path)
+            """
+            # Write the updated features back to the GeoPackage
+            with fiona.open(
+                    gpkg_path,
+                    mode="w",
+                    driver="GPKG",
+                    layer=layer_name,
+                    schema=layer_schema,
+                    crs=layer_crs,
+            ) as dst:
+                dst.writerecords(features)
+
+            # print(f"Row added successfully to the layer '{layer_name}'.")
+            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
+
+        except Exception as e:
+            print(f"Error adding row to the GeoPackage layer: {e}")
+
     def delete_row_from_csv_layer(
         self, gpkg_path, layer_name, column_name, value_to_delete
     ):
@@ -2998,162 +3081,33 @@ class GEOL_QMAPS:
             ) as dst:
                 dst.writerecords(updated_features)
 
-            # print(f"Rows with {column_name} = {value_to_delete} have been removed successfully.")
+            print(f"Rows with {column_name} = {value_to_delete} have been removed successfully.")
             # print(f"A backup of the original GeoPackage was created at: {backup_path}")
 
         except Exception as e:
             print(f"Error processing the GeoPackage layer: {e}")
 
-    def add_row_to_csv_layer(self, gpkg_path, layer_name, new_row):
-        """
-        Add a row to a CSV layer in a GeoPackage.
-
-        Parameters:
-            gpkg_path (str): Path to the GeoPackage file.
-            layer_name (str): The name of the CSV layer in the GeoPackage.
-            new_row (dict): A dictionary representing the new row to add.
-                            The keys must match the column names of the layer.
-
-        Returns:
-            None
-        """
-        import fiona
-
-        try:
-            # Open the GeoPackage layer in read mode to retrieve metadata
-            with fiona.open(gpkg_path, layer=layer_name, mode="r") as src:
-                layer_crs = src.crs
-                layer_schema = src.schema
-                features = list(src)  # Load existing features
-
-            # Validate new_row keys match the schema's properties
-            for key in new_row.keys():
-                if key not in layer_schema["properties"]:
-                    raise ValueError(
-                        f"Invalid column name '{key}'. Column does not exist in the layer."
-                    )
-
-            # Create a new feature from the new_row
-            new_feature = {
-                "type": "Feature",
-                "geometry": None,  # CSV layers typically don't have geometries
-                "properties": new_row,
-            }
-
-            # Append the new feature to the features list
-            features.append(new_feature)
-
-            """# Create a backup of the original GeoPackage
-            backup_path = f"{gpkg_path}.bak"
-            os.rename(gpkg_path, backup_path)
-            """
-            # Write the updated features back to the GeoPackage
-            with fiona.open(
-                gpkg_path,
-                mode="w",
-                driver="GPKG",
-                layer=layer_name,
-                schema=layer_schema,
-                crs=layer_crs,
-            ) as dst:
-                dst.writerecords(features)
-
-            # print(f"Row added successfully to the layer '{layer_name}'.")
-            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
-
-        except Exception as e:
-            print(f"Error adding row to the GeoPackage layer: {e}")
-
-    ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
-    def addCsvItem(self):
-        """
-        Adds a new item to a CSV layer and updates the corresponding layer in QGIS.
-        This method retrieves the current layer from a combo box, creates a new row with values
-        from a line edit, and adds this row to the specified CSV layer. If the current layer
-        is related to lithologies, it also updates a general list of all lithologies. The method
-        then reloads the CSV layer in QGIS and triggers a repaint to reflect the changes. A
-        message is displayed in the QGIS message bar to confirm the addition.
-        Parameters:
-        None
-        Returns:
-        None
-        """
-
-        # emplacement_99_CSV_files = self.templateCSV_path
-
-        # csv_file = str(self.dlg.comboBox.currentText())
-
-        # csv_updates = [layer_name, "Lithologies"]
-        # for csv_file in csv_updates:
-        # chemin_fichier_CSV_modifier = self.mynormpath(
-        # emplacement_99_CSV_files + csv_file + ".csv"
-        # )
-        current_layer = self.dlg.comboBox.currentText()
-        new_row = {
-            "Valeur": str(self.dlg.lineEdit_38.text()),
-            "Description": str(self.dlg.lineEdit_38.text()),
-        }
-
-        self.add_row_to_csv_layer(self.dictionaries_path, current_layer, new_row)
-
-        if "List of lithologies" in current_layer:
-            self.add_row_to_csv_layer(
-                self.dictionaries_path, "General__List of all lithologies", new_row
-            )
-
-        # Updates the layer in QGIS
-
-        if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", " // ")
-            )[0]
-        else:
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", "/")
-            )[0]
-
-        if layer_csv.isValid():
-            self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
-            if "List of lithologies" in current_layer:
-                self.reload_csv(
-                    self.dictionaries_path,
-                    layer_csv,
-                    "General__List of all lithologies",
-                )
-
-        else:
-            print("Could not reload csv file")
-
-        layer_csv.triggerRepaint()
-        self.iface.messageBar().pushMessage(
-            "Item "
-            + str(self.dlg.lineEdit_38.text())
-            + " "
-            + str(self.dlg.lineEdit_38.text())
-            + " added to "
-            + current_layer,
-            level=Qgis.Success,
-            duration=15,
-        )
-        self.update_combobox_delete()
-
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        # Clear all features in the existing layer
+        """#Clear all features in the existing layer
         layer_csv.startEditing()
         layer_csv.dataProvider().truncate()  # Deletes all features efficiently
         layer_csv.commitChanges()
+        print(layer_csv, ' is cleared of all existing values')"""
 
         # Load new data from the CSV file
         new_table = QgsVectorLayer(
             f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
         )
+        
+        if new_table.featureCount() == 0:
+            print('New table is empty, issue!')
 
         if new_table.isValid():
             # Ensure the schema matches (field names and types)
             new_fields = new_table.fields()
             existing_fields = layer_csv.fields()
 
-            if new_fields.names() != existing_fields.names():
+            if new_fields.names() != existing_fields.names() and current_layer!='General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table':
                 print(
                     "The schema of the new data does not match the existing layer. Update failed."
                 )
@@ -3161,59 +3115,111 @@ class GEOL_QMAPS:
                 # Add new features to the existing layer
                 layer_csv.startEditing()
                 features = new_table.getFeatures()
+
                 for feature in features:
                     layer_csv.dataProvider().addFeatures([feature])
+
                 layer_csv.commitChanges()
         else:
             print(f"Failed to load new data from {dictionaries_path}.")
 
+    ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
+    def addCsvItem(self):
+        """
+        Adds a new item to a CSV layer and updates the corresponding layer in QGIS.
+        If the selected dictionary name contains 'List of lithologies', extra rows are added to the
+        'General__List of all lithologies' and 'General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table'.
+        Prevents duplicate entries and resets the lineEdit_38 to its default appearance after adding.
+        """
+        current_layer = self.dlg.comboBox.currentText()
+        new_value = str(self.dlg.lineEdit_38.text()).strip()
+        if new_value == "":
+            self.iface.messageBar().pushMessage("Error: No value provided", level=Qgis.Warning, duration=45)
+            self.dlg.lineEdit_38.clear()
+            return
+
+        # Check for duplicates in the current dictionary
+        existing_items = self.get_csv_items(current_layer)
+        if new_value in existing_items:
+            self.iface.messageBar().pushMessage(
+                "Duplicate entry: '{}' already exists in {} dictionary.".format(new_value, current_layer),
+                level=Qgis.Warning, duration=45)
+            self.dlg.lineEdit_38.clear()
+            return
+
+        new_row = {"Valeur": new_value, "Description": new_value}
+
+        # Add the new row to the currently selected CSV layer
+        self.add_row_to_csv_layer(self.dictionaries_path, current_layer, new_row)
+
+        # If the dictionary is related to lithologies, update the two general dictionaries
+        if "List of lithologies" in current_layer:
+            self.add_row_to_csv_layer(self.dictionaries_path, "General__List of all lithologies", new_row)
+            rock_type = current_layer.split(" lithologies__")[0]
+            rock_row = {"Key": rock_type, "Value": new_value}
+            self.add_row_to_csv_layer(self.dictionaries_path,
+                                      "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
+                                      rock_row)
+
+        # Reload CSV layer based on naming conventions
+        if current_layer.startswith("General__"):
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
+        else:
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
+
+
+        if layer_csv.isValid():
+            self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
+            if "List of lithologies" in current_layer:
+                self.reload_csv(self.dictionaries_path, layer_csv, "General__List of all lithologies")
+                self.reload_csv(self.dictionaries_path, layer_csv,
+                                "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table")
+        else:
+            print("Could not reload the csv file: error related to retrieving of the name of the csv dictionary layer")
+
+        layer_csv.triggerRepaint()
+        self.iface.messageBar().pushMessage(
+            "Item '{}' added to {} dictionary. Update symbology if needed.".format(new_value, current_layer),
+            level=Qgis.Success, duration=45
+        )
+        self.dlg.lineEdit_38.clear()
+        self.update_combobox_delete()
+
     ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template
     def deleteCsvItem(self):
-
-        # emplacement_99_CSV_files = self.templateCSV_path
-
+        """
+        Deletes an item from a CSV dictionary and updates the corresponding layer in QGIS.
+        If the current dictionary relates to lithologies, the deletion is also applied to the
+        general lithologies list and rock type table. Resets the comboBox_delete to its default appearance after deletion.
+        """
         current_layer = str(self.dlg.comboBox.currentText())
         delete_item = self.dlg.comboBox_delete.currentText()
 
-        self.delete_row_from_csv_layer(
-            self.dictionaries_path, current_layer, "Valeur", delete_item
-        )
+        # Delete the row from the currently selected CSV layer
+        self.delete_row_from_csv_layer(self.dictionaries_path, current_layer, "Valeur", delete_item)
 
         if "List of lithologies" in current_layer:
+            print("list of lithologies dictionary? YES")
+            self.delete_row_from_csv_layer(self.dictionaries_path, "General__List of all lithologies", "Valeur",
+                                           delete_item)
+            self.delete_row_from_csv_layer(self.dictionaries_path,
+                                           "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
+                                           "Value", delete_item)
 
-            self.delete_row_from_csv_layer(
-                self.dictionaries_path,
-                "General__List of all lithologies",
-                "Valeur",
-                delete_item,
-            )
         if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", " // ")
-            )[0]
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
         else:
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", "/")
-            )[0]
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
 
         self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
 
-        # if chemin_fichier_CSV_modifier:
         self.iface.messageBar().pushMessage(
-            "Item "
-            + str(self.dlg.lineEdit_38.text())
-            + " "
-            + str(self.dlg.lineEdit_38.text())
-            + " removed from "
-            + current_layer,
-            level=Qgis.Success,
-            duration=15,
+            "Item '{}' removed from {} dictionary. Update symbology if needed.".format(delete_item, current_layer),
+            level=Qgis.Success, duration=15
         )
-
         self.update_combobox_delete()
 
     ### Update project name ###
-
     def updateProjectTitle(self):
         if self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text():
             project = QgsProject.instance()
@@ -5182,7 +5188,10 @@ class GEOL_QMAPS:
         self.dlg.comboBox.clear()
         self.csv_layer_list = []
         for name in self.csvs:
-            self.csv_layer_list.append(name)
+            # Exclude the two General dictionaries from the comboBox selection
+            if name not in ["General__List of all lithologies",
+                            "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table"]:
+                self.csv_layer_list.append(name)
         self.csv_layer_list.sort()
         self.dlg.comboBox.addItems(self.csv_layer_list)
 
