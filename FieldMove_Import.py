@@ -43,29 +43,32 @@ class FM_Import:
         # copy QGIS Project and FieldMove Project directories to local
         self.basePath=basePath
         self.projectDirectoryPath=projectDirectoryPath
-        
-        # define specific file paths
-        imagesPath=self.projectDirectoryPath+'/images'
-        DCIMPath=self.basePath+'/0_FIELD_DATA/DCIM/'
-        geologyPath=self.basePath+'/6_GEOLOGY/'
+        if(os.path.exists(self.projectDirectoryPath) and projectDirectoryPath != ""):
+                
+            # define specific file paths
+            imagesPath=self.projectDirectoryPath+'/images'
+            DCIMPath=self.basePath+'/0_FIELD_DATA/DCIM/'
+            geologyPath=self.basePath+'/6_GEOLOGY/'
 
 
-        mainCompGpkgPath = self.mynormpath(
-                self.basePath + "99_COMMAND_FILES_PLUGIN/Dictionaries.gpkg"
-            )
-        local_df,local_layer = self.csv_to_pandas(mainCompGpkgPath,"Local lithologies__List of lithologies")
-        all_litho_df,litho_layer = self.csv_to_pandas(mainCompGpkgPath,"General__List of all lithologies")
+            mainCompGpkgPath = self.mynormpath(
+                    self.basePath + "99_COMMAND_FILES_PLUGIN/Dictionaries.gpkg"
+                )
+            local_df,local_layer = self.csv_to_pandas(mainCompGpkgPath,"Local lithologies__List of lithologies")
+            all_litho_df,litho_layer = self.csv_to_pandas(mainCompGpkgPath,"General__List of all lithologies")
 
 
-        # Import different file types
-        self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath)
-        self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
-        self.import_FM_polylines()
-        self.import_FM_lineations()
-        self.import_FM_localities()
-        self.import_FM_photos(imagesPath,DCIMPath)
-        self.import_FM_planar_structures()
-
+            # Import different file types
+            self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath)
+            self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
+            self.import_FM_polylines()
+            self.import_FM_lineations()
+            self.import_FM_localities()
+            self.import_FM_photos(imagesPath,DCIMPath)
+            self.import_FM_planar_structures()
+        else:
+            print("FieldMove project directory does not exist or is empty.")
+            
     def mynormpath(self, path):
         return r"" + os.path.normpath(path).replace("\\", "/")
     

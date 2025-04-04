@@ -65,6 +65,10 @@ from qgis.PyQt.QtWidgets import (
     QListView,
     QButtonGroup,
 )
+
+from PyQt5.QtWidgets import (
+    QHeaderView
+)
 from qgis.core import (
     Qgis,
     QgsProject,
@@ -199,6 +203,12 @@ class GEOL_QMAPS:
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
 
+        # Initialize the attributes so they exist when used later.
+        self.create_lithologies = False 
+        self.create_structures = False
+        self.fichier_output_lithology = None
+        self.fichier_output_structures = None
+
         ## Python library integration
         def install_library(library_name):
             try:
@@ -265,6 +275,78 @@ class GEOL_QMAPS:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("GEOL_QMAPS", message)
+
+   # Lipari colorscale
+    def lipari_color(self, score):
+        """
+        Returns a QColor based on the given normalized score (0 to 100)
+        using a Roma colorscale (Cramieri et al.).
+        """
+        stops = [
+            (0, QColor("#FF0000")),  # red
+            (50, QColor("#FFFFFF")),  # white
+            (100, QColor("#00FF00"))  # green
+        ]
+        if score <= stops[0][0]:
+            return stops[0][1]
+        if score >= stops[-1][0]:
+            return stops[-1][1]
+        for i in range(1, len(stops)):
+            if score <= stops[i][0]:
+                lower_score, lower_color = stops[i - 1]
+                upper_score, upper_color = stops[i]
+                t = (score - lower_score) / (upper_score - lower_score)
+                r = lower_color.red() + t * (upper_color.red() - lower_color.red())
+                g = lower_color.green() + t * (upper_color.green() - lower_color.green())
+                b = lower_color.blue() + t * (upper_color.blue() - lower_color.blue())
+                return QColor(int(r), int(g), int(b))
+
+    # create legend with colorbar
+    def create_legend_widget(self):
+        # Create the legend container widget
+        legend_container = QWidget()
+        legend_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Horizontal layout for the legend container
+        h_layout = QHBoxLayout(legend_container)
+        h_layout.setContentsMargins(0, 0, 0, 0)
+        h_layout.setSpacing(5)
+
+        # Vertical layout for the color bar and top/bottom labels
+        v_layout = QVBoxLayout()
+        v_layout.setContentsMargins(0, 0, 0, 0)
+        v_layout.setSpacing(2)
+
+        top_label = QLabel("highest")
+        top_label.setAlignment(Qt.AlignCenter)
+        top_label.setFont(QFont("Arial", 6))
+
+        bottom_label = QLabel("lowest")
+        bottom_label.setAlignment(Qt.AlignCenter)
+        bottom_label.setFont(QFont("Arial", 6))
+
+        # Create the color bar widget (set fixed width and allow vertical expansion)
+        color_bar = QLabel()
+        color_bar.setFixedWidth(40)
+        color_bar.setMinimumHeight(200)
+        color_bar.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        color_bar.setStyleSheet(
+            "background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, "
+            "stop:0 #FF0000, stop:0.5 #FFFFFF, stop:1 #00FF00);"
+            "border: 1px solid black;"
+        )
+
+        # Add widgets to the vertical layout with the color bar taking extra space
+        v_layout.addWidget(top_label, 0)
+        v_layout.addWidget(color_bar, 1)
+        v_layout.addWidget(bottom_label, 0)
+
+        # Add the vertical layout to the horizontal layout, then add stretch for centering
+        h_layout.addLayout(v_layout)
+        h_layout.addStretch()
+
+        legend_container.setLayout(h_layout)
+        return legend_container
 
     def add_action(
         self,
@@ -383,6 +465,67 @@ class GEOL_QMAPS:
 
     # --------------------------------------------------------------------------
 
+    def check_version(self):
+
+        project = QgsProject.instance()
+
+        plugin_version = template_version = "0.0.0"
+        template_version_file_path = self.mynormpath(
+            self.basePath + self.dir_99 + "Version.txt"
+        )
+        template_version_file = open(template_version_file_path, "r")
+        version = template_version_file.readline()
+        template_version = version[1:].split(".")
+
+        metadata_path = self.mynormpath(
+            os.path.dirname(os.path.realpath(__file__)) + "/metadata.txt"
+        )
+        plugin_version_file = open(metadata_path)
+        metadata = plugin_version_file.readlines()
+        for line in metadata:
+            parts = line.split("=")
+            if len(parts) == 2 and parts[0] == "version":
+                pversion = parts[1]
+                plugin_version = parts[1].split(".")
+        plugin_version[2] = plugin_version[2].strip()
+
+        version_text = "Plugin v" + pversion.rstrip() + "  Template " + version
+        self.dlg.versions_label.setText(version_text)
+
+        pv = ".".join(plugin_version)
+        tv = ".".join(template_version)
+        if template_version[0] > plugin_version[0] or (
+            (template_version[0] == plugin_version[0])
+            and template_version[1] > plugin_version[1]
+        ):
+            self.iface.messageBar().pushMessage(
+                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(
+                    pv, tv
+                ),
+                level=Qgis.Critical,
+                duration=45,
+            )
+        elif template_version[0] < plugin_version[0] or (
+            (template_version[0] == plugin_version[0])
+            and template_version[1] < plugin_version[1]
+        ):
+            self.iface.messageBar().pushMessage(
+                "WARNING: Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://zenodo.org/records/13374088'>here</a>".format(
+                    pv, tv
+                ),
+                level=Qgis.Warning,
+                duration=45,
+            )
+        else:
+            self.iface.messageBar().pushMessage(
+                "SUCCESS: Plugin {} and Template {} are compatible!!".format(pv, tv),
+                level=Qgis.Success,
+                duration=15,
+            )
+
+        template_version_file.close()
+        plugin_version_file.close()
+
     def run(self):
         """Run method that loads and starts the plugin"""
 
@@ -415,10 +558,11 @@ class GEOL_QMAPS:
             "Lineations_PT",
             "Shear zones and faults_PT",
             "Veins_PT",
+            "Lithological contacts_PT"
         ]
         self.layers_names_all = [
-            "Lithological contacts_PT",
             "Magnetic susceptibility_PT",
+            "Density_PT",
             "Observations_PT",
             "Photographs_PT",
             "Sampling_PT",
@@ -426,7 +570,6 @@ class GEOL_QMAPS:
         ]
         self.layers_names_all = self.layers_names_all + self.layers_names
 
-        # self.templateCSV_path = self.basePath + self.dir_99 + "/CSV FILES/"
         self.FM_Import = FM_Import(None)
 
         if os.path.exists(self.geopackage_file_path):
@@ -499,6 +642,7 @@ class GEOL_QMAPS:
 
                     # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
 
+                    self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
                     self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                     self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                     self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
@@ -526,8 +670,6 @@ class GEOL_QMAPS:
 
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
-                    """self.dlg.autoinc_on_pushButton.clicked.connect(self.toggleAutoInc)
-                    self.dlg.autoinc_off_pushButton.clicked.connect(self.toggleAutoInc)"""
 
                     # Stereo
                     self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
@@ -538,7 +680,7 @@ class GEOL_QMAPS:
                     )
 
                     # auto inc
-                    self.set_qmapsConfig()
+                    """self.set_qmapsConfig()"""
 
                     # CSV
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
@@ -576,10 +718,10 @@ class GEOL_QMAPS:
                         lambda: QDesktopServices.openUrl(QUrl("https://waxi4.org/"))
                     )
 
-                    # Connection to the help file  : http://13.210.3.244/manual_qfield_plugin/
+                    # Connection to the help file  : https://github.com/swaxi/GEOL-QMAPS/tree/main#5-workflow
                     self.dlg.pushButton_21.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("http://13.210.3.244/manual_qfield_plugin/")
+                            QUrl("https://github.com/swaxi/GEOL-QMAPS/tree/main#5-workflow")
                         )
                     )
 
@@ -593,10 +735,10 @@ class GEOL_QMAPS:
                     #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
                     # )
 
-                    #  Connection to the Zenodo site : https://zenodo.org/records/10147786
+                    #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://zenodo.org/records/10692516")
+                            QUrl("https://doi.org/10.5281/zenodo.15067027")
                         )
                     )
 
@@ -680,24 +822,6 @@ class GEOL_QMAPS:
                     QgsProject.instance().layersAdded.connect(self.update_ComboBox)
                     QgsProject.instance().layersRemoved.connect(self.update_ComboBox)
 
-                    """with open(
-                        main_project_path + self.dir_99 + "Stops_PT.qml", "r"
-                    ) as file:
-
-                        lines = file.readlines()
-                        found = False
-                        for i, line in enumerate(lines, start=1):
-                            if '<policy policy="Duplicate" field="User"/>' in line:
-                                found = True
-                                break
-
-                        if found:
-                            self.dlg.autoinc_on_pushButton.setChecked(True)
-                            self.dlg.autoinc_off_pushButton.setChecked(False)
-                        else:
-                            self.dlg.autoinc_on_pushButton.setChecked(False)
-                            self.dlg.autoinc_off_pushButton.setChecked(True)
-                        file.flush()"""
                     self.sheetHashUUID = []
                     self.define_tips()
 
@@ -786,243 +910,194 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def export_layer_fill_Table1(self, layer):
-
-        # from openpyxl import Workbook
         from fuzzywuzzy import fuzz
 
-        ## Two files used :
-
-        # File 1: INPUT file
-
-        # Adding field names as column names to the Excel sheet
+        # 1. Load your input file into a DataFrame
         noms_des_champs = [field.name() for field in layer.fields()]
-
         data_list = []
-
         for feature in layer.getFeatures():
             ligne = {
-                field.name(): (
-                    feature[field.name()] if feature[field.name()] is not None else ""
-                )
+                field.name(): (feature[field.name()] if feature[field.name()] is not None else "")
                 for field in layer.fields()
             }
             data_list.append(ligne)
-
-        # DataFrame creation from dictionary list
         input_file = pd.DataFrame(data_list, columns=noms_des_champs)
-
         input_file = input_file.astype(str)
 
-        # File 2: WAXI project columns
+        # 2. Load columns_reference_WAXI4.csv
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
             self.dir_99 + "/columns_reference_WAXI4.csv",
         )
-
         column_reference = pd.read_csv(emplacement_files_WAXI_columns)
-
-        # Extraction of column names in file 1
-        list_column_input = input_file.columns.tolist()
-        # Extraction of column names in file 2
         list_column_reference = column_reference.columns.tolist()
 
+        # 3. Load columns_reference_fieldnames_aliases_WAXI4.csv
+        alias_file_path = os.path.join(
+            os.path.dirname(WAXI_projet_path),
+            self.dir_99 + "/columns_reference_fieldnames_aliases_WAXI4.csv",
+        )
+        alias_df = pd.read_csv(alias_file_path)
+
+        # Build the forward alias mapping (real_name → alias) as a class attribute
+        self.alias_mapping = dict(
+            zip(alias_df.iloc[:, 0].astype(str), alias_df.iloc[:, 1].astype(str))
+        )
+        # Build the reverse mapping (alias → real_name) as a class attribute
+        self.reverse_alias_mapping = {v: k for k, v in self.alias_mapping.items()}
+
+        # Define self.alias_list as a class attribute
+        self.alias_list = list(self.alias_mapping.values())
+        if "NULL" not in self.alias_list:
+            self.alias_list.insert(0, "NULL")
+
+        # 4. Pair creation based on similarity score
+        list_column_input = input_file.columns.tolist()
         list_trio_columns = []
-        for k in range(0, len(list_column_input)):
-            list_trio_columns.append([list_column_input[k], "NULL", 0])
+        for col in list_column_input:
+            list_trio_columns.append([col, "NULL", 0])
 
-        # Pair creation based on similarity score
-        for k in range(0, len(list_column_input)):
-
-            # Initialize similarity score and new name
+        # 5. Fuzzy matching logic
+        for k in range(len(list_column_input)):
             best_column = "NULL"
             score = 0
-
-            if list_column_input[k] == "NULL" or list_column_input[k] == " ":
-
+            if list_column_input[k] == "NULL" or list_column_input[k].strip() == "":
                 list_trio_columns[k][1] = "NULL"
                 list_trio_columns[k][2] = 0
+            else:
+                for column in list_column_reference:
+                    sum_score = 0
+                    sum_score += fuzz.token_set_ratio(list_column_input[k], column) * 3
+                    contenu_column = column_reference[column]
+                    for elt2 in contenu_column:
+                        sum_score += fuzz.token_set_ratio(list_column_input[k], str(elt2))
+                    if sum_score > score:
+                        score = sum_score
+                        best_column = column
 
-            for column in list_column_reference:
+                # Use the alias from self.alias_mapping if available
+                if best_column != "NULL" and best_column in self.alias_mapping:
+                    alias_value = self.alias_mapping[best_column]
+                else:
+                    alias_value = best_column
 
-                sum_score = 0
+                list_trio_columns[k][1] = alias_value
+                list_trio_columns[k][2] = score
 
-                # 1st part of score: comparison with column name
-                sum_score += fuzz.token_set_ratio(list_column_input[k], column) * 3
-
-                # 2nd part of the score: comparison with keywords associated with the column name
-                contenu_column = column_reference[column]
-                for elt2 in contenu_column:
-                    sum_score += fuzz.token_set_ratio(list_column_input[k], elt2)
-
-                if sum_score > score:
-                    score = sum_score
-                    best_column = column
-
-            # Addition of the name that matched the most
-            list_trio_columns[k][1] = best_column
-
-            # Addition of the match score
-            list_trio_columns[k][2] = score
-
-        ## Modification - Columns assigned to the same output column :
-
+        # Modification: Ensure no duplicate assignments among the alias values
         list_trio_columns_trie = list_trio_columns
-
-        # We go through all the elements of list_trio_columns :
         for place1 in range(len(list_trio_columns) - 1):
-
             test = list_trio_columns[place1][1]
-
-            # We compare the chosen element with all the other elements in the list to see if it is duplicated :
             for place2 in range(len(list_trio_columns) - 1):
-
-                # We check that we're not taking the same element  :
                 if place1 != place2:
-
                     if test != "NULL":
-
-                        # If the chosen element has the same name as another element, we compare their similarity scores :
                         if test == list_trio_columns[place2][1]:
-                            if (
-                                list_trio_columns[place1][2]
-                                > list_trio_columns[place2][2]
-                            ):
+                            if list_trio_columns[place1][2] > list_trio_columns[place2][2]:
                                 list_trio_columns_trie[place2][1] = "NULL"
                                 list_trio_columns_trie[place2][2] = 0
-
-                            elif (
-                                list_trio_columns[place1][2]
-                                < list_trio_columns[place2][2]
-                            ):
+                            elif list_trio_columns[place1][2] < list_trio_columns[place2][2]:
                                 list_trio_columns_trie[place1][1] = "NULL"
                                 list_trio_columns_trie[place1][2] = 0
-
                             else:
-                                if abs(
-                                    len(list_trio_columns[place1][0])
-                                    - len(list_trio_columns[place1][1])
-                                ) < abs(
-                                    len(list_trio_columns[place2][0])
-                                    - len(list_trio_columns[place1][1])
-                                ):
+                                if abs(len(list_trio_columns[place1][0]) - len(list_trio_columns[place1][1])) < abs(
+                                        len(list_trio_columns[place2][0]) - len(list_trio_columns[place1][1])):
                                     list_trio_columns_trie[place2][1] = "NULL"
                                     list_trio_columns_trie[place2][2] = 0
-
                                 else:
                                     list_trio_columns_trie[place1][1] = "NULL"
                                     list_trio_columns_trie[place1][2] = 0
 
-        ###    Remplissage 1 : COLUMNS NAME ## input = list_trio_columns_trie     ###
-
-        # Setting the number of columns in the QTableWidget
+        ### Populate the table "Database Fields"
         self.dlg.tableWidget1.setColumnCount(3)
-
-        # Headers in the QTableWidget
-        column_names1 = [
-            "Legacy data value",
-            "Assigned standard value",
-            "Modify the assigned value",
-        ]
+        column_names1 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
+        self.dlg.tableWidget3.setWordWrap(True)
+        self.dlg.tableWidget1.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive) #adjustable width of the columns
+        self.dlg.tableWidget1.verticalHeader().setVisible(False) #vertical header (1 to n) invisible
 
-        current_row_count = 1
+        # Set the header font size
+        header_font = self.dlg.tableWidget1.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget1.horizontalHeader().setFont(header_font)
+
+        # Create a new legend widget and set it in the legend box for Table1
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox_3)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox_3.setLayout(legend_main_layout)
+
+        # Compute the real maximum score among all rows (ignoring "Geometry")
+        valid_scores = [score for (old, new, score) in list_trio_columns_trie if old != "Geometry"]
+        max_score = max(valid_scores) if valid_scores else 1  # avoid division by zero
+
+        # Set the row count once to the total number of unique structure triplets
+        self.dlg.tableWidget1.setRowCount(len(list_trio_columns_trie)-1)
 
         for k, (old, new, score) in enumerate(list_trio_columns_trie):
-
             if old != "Geometry":
+                # Create and set the legacy value item with custom font
+                legacy_item = QTableWidgetItem(str(old))
+                legacy_item.setFont(QFont("Arial", 8))  # Adjust font family and size as needed
+                self.dlg.tableWidget1.setItem(k, 0, legacy_item)
 
-                # Add a new row
-                self.dlg.tableWidget1.setRowCount(current_row_count)
+                # Create and set the assigned value item with custom font
+                assigned_item = QTableWidgetItem(str(new))
+                assigned_item.setFont(QFont("Arial", 8))
+                self.dlg.tableWidget1.setItem(k, 1, assigned_item)
 
-                # Filling the 2 columns
-                self.dlg.tableWidget1.setItem(k, 0, QTableWidgetItem(str(old)))
-                self.dlg.tableWidget1.setItem(k, 1, QTableWidgetItem(str(new)))
+                # Normalize the current row score based on the maximum score found
+                new_score = (score / max_score) * 100.0 if max_score > 0 else 0
 
-                ### Creation of a color scale according to score : red for the lowest scores and green for the highest
+                # Use the Lipari colorscale helper to get the corresponding color
+                new_color = self.lipari_color(new_score)
 
-                # Score between 0 and 100 normalized (total score of 800 for column comparison)
-                score_normalized = (score / 8) / 100
-
-                # Linear interpolation between red and green
-                teinte = int(score_normalized * 120)
-                saturation = 140
-                value = 250
-
-                # Color calculation using HSV color space
-                color = QColor.fromHsv(teinte, saturation, value)
-
+                # Apply the new color to both legacy and assigned cells
                 for column in range(2):
                     item = self.dlg.tableWidget1.item(k, column)
                     if item:
-                        item.setBackground(color)
+                        item.setBackground(new_color)
 
-                # Legend for color scale
-                score_ranges = [0, 20, 40, 60, 80, 100]
-                legend_colors = [
-                    QColor.fromHsv(12, 140, 250),
-                    QColor.fromHsv(36, 140, 250),
-                    QColor.fromHsv(60, 140, 250),
-                    QColor.fromHsv(84, 140, 250),
-                    QColor.fromHsv(108, 140, 250),
-                ]
+                # Forbid editing of the first two columns
+                legacy_item.setFlags(legacy_item.flags() & ~Qt.ItemIsEditable)
+                assigned_item.setFlags(assigned_item.flags() & ~Qt.ItemIsEditable)
 
-                # Creation of a widget for the legend
-                legendbox_layout = QVBoxLayout(self.dlg.legendbox_3)
+                # Create composite widget for "Modify the assigned value" column:
+                modify_widget = QWidget(self.dlg)
+                h_layout = QHBoxLayout(modify_widget)
+                h_layout.setContentsMargins(0, 0, 0, 0)
 
-                for i in range(len(score_ranges) - 1):
-                    range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
-                    color_label = QLabel()
-                    color_label.setStyleSheet(
-                        f"background-color: {legend_colors[i].name()}; border: 2px solid black;"
-                    )
-                    legendbox_layout.addWidget(color_label)
-                    legendbox_layout.addWidget(QLabel(range_label))
+                # QComboBox with alias options
+                combo = QComboBox(modify_widget)
+                for alias in self.alias_list:
+                    combo.addItem(alias)
+                if new in self.alias_list:
+                    combo.setCurrentIndex(self.alias_list.index(new))
+                else:
+                    combo.setCurrentIndex(0)
+                h_layout.addWidget(combo)
 
-                # Forbid editing of first 2 columns
-                item1 = self.dlg.tableWidget1.item(k, 0)
-                item2 = self.dlg.tableWidget1.item(k, 1)
+                # Connect the combo box so that when the selection changes, update_assigned_value is called
+                combo.currentIndexChanged.connect(
+                    lambda idx, row=k, combo=combo: self.update_assigned_value(row, combo.currentText()))
 
-                if item1:
-                    item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-                if item2:
-                    item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+                # "Delete" button to remove the assigned alias
+                btn_delete = QPushButton("Delete", modify_widget)
+                btn_delete.setMinimumHeight(17)
+                btn_delete.clicked.connect(lambda state, row=k: self.button_delete1(row))
+                h_layout.addWidget(btn_delete)
 
-                # Add a column with 2 "Delete" and "Modify" buttons for each row
+                modify_widget.setLayout(h_layout)
+                self.dlg.tableWidget1.setCellWidget(k, 2, modify_widget)
 
-                # Creation of a widget containing the 2 buttons
-                button_widget = QWidget(self.dlg)
+                # Set cell dimensions
+                self.dlg.tableWidget1.resizeRowsToContents()
+                self.dlg.tableWidget1.setColumnWidth(0, 185)
+                self.dlg.tableWidget1.setColumnWidth(1, 185)
+                self.dlg.tableWidget1.setColumnWidth(2, 185)
 
-                btn_modifier = QPushButton("Edit", button_widget)
-                btn_modifier.clicked.connect(
-                    lambda state, row=k: self.button_edit1(row)
-                )
-                btn_modifier.setMinimumHeight(17)
-
-                btn_supprimer = QPushButton("Delete", button_widget)
-                btn_supprimer.clicked.connect(
-                    lambda state, row=k: self.button_delete1(row)
-                )
-                btn_supprimer.setMinimumHeight(17)
-
-                layout = QHBoxLayout(button_widget)
-                layout.addWidget(btn_modifier)
-                layout.addWidget(btn_supprimer)
-                button_widget.setLayout(layout)
-
-                self.dlg.tableWidget1.setCellWidget(k, 2, button_widget)
-
-                # Cells size
-
-                self.dlg.tableWidget1.setRowHeight(k, 28)
-
-                self.dlg.tableWidget1.setColumnWidth(0, 160)
-                self.dlg.tableWidget1.setColumnWidth(1, 160)
-                self.dlg.tableWidget1.setColumnWidth(2, 160)
-
-                current_row_count += 1
-
-            # Initialize cell editing status + actions performed in table
+            # Initialise cell editing status and table state (if required)
             self.row_edit_status = [False] * len(list_trio_columns_trie)
             self.table1States = []
             self.table1States.append(self.getTableState1())
@@ -1156,6 +1231,63 @@ class GEOL_QMAPS:
 
         self.dlg.tableWidget1.repaint()
 
+    #Update assigned value
+    def update_assigned_value(self, row, new_alias):
+        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        legacy_item = self.dlg.tableWidget1.item(row, 0)
+        if legacy_item is None:
+            return
+        legacy_value = legacy_item.text()
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)  # new_score in [0, 100]
+        assigned_item = self.dlg.tableWidget1.item(row, 1)
+        if assigned_item:
+            assigned_item.setText(new_alias)
+        else:
+            assigned_item = QTableWidgetItem(new_alias)
+            self.dlg.tableWidget1.setItem(row, 1, assigned_item)
+        # Instead of using HSV, use lipari_color helper:
+        new_color = self.lipari_color(new_score)
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
+        # Set the new background colour for both legacy and assigned value cells
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
+    def update_assigned_value2(self, row, new_alias):
+        from fuzzywuzzy import fuzz
+        legacy_item = self.dlg.tableWidget2.item(row, 0)
+        if legacy_item is None:
+            return
+        legacy_value = legacy_item.text()
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)
+        assigned_item = self.dlg.tableWidget2.item(row, 1)
+        if assigned_item:
+            assigned_item.setText(new_alias)
+        else:
+            assigned_item = QTableWidgetItem(new_alias)
+            self.dlg.tableWidget2.setItem(row, 1, assigned_item)
+        new_color = self.lipari_color(new_score)
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
+    def update_assigned_value3(self, row, new_alias):
+        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        legacy_item = self.dlg.tableWidget3.item(row, 0)
+        if legacy_item is None:
+            return
+        legacy_value = legacy_item.text()
+        new_score = fuzz.token_set_ratio(legacy_value, new_alias)
+        assigned_item = self.dlg.tableWidget3.item(row, 1)
+        if assigned_item:
+            assigned_item.setText(new_alias)
+        else:
+            assigned_item = QTableWidgetItem(new_alias)
+            self.dlg.tableWidget3.setItem(row, 1, assigned_item)
+        new_color = self.lipari_color(new_score)
+        legacy_item.setBackground(new_color)
+        assigned_item.setBackground(new_color)
+
     # Come Back
     def Go_Back_table1(self):
 
@@ -1180,36 +1312,34 @@ class GEOL_QMAPS:
 
     # Content retrieval of QTableWidget 1 : COLUMNS NAMES CHECK  ##
     def recup_contenu_1(self):
-
         list_columns_check_OK = []
         new_values_count = {}
 
         for row in range(self.dlg.tableWidget1.rowCount()):
             if self.dlg.tableWidget1.item(row, 0):
                 old = self.dlg.tableWidget1.item(row, 0).text()
-
                 if old != "-":
-
+                    # Retrieve the alias directly from the table
                     if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
-                        new = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
+                        alias = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
                     else:
-                        new = self.dlg.tableWidget1.item(row, 1).text()
+                        alias = self.dlg.tableWidget1.item(row, 1).text()
 
-                    if new != "NULL":
-                        if new in new_values_count:
+                    if alias != "NULL":
+                        # No more reversing here—store the alias as-is
+                        if alias in new_values_count:
                             self.iface.messageBar().pushMessage(
-                                "Erreur: La valeur '{}' est en double !".format(new),
+                                f"Erreur: La valeur '{alias}' est en double !",
                                 level=Qgis.Warning,
                                 duration=45,
                             )
                             return
+                        new_values_count[alias] = 1
 
-                        new_values_count[new] = 1
-
-                        list_columns_check_OK.append([old, new])
+                        # (old, alias)
+                        list_columns_check_OK.append([old, alias])
 
         list_columns_check_OK.append(["Geometry", "Geometry"])
-
         return list_columns_check_OK
 
     ###############################################################################
@@ -1217,37 +1347,18 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def DataFrame_columns_check(self, input_file, list_columns_check, name_input_file):
+        # list_columns_check might look like: [[old_legacy_field, alias], ... ]
 
-        # Sort list_columns_check to remove unrecognized peers (NULL) :
-        list_columns_check2 = []
-        list_new = []
-        for k in range(len(list_columns_check)):
-            found = False
-            for new_item in list_new:
-                if list_columns_check[k][1] == new_item:
-                    found = True
-                    # self.iface.messageBar().pushMessage("Two or more of your old columns have been assigned to the same new column name, this is not possible !", level=Qgis.Warning, duration=15)
-
-            if not found:
-                if list_columns_check[k][1] != "NULL":
-                    list_columns_check2.append(list_columns_check[k])
-                    list_new.append(list_columns_check[k][1])
-
-        # Creation of a DataFrame = OUTPUT file
         fichier_output = pd.DataFrame()
         list_columns_check3 = []
 
-        # Add all the values
-        for k in range(len(list_columns_check2)):
-            try:
-                column_name_input = list_columns_check2[k][0]
-                column_name_output = list_columns_check2[k][1]
-
-                fichier_output[column_name_output] = input_file[column_name_input]
-                list_columns_check3.append(column_name_output)
-
-            except KeyError:
-                pass
+        for old_legacy_field, alias in list_columns_check:
+            if alias != "NULL":
+                try:
+                    fichier_output[alias] = input_file[old_legacy_field]
+                    list_columns_check3.append(alias)
+                except KeyError:
+                    pass
 
         # Add a column to specify Geographic Coordinates Reference System
         fichier_output["CRS"] = "WSG84_EPSG:4326"
@@ -1285,10 +1396,19 @@ class GEOL_QMAPS:
         # from openpyxl import Workbook
         from fuzzywuzzy import fuzz
 
-        value_counts = self.fichier_output_cp["Litho"].value_counts().to_dict()
+        # If user never mapped “Lithology - Outcrop Lithology,” skip with a warning:
+        if "Lithology - Outcrop Lithology" not in fichier_output.columns:
+            self.iface.messageBar().pushMessage(
+                "No column named 'Lithology - Outcrop Lithology' found in your data. Lithology Names table will be empty.",
+                level=Qgis.Warning,
+                duration=10
+            )
+            return
+
+        value_counts = self.fichier_output_cp["Lithology - Outcrop Lithology"].value_counts().to_dict()
 
         # List of input lithologies
-        list_lithology_input = fichier_output["Litho"].tolist()
+        list_lithology_input = fichier_output["Lithology - Outcrop Lithology"].tolist()
 
         list_lithology_reference = self.get_first_column_text(
             self.dictionaries_path, "General__List of all lithologies"
@@ -1396,89 +1516,73 @@ class GEOL_QMAPS:
                 list_trio[k][2] = score
 
         # Creation of a lithology checklist for the user
+        # Build list_trio_litho_no_duplicate from list_trio_struct by excluding duplicates and triplets with null legacy values
+        list_trio_litho_no_duplicate = []
+        seen_legacies = set()
 
-        list_old = []
-        list_new = []
-        list_score = []
-        list_trio_unique = []
-        list_old_unique = []
-        for m in range(len(list_trio)):
-            list_old.append(list_trio[m][0])
-            list_new.append(list_trio[m][1])
-            list_score.append(list_trio[m][2])
-
-        for m in range(len(list_trio)):
-            if list_old[m] not in list_old_unique:
-                list_old_unique.append(list_old[m])
-                list_trio_unique.append([list_old[m], list_new[m], list_score[m]])
+        for trio in list_trio:
+            legacy_value = str(trio[0]).strip()  # Convert to string and remove surrounding whitespace
+            # Skip triplets where the legacy value is "NULL" (case-insensitive) or empty
+            if legacy_value.upper() == "NULL" or legacy_value == "":
+                continue
+            if legacy_value not in seen_legacies:
+                seen_legacies.add(legacy_value)
+                list_trio_litho_no_duplicate.append(trio)
 
         ###    Filling 2 : LITHOLOGIES NAME ## input = list_couple     ###
 
-        # Setting the number of columns in the QTableWidget
+        ### Populate the table "Lithology Names"
         self.dlg.tableWidget2.setColumnCount(3)
-
-        # Headers of the QTableWidget
-        column_names2 = [
-            "Legacy data value",
-            "Assigned standard value",
-            "Modify the assigned value",
-        ]
+        column_names2 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
+        self.dlg.tableWidget2.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # interactive width of the columns
+        self.dlg.tableWidget2.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
+        self.dlg.tableWidget2.setWordWrap(True) # Enable word wrap on the table widget so that cells wrap text
 
-        # Re-organizing the list by descending score
-        list_trio_unique = sorted(list_trio_unique, key=lambda x: x[2], reverse=False)
-        current_row_count = 1
+        # Set the header font size
+        header_font = self.dlg.tableWidget2.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget2.horizontalHeader().setFont(header_font)
 
-        for k, (old, new, score) in enumerate(list_trio_unique):
+        # Create a new legend widget and set it in the legend box
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox.setLayout(legend_main_layout)
 
-            # Add a new row
-            self.dlg.tableWidget2.setRowCount(current_row_count)
+        # Re-organize the list of unique lithology pairs (sorted in ascending order of score)
+        list_trio_litho_no_duplicate = sorted(list_trio_litho_no_duplicate, key=lambda x: x[2], reverse=False)
 
-            # Filling the 2 columns
-            self.dlg.tableWidget2.setItem(
-                k, 0, QTableWidgetItem(str(old) + " : " + str(value_counts[old]) + "")
-            )
-            self.dlg.tableWidget2.setItem(k, 1, QTableWidgetItem(str(new)))
+        # Dynamically compute the maximum score (ignoring any rows with a "-" legacy value)
+        valid_scores = [score for (old, new, score) in list_trio_litho_no_duplicate if old != "-"]
+        max_score = max(valid_scores) if valid_scores else 1  # Avoid division by zero
 
-            ### Creation of a color scale according to score: red for the lowest scores and green for the highest
+        # Set the row count once to the total number of unique structure triplets
+        self.dlg.tableWidget2.setRowCount(len(list_trio_litho_no_duplicate))
 
-            # Score between 0 and 100 normalized
-            score_normalized = score / 100
+        for k, (old, new, score) in enumerate(list_trio_litho_no_duplicate):
+            # Prepare the legacy text; here we append the count if available
+            legacy_text = str(old) + " : " + str(value_counts.get(old, 0))
+            legacy_item = QTableWidgetItem(legacy_text)
+            legacy_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget2.setItem(k, 0, legacy_item)
 
-            # Linear interpolation between red and green
-            teinte = int(score_normalized * 120)
-            saturation = 140
-            value = 250
+            # Set the assigned value cell
+            assigned_item = QTableWidgetItem(str(new))
+            assigned_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget2.setItem(k, 1, assigned_item)
 
-            # Color calculation using HSV color space
-            color = QColor.fromHsv(teinte, saturation, value)
+            # Normalize the current row's score relative to the dynamic maximum
+            new_score = (score / max_score) * 100.0 if max_score > 0 else 0
+            # Get the corresponding color from the Lipari colorscale
+            new_color = self.lipari_color(new_score)
 
+            # Apply the color to both legacy and assigned cells
             for column in range(2):
                 item = self.dlg.tableWidget2.item(k, column)
                 if item:
-                    item.setBackground(color)
-
-            # Legend for color scale
-            score_ranges = [0, 20, 40, 60, 80, 100]
-            legend_colors = [
-                QColor.fromHsv(12, 140, 250),
-                QColor.fromHsv(36, 140, 250),
-                QColor.fromHsv(60, 140, 250),
-                QColor.fromHsv(84, 140, 250),
-                QColor.fromHsv(108, 140, 250),
-            ]
-
-            # Creation of a widget for the caption
-            legendbox_layout = QVBoxLayout(self.dlg.legendbox)
-
-            for i in range(len(score_ranges) - 1):
-                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
-                color_label = QLabel()
-                color_label.setStyleSheet(
-                    f"background-color: {legend_colors[i].name()}; border: 2px solid black;"
-                )
-                legendbox_layout.addWidget(color_label)
-                legendbox_layout.addWidget(QLabel(range_label))
+                    item.setBackground(new_color)
 
             # Forbid editing of first 2 columns
             item1 = self.dlg.tableWidget2.item(k, 0)
@@ -1486,37 +1590,42 @@ class GEOL_QMAPS:
             item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
             item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
 
-            # Add a column with "Delete" and "Modify" buttons for each row
+            # Delete and Edit actions:
+            modify_widget = QWidget(self.dlg)
+            h_layout = QHBoxLayout(modify_widget)
+            h_layout.setContentsMargins(0, 0, 0, 0)
 
-            button_widget = QWidget(self.dlg)
+            # QComboBox with lithology options (using the reference list of lithologies)
+            combo = QComboBox(modify_widget)
+            for litho in list_lithology_reference:
+                combo.addItem(litho)
+            if new in list_lithology_reference:
+                combo.setCurrentIndex(list_lithology_reference.index(new))
+            else:
+                combo.setCurrentIndex(0)
+            h_layout.addWidget(combo)
 
-            btn_modifier = QPushButton("Edit", button_widget)
-            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit2(row))
-            btn_modifier.setMinimumHeight(17)
+            # Connect the combo box change signal to update the assigned value and recalc the matching score
+            combo.currentIndexChanged.connect(
+                lambda idx, row=k, combo=combo: self.update_assigned_value2(row, combo.currentText()))
 
-            btn_supprimer = QPushButton("Delete", button_widget)
-            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete2(row))
-            btn_supprimer.setMinimumHeight(17)
+            # "Delete" button remains
+            btn_delete = QPushButton("Delete", modify_widget)
+            btn_delete.setMinimumHeight(17)
+            btn_delete.clicked.connect(lambda state, row=k: self.button_delete2(row))
+            h_layout.addWidget(btn_delete)
 
-            layout = QHBoxLayout(button_widget)
-            layout.addWidget(btn_modifier)
-            layout.addWidget(btn_supprimer)
-            button_widget.setLayout(layout)
+            modify_widget.setLayout(h_layout)
+            self.dlg.tableWidget2.setCellWidget(k, 2, modify_widget)
 
-            self.dlg.tableWidget2.setCellWidget(k, 2, button_widget)
-
-            # Cells size
-
-            self.dlg.tableWidget2.setRowHeight(k, 28)
-
-            self.dlg.tableWidget2.setColumnWidth(0, 150)
-            self.dlg.tableWidget2.setColumnWidth(1, 150)
-            self.dlg.tableWidget2.setColumnWidth(2, 150)
-
-            current_row_count += 1
+            # Set cells dimension
+            self.dlg.tableWidget2.resizeRowsToContents()
+            self.dlg.tableWidget2.setColumnWidth(0, 185)
+            self.dlg.tableWidget2.setColumnWidth(1, 185)
+            self.dlg.tableWidget2.setColumnWidth(2, 185)
 
         # Initialize cell editing status + actions performed in table
-        self.row_edit_status = [False] * len(list_trio_unique)
+        self.row_edit_status = [False] * len(list_trio_litho_no_duplicate)
         self.table2States = []
         self.table2States.append(self.getTableState2())
 
@@ -1583,122 +1692,6 @@ class GEOL_QMAPS:
 
         self.dlg.tableWidget2.repaint()
 
-    # Modify row
-    def button_edit2(self, row):
-
-        litho_local = self.get_first_column_text(
-            self.dictionaries_path, "Local lithologies__List of lithologies"
-        )
-        litho_supergene = self.get_first_column_text(
-            self.dictionaries_path, "Supergene lithologies__List of lithologies"
-        )
-        litho_sedimentary = self.get_first_column_text(
-            self.dictionaries_path, "Sedimentary lithologies__List of lithologies"
-        )
-        litho_volcanoclastic = self.get_first_column_text(
-            self.dictionaries_path,
-            "Volcanoclastic lithologies__List of lithologies (clast size-based)",
-        )
-        litho_igneous_extrusive = self.get_first_column_text(
-            self.dictionaries_path, "Igneous extrusive lithologies__List of lithologies"
-        )
-        litho_igneous_intrusive = self.get_first_column_text(
-            self.dictionaries_path, "Igneous intrusive lithologies__List of lithologies"
-        )
-        litho_metamorphic = self.get_first_column_text(
-            self.dictionaries_path, "Metamorphic lithologies__List of lithologies"
-        )
-
-        # CASE 1 : If the line has already been deleted
-        if (
-            self.dlg.tableWidget2.item(row, 0).text() == "-"
-            and self.dlg.tableWidget2.item(row, 1).text() == "-"
-        ):
-            return
-
-        # CASE 2 : If the button is clicked for the 1st time
-        if not self.row_edit_status[row]:
-
-            self.table2States.append(self.getTableState2())
-
-            current_text = self.dlg.tableWidget2.item(row, 1).text()
-
-            rock_types = {
-                "      ---Plutonic---      ": litho_igneous_intrusive,
-                "      ---Volcanic---      ": litho_igneous_extrusive,
-                "      ---Sedimentary---      ": litho_sedimentary,
-                "      ---Metamorphic---      ": litho_metamorphic,
-                "       ---Supergene---      ": litho_supergene,
-                "      ---Volcanoclastic---      ": litho_volcanoclastic,
-                "      ---Local---      ": litho_local,
-            }
-
-            combo_box = QComboBox()
-            delegate = QStyledItemDelegate(combo_box)
-            combo_box.setItemDelegate(delegate)
-
-            for rock_type, rock_names in rock_types.items():
-                combo_box.addItem(rock_type)
-                combo_box.setItemData(
-                    combo_box.count() - 1,
-                    QFont("Bookman Old Style", 10, QFont.Bold),
-                    Qt.FontRole,
-                )
-                combo_box.setItemData(combo_box.count() - 1, False, Qt.UserRole)
-
-                for rock_name in rock_names:
-                    combo_box.addItem(rock_name)
-
-            # Deactivation of rock type selection
-            elements_combobox = [
-                combo_box.itemText(i) for i in range(combo_box.count())
-            ]
-            for i in range(len(elements_combobox)):
-                list_type = [
-                    "      ---Plutonic---      ",
-                    "      ---Volcanic---      ",
-                    "      ---Sedimentary---      ",
-                    "      ---Metamorphic---      ",
-                    "       ---Supergene---      ",
-                    "      ---Volcanoclastic---      ",
-                ]
-                if elements_combobox[i] in list_type:
-                    combo_box.model().item(i).setEnabled(False)
-
-            self.dlg.tableWidget2.setCellWidget(row, 1, combo_box)
-            combo_box.setCurrentText(current_text)
-
-            item = self.dlg.tableWidget2.item(row, 1)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
-            self.row_edit_status[row] = True
-
-        # CASE 3 : If the button is clicked for the 2nd time
-        else:
-
-            combo_box = self.dlg.tableWidget2.cellWidget(row, 1)
-            item = self.dlg.tableWidget2.item(row, 1)
-
-            # ComboBox
-            if isinstance(combo_box, QComboBox):
-                selected_text = combo_box.currentText()
-                self.dlg.tableWidget2.removeCellWidget(row, 1)
-
-            # Text
-            else:
-                selected_text = item.text()
-
-            item.setText(selected_text)
-
-            table_state = self.getTableState2()
-            cell_state = table_state[row][1]
-            original_color = QColor(cell_state["color"])
-            item.setBackground(original_color)
-
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            self.row_edit_status[row] = False
-
-        self.dlg.tableWidget2.repaint()
-
     # Come back
     def Go_Back_table2(self):
 
@@ -1723,19 +1716,19 @@ class GEOL_QMAPS:
     ## Retrieving QTableWidget 2 content : LITHOLOGIES NAMES CHECK  ##
 
     def recup_contenu_2(self):
-
         list_lithologies_unique_check_OK = []
-
         for row in range(self.dlg.tableWidget2.rowCount()):
             old = self.dlg.tableWidget2.item(row, 0).text().split(" :")[0]
-
             if old != "-":
+                # Retrieve the alias
                 if isinstance(self.dlg.tableWidget2.cellWidget(row, 1), QComboBox):
-                    new = self.dlg.tableWidget2.cellWidget(row, 1).currentText()
+                    alias = self.dlg.tableWidget2.cellWidget(row, 1).currentText()
                 else:
-                    new = self.dlg.tableWidget2.item(row, 1).text()
+                    alias = self.dlg.tableWidget2.item(row, 1).text()
 
-                list_lithologies_unique_check_OK.append([old, new])
+                # Convert alias → real_name
+                real_name = self.reverse_alias_mapping.get(alias, alias)
+                list_lithologies_unique_check_OK.append([old, real_name])
 
         return list_lithologies_unique_check_OK
 
@@ -1760,20 +1753,20 @@ class GEOL_QMAPS:
         for k in range(len(list_lithologies_unique_check_OK)):
             list_old.append(list_lithologies_unique_check_OK[k][0])
 
-        fichier_output = fichier_output[fichier_output["Litho"].isin(list_old)]
+        fichier_output = fichier_output[fichier_output["Lithology - Outcrop Lithology"].isin(list_old)]
         fichier_output = fichier_output.reset_index(drop=True)
 
         # We browse the column containing the old lithos in file_output
-        for m in range(1, len(fichier_output["Litho"])):
+        for m in range(len(fichier_output["Lithology - Outcrop Lithology"])):
 
             # We browse the list of unique (old, new) pairs verified by the user
             for k in range(len(list_lithologies_unique_check_OK)):
 
                 if (
-                    fichier_output["Litho"].iloc[m]
+                    fichier_output["Lithology - Outcrop Lithology"].iloc[m]
                     == list_lithologies_unique_check_OK[k][0]
                 ):
-                    fichier_output["Litho"].iloc[m] = list_lithologies_unique_check_OK[
+                    fichier_output["Lithology - Outcrop Lithology"].iloc[m] = list_lithologies_unique_check_OK[
                         k
                     ][1]
 
@@ -1833,9 +1826,9 @@ class GEOL_QMAPS:
             name_worksheet1 = litho_class + "_" + filename_without_extension
             fichier_output_lithology[name_worksheet1] = pd.DataFrame(columns=header)
 
-        for k in range(0, len(fichier_output["Litho"])):
+        for k in range(0, len(fichier_output["Lithology - Outcrop Lithology"])):
 
-            r = fichier_output["Litho"][k]
+            r = fichier_output["Lithology - Outcrop Lithology"][k]
 
             # litho_local :
             if r in litho_local and r != "Unknown":
@@ -1919,34 +1912,36 @@ class GEOL_QMAPS:
                     list_columns_check3,
                     filename_without_extension,
                 )
-
         return fichier_output_lithology
 
-    # add each row to the master dictioanry of pandas
+    # add each row to the master dictionary of pandas
     def add_row_to_fichier_output_lithology(
-        self,
-        k,
-        fichier_output_lithology,
-        fichier_output,
-        name_prefix,
-        list_columns_check3,
-        filename_without_extension,
+            self,
+            k,
+            fichier_output_lithology,
+            fichier_output,
+            name_prefix,
+            list_columns_check3,
+            filename_without_extension,
     ):
         full_name = name_prefix + filename_without_extension
         header_local = fichier_output_lithology[full_name].columns
 
         ligne = []
-
         for col_reference in header_local:
-            if col_reference not in list_columns_check3:
-                ligne.append("")
+            # Convert real name to alias:
+            alias_for_col = self.alias_mapping.get(col_reference, col_reference)
+            if alias_for_col in fichier_output.columns:
+                ligne.append(fichier_output.at[k, alias_for_col])
             else:
-                ligne.append(fichier_output[col_reference][k])
+                ligne.append("")
 
-        fichier_output_lithology[full_name].loc[
-            len(fichier_output_lithology[full_name])
-        ] = ligne
-
+        # If "Reference" is in the columns and not assigned in the DAtabase Fields table, set it to the imported layer name.
+        if "Reference" in header_local and "Reference" not in list_columns_check3:
+            ref_index = header_local.get_loc("Reference")
+            ligne[ref_index] = filename_without_extension
+            
+        fichier_output_lithology[full_name].loc[len(fichier_output_lithology[full_name])] = ligne
         return fichier_output_lithology
 
     ###############################################################################
@@ -1958,8 +1953,17 @@ class GEOL_QMAPS:
         # from openpyxl import Workbook
         from fuzzywuzzy import fuzz
 
+        #Check
+        if "Structures - Structure Type" not in fichier_output.columns:
+            self.iface.messageBar().pushMessage(
+                "No column named 'Structures - Structure Type' found in your data. Structure Types table will be empty.",
+                level=Qgis.Warning,
+                duration=10
+            )
+            return
+
         # List of input structures
-        list_structure_input = fichier_output["Structure_type"].tolist()
+        list_structure_input = fichier_output["Structures - Structure Type"].tolist()
 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
@@ -2010,87 +2014,73 @@ class GEOL_QMAPS:
                     list_trio_struct[k][2] = score
 
         # Create a structure checklist for the user
+        # Build list_trio_struct_no_duplicate from list_trio_struct by excluding duplicates and triplets with null legacy values
+        list_trio_struct_no_duplicate = []
+        seen_legacies = set()
 
-        list_old2 = []
-        list_new2 = []
-        list_score2 = []
-        list_trio_unique2 = []
-        list_old_unique2 = []
-        for m in range(len(list_trio_struct)):
-            list_old2.append(list_trio_struct[m][0])
-            list_new2.append(list_trio_struct[m][1])
-            list_score2.append(list_trio_struct[m][2])
+        for trio in list_trio_struct:
+            legacy_value = str(trio[0]).strip()  # Convert to string and remove surrounding whitespace
+            # Skip triplets where the legacy value is "NULL" (case-insensitive) or empty
+            if legacy_value.upper() == "NULL" or legacy_value == "":
+                continue
+            if legacy_value not in seen_legacies:
+                seen_legacies.add(legacy_value)
+                list_trio_struct_no_duplicate.append(trio)
 
-        for m in range(len(list_trio_struct)):
-            if list_old2[m] not in list_old_unique2:
-                list_old_unique2.append(list_old2[m])
-                list_trio_unique2.append([list_old2[m], list_new2[m], list_score2[m]])
+        ###    Filling 3 : STRUCTURE NAME ## input = list_trio_struct_no_duplicate     ###
 
-        ###    Filling 3 : STRUCTURE NAME ## input = list_trio_unique2     ###
-
-        # Setting the number of columns in the QTableWidget
+        ### Populate the table "Structures Types"
         self.dlg.tableWidget3.setColumnCount(3)
-
-        # Headers of the QTableWidget
-        column_names3 = [
-            "Legacy data value",
-            "Assigned standard value",
-            "Modify the assigned value",
-        ]
+        column_names3 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
+        self.dlg.tableWidget3.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # adjustable width of the columns
+        self.dlg.tableWidget3.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
+        self.dlg.tableWidget3.setWordWrap(True) # Enable word wrap on the table widget so that cells wrap text
 
-        # Re-organize list by descending score
-        list_trio_unique2 = sorted(list_trio_unique2, key=lambda x: x[2], reverse=False)
-        current_row_count = 1
+        # Set the header font size
+        header_font = self.dlg.tableWidget3.horizontalHeader().font()
+        header_font.setPointSize(8)  # Adjust this value as needed
+        self.dlg.tableWidget3.horizontalHeader().setFont(header_font)
 
-        for k, (old, new, score) in enumerate(list_trio_unique2):
+        # Create a new legend widget and set it in the legend box
+        legend_widget = self.create_legend_widget()
+        legend_main_layout = QVBoxLayout(self.dlg.legendbox_2)
+        legend_main_layout.setContentsMargins(0, 0, 0, 0)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        self.dlg.legendbox_2.setLayout(legend_main_layout)
 
-            # Add a row
-            self.dlg.tableWidget3.setRowCount(current_row_count)
+        # Assume list_trio_struct_no_duplicate is a list of structure pairs (old, new, score)
+        list_trio_struct_no_duplicate = sorted(list_trio_struct_no_duplicate, key=lambda x: x[2], reverse=False)
 
-            self.dlg.tableWidget3.setItem(k, 0, QTableWidgetItem(str(old)))
-            self.dlg.tableWidget3.setItem(k, 1, QTableWidgetItem(str(new)))
+        # Dynamically compute the maximum score among rows (ignoring rows where legacy is "-")
+        valid_scores = [score for (old, new, score) in list_trio_struct_no_duplicate if old != "-"]
+        max_score = max(valid_scores) if valid_scores else 1  # Avoid division by zero
 
-            ### Creation of a color scale according to score : red for the lowest scores and green for the highest
+        # Set the row count once to the total number of unique structure triplets
+        self.dlg.tableWidget3.setRowCount(len(list_trio_struct_no_duplicate))
 
-            # Score between 0 and 100 normalized
-            score_normalized = score / 100
+        for k, (old, new, score) in enumerate(list_trio_struct_no_duplicate):
+            # Create and set the legacy value item with custom font
+            legacy_item = QTableWidgetItem(str(old))
+            legacy_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget3.setItem(k, 0, legacy_item)
 
-            # Linear interpolation between red and green
-            teinte = int(score_normalized * 120)
-            saturation = 140
-            value = 250
+            # Create and set the assigned value item with custom font
+            assigned_item = QTableWidgetItem(str(new))
+            assigned_item.setFont(QFont("Arial", 8))
+            self.dlg.tableWidget3.setItem(k, 1, assigned_item)
 
-            # Color calculation using HSV color space
-            color = QColor.fromHsv(teinte, saturation, value)
+            # Normalize the score dynamically relative to the real maximum
+            new_score = (score / max_score) * 100.0 if max_score > 0 else 0
+            # Get the color using Lipari colorscale helper (which maps 0-100 to a continuous color)
+            new_color = self.lipari_color(new_score)
 
-            for column in range(2):
-                item2 = self.dlg.tableWidget3.item(k, column)
-                if item2:
-                    item2.setBackground(color)
+            # Apply the new color as the background for both cells
+            for col in range(2):
+                item = self.dlg.tableWidget3.item(k, col)
+                if item:
+                    item.setBackground(new_color)
 
-            # Legend for color scale
-            score_ranges = [0, 20, 40, 60, 80, 100]
-            legend_colors = [
-                QColor.fromHsv(12, 140, 250),
-                QColor.fromHsv(36, 140, 250),
-                QColor.fromHsv(60, 140, 250),
-                QColor.fromHsv(84, 140, 250),
-                QColor.fromHsv(108, 140, 250),
-            ]
-
-            # Create a widget for the legend
-            legendbox_layout2 = QVBoxLayout(self.dlg.legendbox_2)
-
-            # Add labels with colors and score ranges
-            for i in range(len(score_ranges) - 1):
-                range_label = f"{score_ranges[i]} - {score_ranges[i + 1]}"
-                color_label = QLabel()
-                color_label.setStyleSheet(
-                    f"background-color: {legend_colors[i].name()}; border: 2px solid black;"
-                )
-                legendbox_layout2.addWidget(color_label)
-                legendbox_layout2.addWidget(QLabel(range_label))
 
             # Forbid editing of first 2 columns
             item1 = self.dlg.tableWidget3.item(k, 0)
@@ -2098,37 +2088,45 @@ class GEOL_QMAPS:
             item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
             item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
 
-            # Add a column with "Delete" and "Modify" buttons for each row
+            # Create composite widget for "Modify the assigned value" column:
+            modify_widget = QWidget(self.dlg)
+            h_layout = QHBoxLayout(modify_widget)
+            h_layout.setContentsMargins(0, 0, 0, 0)
 
-            button_widget = QWidget(self.dlg)
+            # Create a QComboBox for structure choices.
+            # (Assuming you extract structure options from your DataFrame)
+            structure_options = list(Dataframe.columns)
+            combo = QComboBox(modify_widget)
+            for option in structure_options:
+                combo.addItem(option)
+            if new in structure_options:
+                combo.setCurrentIndex(structure_options.index(new))
+            else:
+                combo.setCurrentIndex(0)
+            h_layout.addWidget(combo)
 
-            btn_modifier = QPushButton("Edit", button_widget)
-            btn_modifier.clicked.connect(lambda state, row=k: self.button_edit3(row))
-            btn_modifier.setMinimumHeight(17)
+            # Connect the combo box signal to update the assigned value and recalc the matching score.
+            combo.currentIndexChanged.connect(
+                lambda idx, row=k, combo=combo: self.update_assigned_value3(row, combo.currentText())
+            )
 
-            btn_supprimer = QPushButton("Delete", button_widget)
-            btn_supprimer.clicked.connect(lambda state, row=k: self.button_delete3(row))
-            btn_supprimer.setMinimumHeight(17)
+            # Create the Delete button.
+            btn_delete = QPushButton("Delete", modify_widget)
+            btn_delete.setMinimumHeight(17)
+            btn_delete.clicked.connect(lambda state, row=k: self.button_delete3(row))
+            h_layout.addWidget(btn_delete)
 
-            layout = QHBoxLayout(button_widget)
-            layout.addWidget(btn_modifier)
-            layout.addWidget(btn_supprimer)
-            button_widget.setLayout(layout)
+            modify_widget.setLayout(h_layout)
+            self.dlg.tableWidget3.setCellWidget(k, 2, modify_widget)
 
-            self.dlg.tableWidget3.setCellWidget(k, 2, button_widget)
-
-            # Cells size
-
-            self.dlg.tableWidget3.setRowHeight(k, 28)
-
-            self.dlg.tableWidget3.setColumnWidth(0, 150)
-            self.dlg.tableWidget3.setColumnWidth(1, 150)
-            self.dlg.tableWidget3.setColumnWidth(2, 150)
-
-            current_row_count += 1
+            # Set cell dimensions
+            self.dlg.tableWidget3.resizeRowsToContents()
+            self.dlg.tableWidget3.setColumnWidth(0, 185)
+            self.dlg.tableWidget3.setColumnWidth(1, 185)
+            self.dlg.tableWidget3.setColumnWidth(2, 185)
 
         # Initialize cell editing status + actions performed in table
-        self.row_edit_status = [False] * len(list_trio_unique2)
+        self.row_edit_status = [False] * len(list_trio_struct_no_duplicate)
         self.table3States = []
         self.table3States.append(self.getTableState3())
 
@@ -2196,67 +2194,6 @@ class GEOL_QMAPS:
 
         self.dlg.tableWidget3.repaint()
 
-    # Modify row
-    def button_edit3(self, row):
-
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        emplacement_files_WAXI_columns = os.path.join(
-            os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_types_structures_WAXI4.csv",
-        )
-
-        Dataframe = pd.read_csv(emplacement_files_WAXI_columns)
-        list_structure_reference = Dataframe.columns.tolist()
-
-        # CASE 1 : If the row has already been deleted
-        if (
-            self.dlg.tableWidget3.item(row, 0).text() == "-"
-            and self.dlg.tableWidget3.item(row, 1).text() == "-"
-        ):
-            return
-
-        # CASE 2 : If the button is clicked for the 1st time
-        if not self.row_edit_status[row]:
-
-            self.table3States.append(self.getTableState3())
-
-            current_text = self.dlg.tableWidget3.item(row, 1).text()
-
-            combo_box = QComboBox()
-            combo_box.addItems(list_structure_reference)
-            self.dlg.tableWidget3.setCellWidget(row, 1, combo_box)
-            combo_box.setCurrentText(current_text)
-
-            item = self.dlg.tableWidget3.item(row, 1)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
-            self.row_edit_status[row] = True
-
-        # CASE 3 : If the button is clicked for the 2nd time
-        else:
-            combo_box = self.dlg.tableWidget3.cellWidget(row, 1)
-            item = self.dlg.tableWidget3.item(row, 1)
-
-            # ComboBox
-            if isinstance(combo_box, QComboBox):
-                selected_text = combo_box.currentText()
-                self.dlg.tableWidget3.removeCellWidget(row, 1)
-
-            # Text
-            else:
-                selected_text = item.text()
-
-            item.setText(selected_text)
-
-            table_state = self.getTableState2()
-            cell_state = table_state[row][1]
-            original_color = QColor(cell_state["color"])
-            item.setBackground(original_color)
-
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
-            self.row_edit_status[row] = False
-
-        self.dlg.tableWidget3.repaint()
-
     # Come back
     def Go_Back_table3(self):
 
@@ -2281,41 +2218,133 @@ class GEOL_QMAPS:
     ## Retrieving QTableWidget 2 content : LITHOLOGIES NAMES CHECK  ##
 
     def recup_contenu_3(self):
-
-        list_structure_unique_check_OK = []
-
+        """
+        Collects the final user-verified mapping for Structures from tableWidget3.
+        Returns a list of sublists, each of the form:
+          [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
+        """
+        structure_map = []
+        # List of standard mappings: each sublist is
+        # [legacy value, standard "Structures - Structure Type", standard layer, Type, Kinematics]
+        AssignedStructures = [
+            ['Lineations - Unknown Kinematics', 'Lineations_PT', 'Unknown', 'Unknown'],
+            ['Lineations - Normal-Slip', 'Lineations_PT', 'Unknown', 'Normal-slip'],
+            ['Lineations - Reverse-Slip', 'Lineations_PT', 'Unknown', 'Reverse-slip'],
+            ['Lineations - Dextral-Slip', 'Lineations_PT', 'Unknown', 'Dextral-slip'],
+            ['Lineations - Sinistral-Slip', 'Lineations_PT', 'Unknown', 'Sinistral-slip'],
+            ['Lineations_PT - Paleoflow Direction', 'Lineations_PT', 'Paleoflow direction', 'Unknown'],
+            ['Lineations_PT - UST', 'Lineations_PT', 'UST', 'Unknown'],
+            ['Lineations_PT - Bearing', 'Lineations_PT', 'Bearing lineation', 'Unknown'],
+            ['Bedding-Lava flow-S0_PT - Unknown Polarity', 'Bedding-Lava flow-S0_PT', 'Unknown', ''],
+            ['Bedding-Lava flow-S0_PT - Normal Polarity', 'Bedding-Lava flow-S0_PT', 'Normal', ''],
+            ['Bedding-Lava flow-S0_PT - Reverse Polarity', 'Bedding-Lava flow-S0_PT', 'Inverted', ''],
+            ['Foliation-cleavage_PT', 'Foliation-cleavage_PT', '', ''],
+            ['Shear zones and faults_PT - Unknown Kinematics', 'Shear zones and faults_PT', 'Unknown', ''],
+            ['Shear zones and faults_PT - Normal-Slip', 'Shear zones and faults_PT', 'Normal-slip', ''],
+            ['Shear zones and faults_PT - Low-Angle Detachment', 'Shear zones and faults_PT', 'Low-angle detachment',
+             ''],
+            ['Shear zones and faults_PT - Reverse-Slip', 'Shear zones and faults_PT', 'Reverse-slip', ''],
+            ['Shear zones and faults_PT - Dextral-Slip', 'Shear zones and faults_PT', 'Dextral-slip', ''],
+            ['Shear zones and faults_PT - Sinistral-Slip', 'Shear zones and faults_PT', 'Sinistral-slip', ''],
+            ['Folds_PT - Unknown, Recumbent, Vertical', 'Folds_PT', 'Unknown', ''],
+            ['Folds_PT - Anticline-Antiform', 'Folds_PT', 'Antiform', ''],
+            ['Folds_PT - Syncline-Synform', 'Folds_PT', 'Synform', ''],
+            ['Folds_PT - M-shaped', 'Folds_PT', 'M fold', ''],
+            ['Folds_PT - S-shaped', 'Folds_PT', 'S fold', ''],
+            ['Folds_PT - Z-shaped', 'Folds_PT', 'Z fold', ''],
+            ['Fractures_PT', 'Fractures_PT', '', ''],
+            ['Veins_PT', 'Veins_PT', '', ''],
+            ['Dikes - Sills_PT', 'Dikes - Sills_PT', '', ''],
+            ['Lithological contacts_PT', 'Lithological contacts_PT', '', ''],
+        ]
+        # Loop through tableWidget3 rows
         for row in range(self.dlg.tableWidget3.rowCount()):
-            old = self.dlg.tableWidget3.item(row, 0).text()
+            if self.dlg.tableWidget3.item(row, 0) is None:
+                continue
+            old_value = self.dlg.tableWidget3.item(row, 0).text().strip()
+            if old_value == "-":
+                continue
 
-            if old != "-" and old != "NULL":
-                if isinstance(self.dlg.tableWidget3.cellWidget(row, 1), QComboBox):
-                    new = self.dlg.tableWidget3.cellWidget(row, 1).currentText()
-                else:
-                    new = self.dlg.tableWidget3.item(row, 1).text()
+            # Retrieve assigned value from column 1
+            if isinstance(self.dlg.tableWidget3.cellWidget(row, 1), QComboBox):
+                assigned_value = self.dlg.tableWidget3.cellWidget(row, 1).currentText().strip()
+            else:
+                assigned_item = self.dlg.tableWidget3.item(row, 1)
+                assigned_value = assigned_item.text().strip() if assigned_item else "NULL"
 
-                list_structure_unique_check_OK.append([old, new])
-
-        return list_structure_unique_check_OK
+            # Find a matching mapping from AssignedStructures based on the assigned_value
+            matching = None
+            for mapping in AssignedStructures:
+                if mapping[0] == assigned_value:
+                    matching = mapping
+                    break
+            if matching:
+                # Create a sublist with five elements:
+                # [old_value, assigned_value, standard_layer, Type, Kinematics]
+                structure_map.append([old_value, assigned_value, matching[1], matching[2], matching[3]])
+            else:
+                # No mapping found: use defaults ("Unknown" for layer, empty strings for Type/Kinematics)
+                structure_map.append([old_value, assigned_value, "Unknown", "", ""])
+        return structure_map
 
     ###############################################################################
     ######         Step 9 : Structure sorting in differents Excel sheets     ######
     ###############################################################################
 
-    def structure_sorting(
-        self,
-        name_layer_to_import,
-        fichier_output,
-        list_columns_check3,
-        list_structure_unique_check_OK,
-    ):
+    def structure_sorting(self,
+                          fichier_output: pd.DataFrame,
+                          structure_map: list,
+                          list_columns_check3: list,
+                          name_input_file: str) -> dict:
+        """
+        Sorts the rows in fichier_output into multiple structure-type DataFrames
+        based on the user-confirmed mapping.
+        Each mapping in structure_map is a list with:
+          [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
+        """
+        # 1) Build the mapping dictionary.
+        map_dict = {}
+        for entry in structure_map:
+            if len(entry) < 2:
+                continue
+            old_val = entry[0].strip() if isinstance(entry[0], str) else str(entry[0]).strip()
+            assigned = entry[1].strip() if len(entry) > 1 and isinstance(entry[1], str) else str(entry[1]).strip()
+            layer = entry[2].strip() if len(entry) > 2 and isinstance(entry[2], str) else "Unknown"
+            type_val = entry[3].strip() if len(entry) > 3 and isinstance(entry[3], str) and entry[
+                3].strip() != "" else None
+            kinematics_val = entry[4].strip() if len(entry) > 4 and isinstance(entry[4], str) and entry[
+                4].strip() != "" else None
+            map_dict[old_val] = {
+                "assigned": assigned,
+                "layer": layer,
+                "Type": type_val,
+                "Kinematics": kinematics_val
+            }
 
-        # from openpyxl import Workbook
+        # 2) Update fichier_output with new structure values and auto-fill additional fields.
+        if "Structures - Structure Type" in fichier_output.columns:
+            if "Type" not in fichier_output.columns:
+                fichier_output["Type"] = ""
+            if "Kinematics" not in fichier_output.columns:
+                fichier_output["Kinematics"] = ""
+            if "Standard_Layer" not in fichier_output.columns:
+                fichier_output["Standard_Layer"] = ""
+            for i in range(len(fichier_output)):
+                old_val = fichier_output.loc[i, "Structures - Structure Type"].strip()
+                if old_val in map_dict:
+                    mapping = map_dict[old_val]
+                    fichier_output.loc[i, "Structures - Structure Type"] = mapping["assigned"]
+                    fichier_output.loc[i, "Standard_Layer"] = mapping["layer"]
+                    if mapping["Type"]:
+                        fichier_output.loc[i, "Type"] = mapping["Type"]
+                    if mapping["Kinematics"]:
+                        fichier_output.loc[i, "Kinematics"] = mapping["Kinematics"]
+                else:
+                    fichier_output.loc[i, "Structures - Structure Type"] = "Unknown"
 
-        ### 1. Creating the output Workbook
-
-        # fichier_output_structures = Workbook()
+        # 3) Create empty DataFrames for each known structure layer.
         project = QgsProject.instance()
-        worksheets_structure = [
+        structure_layer_names = [
             "Lineations_PT",
             "Bedding-Lava flow-S0_PT",
             "Foliation-cleavage_PT",
@@ -2324,109 +2353,59 @@ class GEOL_QMAPS:
             "Fractures_PT",
             "Veins_PT",
             "Dikes-Sills_PT",
-            # "Planar structures_LN",
-            # "Deformation zones_PG",
-            # "Brecciated zones_PG",
-            # "Cataclastic zones_PG",
+            "Lithological contacts_PT"
         ]
-        basename = os.path.basename(name_layer_to_import)
-        filename_without_extension = os.path.splitext(basename)[0]
-        suffix = "_" + filename_without_extension
-
         fichier_output_structures = {}
-        for worksheet in worksheets_structure:
+        base_filename = os.path.splitext(os.path.basename(name_input_file))[0]
 
-            # Retrieving the reference layer in QGIS
-            layer = project.mapLayersByName(worksheet)[0]
+        for struct_layer_name in structure_layer_names:
+            layer_list = project.mapLayersByName(struct_layer_name)
+            if not layer_list:
+                continue
+            # For each found layer, define the header from its fields:
+            header = [field.name() for field in layer_list[0].fields()]
+            # Only add "Reference" if it was not assigned in Table1.
+            if "Reference" not in list_columns_check3 and "Reference" not in header:
+                header.append("Reference")
+            df_key = f"{struct_layer_name}_{base_filename}"
+            # Create a new DataFrame with this header.
+            fichier_output_structures[df_key] = pd.DataFrame(columns=header)
 
-            # Retrieve field names from the attribute table for this layer
-            header = [str(field.name()) for field in layer.fields()]
-            fichier_output_structures[worksheet + suffix] = pd.DataFrame(columns=header)
-
-        ### 2. Arranging columns in worksheets
-
-        # We browse the column containing the old structures in file_output
-        for m in range(0, len(fichier_output["Structure_type"])):
-
-            # We browse the list of unique (old, new) pairs verified by the user
-            for k in range(len(list_structure_unique_check_OK)):
-
-                if (
-                    fichier_output["Structure_type"].iloc[m]
-                    == list_structure_unique_check_OK[k][0]
-                ):
-                    if list_structure_unique_check_OK[k][1] != "NULL":
-                        fichier_output["Structure_type"].iloc[m] = (
-                            list_structure_unique_check_OK[k][1]
-                            + "_"
-                            + name_layer_to_import
-                        ).split(".")[0]
-                        break  # Once the match has been found, exit the internal loop
+        # 4) Append each row of fichier_output to the appropriate structure-type DataFrame.
+        for i in range(len(fichier_output)):
+            standard_layer = (fichier_output.loc[i, "Standard_Layer"]
+                              if "Standard_Layer" in fichier_output.columns
+                              else fichier_output.loc[i, "Structures - Structure Type"])
+            if standard_layer in structure_layer_names:
+                df_key = f"{standard_layer}_{base_filename}"
+                if df_key not in fichier_output_structures:
+                    continue
+                target_df = fichier_output_structures[df_key]
+                row_to_append = []
+                for col_reference in target_df.columns:
+                    # For the "Kinematics" field, copy directly from fichier_output.
+                    if col_reference.lower() == "kinematics":
+                        row_to_append.append(fichier_output.at[i, "Kinematics"])
                     else:
-                        fichier_output["Structure_type"].iloc[m] = "NULL"
-
-                # else:
-                #    fichier_output['Structure_type'].iloc[m] = 'NULL'
-
-        fichier_output["Structure_type"] = fichier_output["Structure_type"].fillna(
-            "NULL"
-        )
-
-        # Arrange rows according to their Structure_type value
-        for k in range(0, len(fichier_output["Structure_type"])):
-
-            type_structure2 = fichier_output["Structure_type"][k]
-            if type_structure2 != "NULL":
-
-                for sheet in worksheets_structure:
-                    try:
-                        Dip_Dir = fichier_output["Dip_Dir"][k]
-                    except:
-                        Dip_Dir = False
-                    try:
-                        Dip = fichier_output["Dip"][k]
-                    except:
-                        Dip = False
-
-                    if type_structure2 == sheet + suffix:
-
-                        header_reference = list(
-                            fichier_output_structures[sheet + suffix].columns
-                        )
-
-                        ligne = []
-                        for col_reference in header_reference:
-                            if (
-                                "Lineations_PT" in sheet or "Folds_PT" in sheet
-                            ) and col_reference == "Azimuth":
-                                if Dip_Dir:
-                                    ligne.append(fichier_output["Dip_Dir"][k])
-                                else:
-                                    ligne.append(fichier_output["Azimuth"][k])
-                            elif (
-                                "Lineations_PT" in sheet or "Folds_PT" in sheet
-                            ) and col_reference == "Plunge":
-                                if Dip:
-                                    ligne.append(fichier_output["Dip"][k])
-                                else:
-                                    ligne.append(fichier_output["Plunge"][k])
-                            elif col_reference not in list_columns_check3:
-                                ligne.append("")
-
-                            else:
-                                ligne.append(fichier_output[col_reference][k])
-
-                        fichier_output_structures[sheet + suffix].loc[
-                            len(fichier_output_structures[sheet + suffix])
-                        ] = ligne
+                        alias_for_col = self.alias_mapping.get(col_reference, col_reference)
+                        if alias_for_col in fichier_output.columns:
+                            row_to_append.append(fichier_output.at[i, alias_for_col])
+                        else:
+                            row_to_append.append("")
+                # If "Reference" exists and was not assigned in Table1, fill it.
+                if "Reference" in target_df.columns and "Reference" not in list_columns_check3:
+                    ref_index = target_df.columns.get_loc("Reference")
+                    row_to_append[ref_index] = base_filename
+                target_df.loc[len(target_df)] = row_to_append
 
         return fichier_output_structures
+
 
     ###############################################################################
     ##   Step 9 : Import the 2 fichier_output (lithology + structure) into QGIS  ##
     ###############################################################################
 
-    def import_Excel_create_QGISfile(self, file_lithology, file_structure, name_input):
+    def import_Excel_create_QGISfile(self, file_lithology, file_structure):
 
         # from openpyxl import Workbook, load_workbook
 
@@ -2609,11 +2588,11 @@ class GEOL_QMAPS:
             fichier_input, list_columns_check, name_layer_to_import
         )
 
-        if "Litho" in list_columns_check3:
+        if "Lithology - Outcrop Lithology" in list_columns_check3:
             # Step 5 LITHO : Fill Table2 with Lithologies pairs
             self.fill_Table2(fichier_output)
 
-        if "Structure_type" in list_columns_check3:
+        if "Structures - Structure Type" in list_columns_check3:
             # Step 6 STRUCTURE : Fill Table3 with Structure pairs
             self.fill_Table3(fichier_output)
 
@@ -2621,14 +2600,25 @@ class GEOL_QMAPS:
             "Names of columns checked ", "OK", level=Qgis.Success, duration=45
         )
 
+        # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.
+        if "Structures - Structure Type" in list_columns_check3:
+            self.iface.messageBar().pushMessage(
+                "Warning",
+                "If your data source includes both linear and planar measurements, but dip direction and trend/plunge direction (or dip and plunge, respectively) share the same data fields, please ensure that you import them separately. For planar measurements, assign legacy fields to standard values as follows: select \"Structures – Planar Measurements / Dip Direction\" and \"Structures – Planar Measurements / Dip\". For linear measurements, assign them using \"Structures – Linear Measurements / Trend – Plunge Direction\" and \"Structures – Linear Measurements / Trend – Plunge\".",
+                level=Qgis.Warning,
+                duration=45
+            )
+
         return fichier_output, list_columns_check3
 
+    #Check lithologies and get the files ready for export to scratch standard layers
     def method_lithologies_check_OK(
-        self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3
+        self, name_layer_to_import, fichier_output, list_columns_check3
     ):
 
         # Step 7 : Retrieving data from QTableWidget2
         list_lithologies_unique_check_OK = self.recup_contenu_2()
+
 
         # Step 8 : Organizing lithologies in different sheets of an Excel file
         fichier_output_lithology = self.lithologies_sorting(
@@ -2637,40 +2627,25 @@ class GEOL_QMAPS:
             list_lithologies_unique_check_OK,
             name_layer_to_import,
         )
-        self.iface.messageBar().pushMessage(
-            "Names of lithologies checked ", "OK", level=Qgis.Success, duration=45
-        )
-
         return fichier_output_lithology
 
-    def method_structures_check_OK(
-        self, name_layer_to_import, fichier_output, list_columns_check3
-    ):
+    #Check Structures and get the files ready for export to scratch standard layers
+    def method_structures_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
+        # Step 1: gather user inputs, fill table, etc.
 
-        # Step 9 : Retrieving data from QTableWidget3
-        list_structure_unique_check_OK = self.recup_contenu_3()
-
-        # Step 10 : organizing structures
+        # Step 2: call self.structure_sorting or any function that builds a dictionary
+        structure_map=self.recup_contenu_3()
         fichier_output_structures = self.structure_sorting(
-            name_layer_to_import,
-            fichier_output,
-            list_columns_check3,
-            list_structure_unique_check_OK,
-        )
-        self.iface.messageBar().pushMessage(
-            "Names of structures checked ", "OK", level=Qgis.Success, duration=45
+            fichier_output, structure_map, list_columns_check3, name_layer_to_import
         )
 
+        # Step 3: actually return that dictionary
         return fichier_output_structures
 
-    def method_import_data_as_layers(
-        self, fichier_output_lithology, fichier_output_structures, name_input
-    ):
+    def method_import_data_as_layers(self, fichier_output_lithology, fichier_output_structures):
 
         # Step 7 : Import the Excel file into QGIS and create different QGIS files
-        self.import_Excel_create_QGISfile(
-            fichier_output_lithology, fichier_output_structures, name_input
-        )
+        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures)
         self.iface.messageBar().pushMessage(
             "Data imported in the QGIS project ", "OK", level=Qgis.Success, duration=45
         )
@@ -2686,9 +2661,17 @@ class GEOL_QMAPS:
         fichier_input, name_layer_to_import = self.method_import_data()
 
         # Connect Columns check OK button correctly
-        self.dlg.pushButton_9.clicked.connect(
-            lambda: self.click_columns_check_OK(fichier_input, name_layer_to_import)
-        )
+        self.fichier_input, self.name_layer_to_import = self.method_import_data()
+        self.dlg.pushButton_9.setEnabled(True)
+        self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
+
+    def handlePushButton9(self):
+        # Check that the necessary data has been imported
+        if hasattr(self, 'fichier_input') and hasattr(self, 'name_layer_to_import'):
+            self.click_columns_check_OK(self.fichier_input, self.name_layer_to_import)
+        else:
+            self.iface.messageBar().pushMessage( "Please import the data first!", level=Qgis.Warning, duration=45)
+
 
     def click_columns_check_OK(self, fichier_input, name_layer_to_import):
 
@@ -2700,95 +2683,59 @@ class GEOL_QMAPS:
         )
 
         # Connect Lithologies check OK button correctly
-        if "Litho" in list_columns_check3:
+        if "Lithology - Outcrop Lithology" in list_columns_check3:
             self.dlg.pushButton_10.clicked.connect(
-                lambda: self.click_lithologies_check_OK(
-                    fichier_input,
-                    name_layer_to_import,
-                    fichier_output,
-                    list_columns_check3,
-                )
+                lambda: self.click_lithologies_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
             )
 
-        else:
-            if "Structure_type" in list_columns_check3:
-                self.dlg.pushButton_26.clicked.connect(
-                    lambda: self.click_structure_check_OK(
-                        fichier_input,
-                        name_layer_to_import,
-                        fichier_output,
-                        list_columns_check3,
-                        fichier_output_lithology=None,
-                    )
-                )
-
-    def click_lithologies_check_OK(
-        self, fichier_input, name_layer_to_import, fichier_output, list_columns_check3
-    ):
-
-        # from openpyxl import Workbook
-
-        fichier_output_lithology = self.method_lithologies_check_OK(
-            fichier_input, name_layer_to_import, fichier_output, list_columns_check3
-        )
-
-        # Connect Structure check OK button correctly
-        if "Structure_type" in list_columns_check3:
+        # Connect Structures check OK button correctly
+        if "Structures - Structure Type" in list_columns_check3:
             self.dlg.pushButton_26.clicked.connect(
-                lambda: self.click_structure_check_OK(
-                    fichier_input,
-                    name_layer_to_import,
-                    fichier_output,
-                    list_columns_check3,
-                    fichier_output_lithology,
-                )
-            )
-        else:
-            # Connect Generate_Output_QGIS_layer button correctly
-            self.dlg.pushButton_14.disconnect()
-            self.dlg.pushButton_14.clicked.connect(
-                lambda: self.click_Generate_Output_QGIS_layer(
-                    fichier_input,
-                    name_layer_to_import,
-                    fichier_output_lithology,
-                    fichier_output_structures=None,
-                )
+                lambda: self.click_structure_check_OK(fichier_output,list_columns_check3,name_layer_to_import)
             )
 
-    def click_structure_check_OK(
-        self,
-        fichier_input,
-        name_layer_to_import,
-        fichier_output,
-        list_columns_check3,
-        fichier_output_lithology,
-    ):
+    def click_lithologies_check_OK(self, name_layer_to_import, fichier_output, list_columns_check3):
+        """
+        Called when pushbutton10 is clicked.
+        Uses the helper method_lithologies_check_OK to generate the lithologies DataFrame.
+        """
+        self.fichier_output_lithology = self.method_lithologies_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
+        self.create_lithologies = True
+        self.iface.messageBar().pushMessage("Names of lithologies checked ", "OK", level=Qgis.Success, duration=45)
 
-        fichier_output_structures = self.method_structures_check_OK(
-            name_layer_to_import, fichier_output, list_columns_check3
-        )
+    def click_structure_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
+        """
+        Called when pushbutton26 is clicked.
+        Uses the helper method_structures_check_OK to generate the structures DataFrame.
+        """
+        self.fichier_output_structures = self.method_structures_check_OK(fichier_output, list_columns_check3, name_layer_to_import)
+        self.create_structures = True
+        self.iface.messageBar().pushMessage("Types of structures checked ", "OK", level=Qgis.Success, duration=45)
 
-        self.dlg.pushButton_14.disconnect()
-        # Connect Generate_Output_QGIS_layer button correctly
-        self.dlg.pushButton_14.clicked.connect(
-            lambda: self.click_Generate_Output_QGIS_layer(
-                fichier_input,
-                name_layer_to_import,
-                fichier_output_lithology,
-                fichier_output_structures,
-            )
-        )
+    def Generate_Output_QGIS_Layers(self):
+        """
+        Generates scratch QGIS layers based on the DataFrames produced by the check_OK methods.
+        If only lithologies or only structures were checked, only that set of layers is created.
+        If both were checked, layers for both are generated.
+        """
+        # Generate lithologies layers if the flag is set
+        if self.create_lithologies is not None and self.fichier_output_lithology is not None and self.create_structures is not None and self.fichier_output_structures is not None:
+            self.iface.messageBar().pushMessage("Generating lithologies and structures layers...", level=Qgis.Info, duration=10)
+            self.method_import_data_as_layers(self.fichier_output_lithology, self.fichier_output_structures)
 
-    def click_Generate_Output_QGIS_layer(
-        self,
-        fichier_input,
-        name_layer_to_import,
-        fichier_output_lithology,
-        fichier_output_structures,
-    ):
-        self.method_import_data_as_layers(
-            fichier_output_lithology, fichier_output_structures, name_layer_to_import
-        )
+        # Generate structures layers if the flag is set
+        elif self.create_lithologies is not None and self.fichier_output_lithology is not None:
+            self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info, duration=10)
+            self.method_import_data_as_layers(self.fichier_output_lithology, None)
+
+        # Generate structures layers if the flag is set
+        elif self.create_structures is None and self.fichier_output_structures is None:
+            self.iface.messageBar().pushMessage("Generating structures layers...", level=Qgis.Info, duration=10)
+            self.method_import_data_as_layers(None, self.fichier_output_structures)
+
+        # Reset the flags after generation
+        self.create_lithologies = False
+        self.create_structures = False
 
     def click_Reset_This_Window(self):
         self.resetWindow_import_data()
@@ -2899,14 +2846,6 @@ class GEOL_QMAPS:
                 dst_path = self.mynormpath(newProjPath + cp_dir)
                 self.safe_copy_tree(src_path, dst_path)
 
-            """src_path = oldProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
-            dst_path = newProjPath + self.dir_99 + "/Stops_PT_autoinc.qml"
-            self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-            dst_path = newProjPath + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-            self.safe_copy_file(src_path, dst_path)"""
-
             src_path = oldProjPath + self.dir_99 + "Dictionaries.gpkg"
             dst_path = newProjPath + self.dir_99 + "Dictionaries.gpkg"
 
@@ -2951,22 +2890,13 @@ class GEOL_QMAPS:
 
             copies = [
                 [oldGpkgPath, newGpkgPath],
-                [
-                    in_pref + "columns_reference_WAXI4.csv",
-                    out_pref + "columns_reference_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_types_structures_WAXI4.csv",
-                    out_pref + "columns_types_structures_WAXI4.csv",
-                ],
+                [in_pref + "columns_reference_WAXI4.csv", out_pref + "columns_reference_WAXI4.csv"],
+                [in_pref + "columns_types_structures_WAXI4.csv", out_pref + "columns_types_structures_WAXI4.csv"],
                 [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
-                [
-                    in_pref + "Stops_PT_no_autoinc.qml",
-                    out_pref + "Stops_PT_no_autoinc.qml",
-                ],"""[
-                    in_pref + "Version.txt", out_pref + "Version.txt"
-                ],
+                [in_pref + "Version.txt", out_pref + "Version.txt"],
+                [in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv", out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv"],
+                [in_pref + "Dictionaries.gpkg", out_pref + "Dictionaries.gpkg"],
+                [in_pref + "qmap.json", out_pref + "qmap.json"],
             ]
 
             for pairs in copies:
@@ -3020,6 +2950,94 @@ class GEOL_QMAPS:
             )
 
     ### CSV TOOLS ###
+    def get_csv_items(self, layer_name):
+        """
+        Returns a list of all 'Valeur' entries from the CSV dictionary corresponding to layer_name.
+        Assumes the CSV is stored in self.dictionaries_path and is accessible via pandas.
+        """
+        try:
+            ds = ogr.Open(self.dictionaries_path)
+            if ds is None:
+                raise Exception("Could not open geopackage: " + self.dictionaries_path)
+            lyr = ds.GetLayer(layer_name)
+            if lyr is None:
+                raise Exception("Layer '{}' not found in geopackage.".format(layer_name))
+            items = []
+            for feat in lyr:
+                value = feat.GetField("Valeur")
+                if value is not None:
+                    items.append(str(value))
+            return items
+
+        except Exception as e:
+            print("Error reading dictionary for {}: {}".format(layer_name, e))
+            return []
+
+    def add_row_to_csv_layer(self, gpkg_path, layer_name, new_row):
+        """
+        Add a row to a CSV layer in a GeoPackage.
+
+        Parameters:
+            gpkg_path (str): Path to the GeoPackage file.
+            layer_name (str): The name of the CSV layer in the GeoPackage.
+            new_row (dict): A dictionary representing the new row to add.
+                            The keys must match the column names of the layer.
+
+        Returns:
+            None
+        """
+        import fiona
+
+        try:
+            # Open the GeoPackage layer in read mode to retrieve metadata
+            with fiona.open(gpkg_path, layer=layer_name, mode="r") as src:
+                layer_crs = src.crs
+                layer_schema = src.schema
+                features = list(src)  # Load existing features
+
+            # Remove existing 'id' keys from all features so new IDs are generated
+            for feat in features:
+                if "fid" in feat:
+                    del feat["fid"]
+
+            # Validate new_row keys match the schema's properties
+            for key in new_row.keys():
+                if key not in layer_schema["properties"]:
+                    raise ValueError(
+                        f"Invalid column name '{key}'. Column does not exist in the layer."
+                    )
+
+            # Create a new feature from the new_row
+            new_feature = {
+                "type": "Feature",
+                "geometry": None,  # CSV layers typically don't have geometries
+                "properties": new_row,
+            }
+
+            # Append the new feature to the features list
+            features.append(new_feature)
+
+            """# Create a backup of the original GeoPackage
+            backup_path = f"{gpkg_path}.bak"
+            os.rename(gpkg_path, backup_path)
+            """
+            # Write the updated features back to the GeoPackage
+            with fiona.open(
+                    gpkg_path,
+                    mode="w",
+                    driver="GPKG",
+                    layer=layer_name,
+                    schema=layer_schema,
+                    crs=layer_crs,
+            ) as dst:
+                dst.writerecords(features)
+
+            # print(f"Row added successfully to the layer '{layer_name}'.")
+            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
+
+        except Exception as e:
+            print(f"Error adding row to the GeoPackage layer: {e}")
+
     def delete_row_from_csv_layer(
         self, gpkg_path, layer_name, column_name, value_to_delete
     ):
@@ -3052,6 +3070,11 @@ class GEOL_QMAPS:
                 if feature["properties"][column_name] != value_to_delete
             ]
 
+            # Remove 'id' keys from the updated features so new IDs are assigned
+            for feat in updated_features:
+                if "fid" in feat:
+                    del feat["fid"]
+
             # Create a backup of the original GeoPackage
             # backup_path = f"{gpkg_path}.bak"
             # os.rename(gpkg_path, backup_path)
@@ -3067,162 +3090,30 @@ class GEOL_QMAPS:
             ) as dst:
                 dst.writerecords(updated_features)
 
-            # print(f"Rows with {column_name} = {value_to_delete} have been removed successfully.")
-            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
-
         except Exception as e:
             print(f"Error processing the GeoPackage layer: {e}")
 
-    def add_row_to_csv_layer(self, gpkg_path, layer_name, new_row):
-        """
-        Add a row to a CSV layer in a GeoPackage.
-
-        Parameters:
-            gpkg_path (str): Path to the GeoPackage file.
-            layer_name (str): The name of the CSV layer in the GeoPackage.
-            new_row (dict): A dictionary representing the new row to add.
-                            The keys must match the column names of the layer.
-
-        Returns:
-            None
-        """
-        import fiona
-
-        try:
-            # Open the GeoPackage layer in read mode to retrieve metadata
-            with fiona.open(gpkg_path, layer=layer_name, mode="r") as src:
-                layer_crs = src.crs
-                layer_schema = src.schema
-                features = list(src)  # Load existing features
-
-            # Validate new_row keys match the schema's properties
-            for key in new_row.keys():
-                if key not in layer_schema["properties"]:
-                    raise ValueError(
-                        f"Invalid column name '{key}'. Column does not exist in the layer."
-                    )
-
-            # Create a new feature from the new_row
-            new_feature = {
-                "type": "Feature",
-                "geometry": None,  # CSV layers typically don't have geometries
-                "properties": new_row,
-            }
-
-            # Append the new feature to the features list
-            features.append(new_feature)
-
-            """# Create a backup of the original GeoPackage
-            backup_path = f"{gpkg_path}.bak"
-            os.rename(gpkg_path, backup_path)
-            """
-            # Write the updated features back to the GeoPackage
-            with fiona.open(
-                gpkg_path,
-                mode="w",
-                driver="GPKG",
-                layer=layer_name,
-                schema=layer_schema,
-                crs=layer_crs,
-            ) as dst:
-                dst.writerecords(features)
-
-            # print(f"Row added successfully to the layer '{layer_name}'.")
-            # print(f"A backup of the original GeoPackage was created at: {backup_path}")
-
-        except Exception as e:
-            print(f"Error adding row to the GeoPackage layer: {e}")
-
-    ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
-    def addCsvItem(self):
-        """
-        Adds a new item to a CSV layer and updates the corresponding layer in QGIS.
-        This method retrieves the current layer from a combo box, creates a new row with values
-        from a line edit, and adds this row to the specified CSV layer. If the current layer
-        is related to lithologies, it also updates a general list of all lithologies. The method
-        then reloads the CSV layer in QGIS and triggers a repaint to reflect the changes. A
-        message is displayed in the QGIS message bar to confirm the addition.
-        Parameters:
-        None
-        Returns:
-        None
-        """
-
-        # emplacement_99_CSV_files = self.templateCSV_path
-
-        # csv_file = str(self.dlg.comboBox.currentText())
-
-        # csv_updates = [layer_name, "Lithologies"]
-        # for csv_file in csv_updates:
-        # chemin_fichier_CSV_modifier = self.mynormpath(
-        # emplacement_99_CSV_files + csv_file + ".csv"
-        # )
-        current_layer = self.dlg.comboBox.currentText()
-        new_row = {
-            "Valeur": str(self.dlg.lineEdit_38.text()),
-            "Description": str(self.dlg.lineEdit_38.text()),
-        }
-
-        self.add_row_to_csv_layer(self.dictionaries_path, current_layer, new_row)
-
-        if "List of lithologies" in current_layer:
-            self.add_row_to_csv_layer(
-                self.dictionaries_path, "General__List of all lithologies", new_row
-            )
-
-        # Updates the layer in QGIS
-
-        if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", " // ")
-            )[0]
-        else:
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", "/")
-            )[0]
-
-        if layer_csv.isValid():
-            self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
-            if "List of lithologies" in current_layer:
-                self.reload_csv(
-                    self.dictionaries_path,
-                    layer_csv,
-                    "General__List of all lithologies",
-                )
-
-        else:
-            print("Could not reload csv file")
-
-        layer_csv.triggerRepaint()
-        self.iface.messageBar().pushMessage(
-            "Item "
-            + str(self.dlg.lineEdit_38.text())
-            + " "
-            + str(self.dlg.lineEdit_38.text())
-            + " added to "
-            + current_layer,
-            level=Qgis.Success,
-            duration=15,
-        )
-        self.update_combobox_delete()
-
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        # Clear all features in the existing layer
+        '''#Clear all features in the existing layer
         layer_csv.startEditing()
         layer_csv.dataProvider().truncate()  # Deletes all features efficiently
         layer_csv.commitChanges()
+        print(layer_csv, ' is cleared of all existing values')'''
 
         # Load new data from the CSV file
         new_table = QgsVectorLayer(
             f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
         )
 
+        if new_table.featureCount() == 0:
+            print('New table is empty, issue!')
+
         if new_table.isValid():
             # Ensure the schema matches (field names and types)
             new_fields = new_table.fields()
             existing_fields = layer_csv.fields()
 
-            if new_fields.names() != existing_fields.names():
+            if new_fields.names() != existing_fields.names() and current_layer!='General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table':
                 print(
                     "The schema of the new data does not match the existing layer. Update failed."
                 )
@@ -3230,59 +3121,126 @@ class GEOL_QMAPS:
                 # Add new features to the existing layer
                 layer_csv.startEditing()
                 features = new_table.getFeatures()
+
+                # Retrieve and print the header (field names) --> For checking
+                headers = [field.name() for field in new_table.fields()]
+                print(" | ".join(headers))
+
+                # Iterate over each feature and print the attribute values --> For checking
                 for feature in features:
+                    # Convert each attribute to string and join using a separator
+                    values = [str(feature[field]) for field in headers]
+                    print(" | ".join(values))
+
+                for feature in features:
+                    # Dealing with fid for new entries
+                    if feature.attribute(0) >= -1:
+                        feature.setAttribute(0, None)
+
                     layer_csv.dataProvider().addFeatures([feature])
+
                 layer_csv.commitChanges()
+
         else:
             print(f"Failed to load new data from {dictionaries_path}.")
 
+    ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
+    def addCsvItem(self):
+        """
+        Adds a new item to a CSV layer and updates the corresponding layer in QGIS.
+        If the selected dictionary name contains 'List of lithologies', extra rows are added to the
+        'General__List of all lithologies' and 'General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table'.
+        Prevents duplicate entries and resets the lineEdit_38 to its default appearance after adding.
+        """
+        current_layer = self.dlg.comboBox.currentText()
+        new_value = str(self.dlg.lineEdit_38.text()).strip()
+        if new_value == "":
+            self.iface.messageBar().pushMessage("Error: No value provided", level=Qgis.Warning, duration=45)
+            self.dlg.lineEdit_38.clear()
+            return
+
+        # Check for duplicates in the current dictionary
+        existing_items = self.get_csv_items(current_layer)
+        if new_value in existing_items:
+            self.iface.messageBar().pushMessage(
+                "Duplicate entry: '{}' already exists in {} dictionary.".format(new_value, current_layer),
+                level=Qgis.Warning, duration=45)
+            self.dlg.lineEdit_38.clear()
+            return
+
+        new_row = {"Valeur": new_value, "Description": new_value}
+
+        # Add the new row to the currently selected CSV layer
+        self.add_row_to_csv_layer(self.dictionaries_path, current_layer, new_row)
+
+        # If the dictionary is related to lithologies, update the two general dictionaries
+        if "List of lithologies" in current_layer:
+            self.add_row_to_csv_layer(self.dictionaries_path, "General__List of all lithologies", new_row)
+            rock_type = current_layer.split(" lithologies__")[0]
+            rock_row = {"Key": rock_type, "Value": new_value}
+            self.add_row_to_csv_layer(self.dictionaries_path,
+                                      "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
+                                      rock_row)
+
+        # Reload CSV layer based on naming conventions
+        if current_layer.startswith("General__"):
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
+        else:
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
+
+
+        if layer_csv.isValid():
+            self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
+            if "List of lithologies" in current_layer:
+                self.reload_csv(self.dictionaries_path, layer_csv, "General__List of all lithologies")
+                self.reload_csv(self.dictionaries_path, layer_csv,
+                                "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table")
+        else:
+            print("Could not reload the csv file: error related to retrieving of the name of the csv dictionary layer")
+
+        layer_csv.triggerRepaint()
+        self.iface.messageBar().pushMessage(
+            "Item '{}' added to {} dictionary. Update symbology if needed.".format(new_value, current_layer),
+            level=Qgis.Success, duration=45
+        )
+        self.dlg.lineEdit_38.clear()
+        self.update_combobox_delete()
+
     ### Option 2 :  DELETE a single value to any CSV file in the WAXI QFIELD template
     def deleteCsvItem(self):
-
-        # emplacement_99_CSV_files = self.templateCSV_path
-
+        """
+        Deletes an item from a CSV dictionary and updates the corresponding layer in QGIS.
+        If the current dictionary relates to lithologies, the deletion is also applied to the
+        general lithologies list and rock type table. Resets the comboBox_delete to its default appearance after deletion.
+        """
         current_layer = str(self.dlg.comboBox.currentText())
         delete_item = self.dlg.comboBox_delete.currentText()
 
-        self.delete_row_from_csv_layer(
-            self.dictionaries_path, current_layer, "Valeur", delete_item
-        )
+        # Delete the row from the currently selected CSV layer
+        self.delete_row_from_csv_layer(self.dictionaries_path, current_layer, "Valeur", delete_item)
 
         if "List of lithologies" in current_layer:
+            print("list of lithologies dictionary? YES")
+            self.delete_row_from_csv_layer(self.dictionaries_path, "General__List of all lithologies", "Valeur",
+                                           delete_item)
+            self.delete_row_from_csv_layer(self.dictionaries_path,
+                                           "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
+                                           "Value", delete_item)
 
-            self.delete_row_from_csv_layer(
-                self.dictionaries_path,
-                "General__List of all lithologies",
-                "Valeur",
-                delete_item,
-            )
         if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", " // ")
-            )[0]
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
         else:
-            layer_csv = QgsProject.instance().mapLayersByName(
-                current_layer.replace("__", "/")
-            )[0]
+            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
 
         self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
 
-        # if chemin_fichier_CSV_modifier:
         self.iface.messageBar().pushMessage(
-            "Item "
-            + str(self.dlg.lineEdit_38.text())
-            + " "
-            + str(self.dlg.lineEdit_38.text())
-            + " removed from "
-            + current_layer,
-            level=Qgis.Success,
-            duration=15,
+            "Item '{}' removed from {} dictionary. Update symbology if needed.".format(delete_item, current_layer),
+            level=Qgis.Success, duration=15
         )
-
         self.update_combobox_delete()
 
     ### Update project name ###
-
     def updateProjectTitle(self):
         if self.dlg.lineEdit_9.text() and self.dlg.lineEdit_10.text():
             project = QgsProject.instance()
@@ -3317,45 +3275,6 @@ class GEOL_QMAPS:
         layer.triggerRepaint()
 
         return True
-
-    ### Toggle AutoIncrements of stop number ###
-    """def toggleAutoInc(self):
-        project = QgsProject.instance()
-        proj_file_path = project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml"
-        layer = project.mapLayersByName("Stops_PT")[0]
-        qmapConfigPath = head_tail[0] + "/" + self.dir_99 +   "/qmap.json"
-        if(os.path.exists(no_auto_filename) and os.path.exists(auto_filename)):
-            if self.dlg.autoinc_on_pushButton.isChecked():
-                self.apply_qml_style(layer,auto_filename)
-                self.iface.messageBar().pushMessage(
-                    "Auto Incrementing Stop Numbers turned ON",
-                    level=Qgis.Success,
-                    duration=15,
-                )
-                qmapConfig = {
-                    "autoInc": True,
-                }
-
-            else:
-                self.apply_qml_style(layer,no_auto_filename)
-                self.iface.messageBar().pushMessage(
-                    "Auto Incrementing Stop Numbers turned OFF",
-                    level=Qgis.Success,
-                    duration=15,
-                )
-                qmapConfig = {
-                    "autoInc": False,
-                }
-
-            if os.path.exists(qmapConfigPath):
-                with open(qmapConfigPath, "w") as outfile:
-                    json.dump(qmapConfig, outfile, indent=4)
-        else:
-            print("An autoinc qml file is missing from the project")"""
 
     ### Set user by default ###                   #ADD
 
@@ -4074,11 +3993,8 @@ class GEOL_QMAPS:
             )
             shutil.copyfile(src_file, dst_file)
 
-            proj_name = os.path.basename(self.dlg.lineEdit_11.text())
-            shutil.copyfile(
-                self.dlg.lineEdit_11.text(),
-                merge_project_path + "/" + proj_name,
-            )
+            proj_name = "MergedProject.qgs"
+            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))           
 
             in_pref = main_project_path + self.dir_99
             out_pref = merge_project_path + self.dir_99
@@ -4092,14 +4008,14 @@ class GEOL_QMAPS:
                     in_pref + "columns_types_structures_WAXI4.csv",
                     out_pref + "columns_types_structures_WAXI4.csv",
                 ],
-                [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                """[in_pref + "Stops_PT_autoinc.qml", out_pref + "Stops_PT_autoinc.qml"],
                 [
-                    in_pref + "Stops_PT_no_autoinc.qml",
-                    out_pref + "Stops_PT_no_autoinc.qml",
-                ],"""[
-                    in_pref + "Version.txt", out_pref + "Version.txt"
+                    in_pref + "stereonet.json",
+                    out_pref + "stereonet.json"
                 ],
+                [
+                    in_pref + "Version.txt",
+                    out_pref + "Version.txt"
+                ]
             ]
 
             for pairs in copies:
@@ -4389,6 +4305,7 @@ class GEOL_QMAPS:
                 "Compilation_Metamorphic lithologies_PT",
                 "Compilation_Lithological contacts_PT",
                 "Compilation_Magnetic susceptibility_PT",
+                "Compilation_Density_PT",
             ]
 
             for layer_name in layer_names:
@@ -4645,6 +4562,11 @@ class GEOL_QMAPS:
                 + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
+            file.append(
+                self.geopackage_file_path
+                + "|layername=Compilation_Density_PT"
+            )
+
             # Merge two shapefiles
             params = {"LAYERS": [file[0], file[1]], "OUTPUT": "memory:"}
 
@@ -4781,14 +4703,12 @@ class GEOL_QMAPS:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    def set_qmapsConfig(self):
+    """def set_qmapsConfig(self):
         project = QgsProject.instance()
         proj_file_path = project.fileName()
         head_tail = os.path.split(proj_file_path)
 
         qmapConfigPath = head_tail[0] + "/" + self.dir_99 + "/qmap.json"
-        """no_auto_filename = head_tail[0] + "/" + self.dir_99 + "/Stops_PT_no_autoinc.qml"
-        auto_filename = head_tail[0] + "/" + self.dir_99 + "Stops_PT_autoinc.qml""" ""
         layer = project.mapLayersByName("Sampling_PT")[0]
 
         if os.path.exists(qmapConfigPath):
@@ -4799,17 +4719,8 @@ class GEOL_QMAPS:
                 "autoInc": True,
             }
 
-        """if qmapConfig["autoInc"]:
-            self.dlg.autoinc_on_pushButton.setChecked(True)
-            self.dlg.autoinc_off_pushButton.setChecked(False)
-            self.apply_qml_style(layer,auto_filename)
-        else:
-            self.apply_qml_style(layer,no_auto_filename)
-            self.dlg.autoinc_on_pushButton.setChecked(False)
-            self.dlg.autoinc_off_pushButton.setChecked(True)"""
-
         with open(qmapConfigPath, "w") as outfile:
-            json.dump(qmapConfig, outfile, indent=4)
+            json.dump(qmapConfig, outfile, indent=4)"""
 
     ### Merge 2 layers old version###
 
@@ -4873,52 +4784,44 @@ class GEOL_QMAPS:
 
         if layer1 != layer2:
 
-            columns_layer1 = [field.name() for field in layer1.fields()]
-            columns_layer2 = [field.name() for field in layer2.fields()]
-
-            ## Loop on first layer entities
-
+            # Create a dictionary of attributes for each feature in layer1, keyed by field name.
             for feature1 in layer1.getFeatures():
-                # Creation of a new entity for the second layer
-                new_feature = QgsFeature()
-
-                # Copy geometry
+                new_feature = QgsFeature(layer2.fields())
                 new_feature.setGeometry(feature1.geometry())
 
-                # Copy attributes
-                new_feature.setAttributes(feature1.attributes())
-
-                # Add entity to second layer
+                # Build a dictionary for layer1 attributes
+                feat1_attr = {f.name(): feature1[f.name()] for f in layer1.fields()}
+                new_attrs = []
+                for field in layer2.fields():
+                    # First, try to find an exact match by field name.
+                    if field.name() in feat1_attr:
+                        new_attrs.append(feat1_attr[field.name()])
+                    else:
+                        new_attrs.append(None)
+                        print('field name correspondance WRONG: ', field.name())
+                        
+                new_feature.setAttributes(new_attrs)
                 layer2.dataProvider().addFeatures([new_feature])
 
             # extra code to handle storage of original data as dict in json field
             if not layer2.isEditable():
                 layer2.startEditing()
-            for feature in layer2.getFeatures():
 
+            for feature in layer2.getFeatures():
                 if feature["UUID"] in self.sheetHashUUID:
                     new_text = self.sheetHashUUID[feature["UUID"]][0]
-
                     feature["Existing databases - raw data"] = new_text
 
                 # Update the feature in the layer
                 layer2.updateFeature(feature)
 
-            # extra code to handle Lineations_PT
-            if not layer2.isEditable():
-                layer2.startEditing()
-            # for feature in layer2.getFeatures():
-            #    if "Lineations_PT" in self.dlg.comboBox_merge1_2.currentText():
-            #        if feature["Measure"] == "Vertical plane":
-            #            print("found it")
-            # print(feature["Existing databases - raw data"][" DIP "])
-            # Refinishing the second layer
             layer2.updateFields()
             layer2.commitChanges()
             layer2.triggerRepaint()
 
             # Removing the first layer
             QgsProject.instance().removeMapLayer(layer1.id())
+
 
     # Delete contents of a geopackage layer
     def drop_layer_contents(self, gpkg_path, layer_name):
@@ -5246,6 +5149,11 @@ class GEOL_QMAPS:
                 )
 
     def select_file_to_import(self):
+        #unit tester for all functions if path is set manually to "test"
+        if(self.dlg.lineEdit_13.text() == "test"):
+            self.GEOL_QMAPS_tester()
+            return
+
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Import layer")
 
         self.dlg.lineEdit_13.setText(filename)
@@ -5298,7 +5206,10 @@ class GEOL_QMAPS:
         self.dlg.comboBox.clear()
         self.csv_layer_list = []
         for name in self.csvs:
-            self.csv_layer_list.append(name)
+            # Exclude the two General dictionaries from the comboBox selection
+            if name not in ["General__List of all lithologies",
+                            "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table"]:
+                self.csv_layer_list.append(name)
         self.csv_layer_list.sort()
         self.dlg.comboBox.addItems(self.csv_layer_list)
 
@@ -5337,7 +5248,7 @@ class GEOL_QMAPS:
         for layerId, layer in layers.items():
 
             # Select all non CSV layers of the QGIS project
-            if isinstance(layer, QgsVectorLayer) and layer.name() in self.layers_names:
+            if isinstance(layer, QgsVectorLayer) and layer.name() in self.layers_names_all:
                 self.dlg.comboBox_layers_user.addItem(layer.name(), layerId)
 
     def update_ComboBox(self):
@@ -5361,21 +5272,12 @@ class GEOL_QMAPS:
         Merge_output_tooltip = "<p>Path to directory of newly merged QGIS Project.</p>"
         Csv_list_tooltip = "Select CSV file to add item to"
         Epsilon_tooltip = "The radius of the circle to be created around each data point to check the density (in metres)"
-        """Auto_on = (
-            "Turn on autoincrementing of Stop Number behaviour when a new Stop is added"
-        )
-        Auto_off = "Turn off autoincrementing of Stop Number behaviour when a new Stop is added""" ""
-
         Clip_tooltip = "Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project"
         Add_item_tooltip = "Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD"
         Export_tooltip = "Provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)"
         Update_tooltip = "Provide new Name and Region info for project"
         Merge_tooltip = "Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed."
         Virtualstop_tooltip = "Combine all point layers to get virtual Stop IDS"
-        """Autoincrement_tooltip = (
-            "Toggle autoincrementing of Stop Number behaviour when a new Stop is added"
-        )"""
-
         gtCircles_tooltip = (
             "Select Checkbox to switch to Great Circle Display for Stereonet Plugin"
         )
@@ -5394,7 +5296,6 @@ class GEOL_QMAPS:
         self.dlg.groupBox_10.setToolTip(Export_tooltip)
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
         self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
-        """self.dlg.groupBox_7.setToolTip(Autoincrement_tooltip)"""
 
         # Project Parameters
         self.dlg.projName_pushButton.setToolTip("Update project name")
@@ -5410,7 +5311,6 @@ class GEOL_QMAPS:
         self.dlg.csv_pushButton_2.setToolTip("Delete an item from CSV file")
 
         # Stop
-        """self.dlg.autoinc_pushButton.setToolTip("Toggle Auto-Increment of Stop numbers")"""
         self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
 
         # Import Data
@@ -5423,6 +5323,9 @@ class GEOL_QMAPS:
         self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
 
         self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
+        self.dlg.pushButton_14.clicked.connect(
+            lambda: self.Generate_Output_QGIS_Layers()
+        )
 
         self.dlg.pushButton_13.setToolTip("Reset this window")
         self.dlg.pushButton_19.setToolTip("Reset this window")
@@ -5444,10 +5347,6 @@ class GEOL_QMAPS:
 
         # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
         # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
-
-        # RadioButtons
-        """self.dlg.autoinc_on_pushButton.setToolTip(Auto_on)
-        self.dlg.autoinc_off_pushButton.setToolTip(Auto_off)"""
 
         # LineEdit
         self.dlg.lineEdit_38.setToolTip(Value_tooltip)
@@ -5481,67 +5380,6 @@ class GEOL_QMAPS:
     ###############################################################################
     ####################                   RUN                   ##################
     ###############################################################################
-    def check_version(self):
-
-        project = QgsProject.instance()
-
-        plugin_version = template_version = "0.0.0"
-        template_version_file_path = self.mynormpath(
-            self.basePath + self.dir_99 + "Version.txt"
-        )
-        template_version_file = open(template_version_file_path, "r")
-        version = template_version_file.readline()
-        template_version = version[1:].split(".")
-
-        metadata_path = self.mynormpath(
-            os.path.dirname(os.path.realpath(__file__)) + "/metadata.txt"
-        )
-        plugin_version_file = open(metadata_path)
-        metadata = plugin_version_file.readlines()
-        for line in metadata:
-            parts = line.split("=")
-            if len(parts) == 2 and parts[0] == "version":
-                pversion = parts[1]
-                plugin_version = parts[1].split(".")
-        plugin_version[2] = plugin_version[2].strip()
-
-        version_text = "Plugin v" + pversion.rstrip() + "  Template " + version
-        self.dlg.versions_label.setText(version_text)
-
-        pv = ".".join(plugin_version)
-        tv = ".".join(template_version)
-        if template_version[0] > plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] > plugin_version[1]
-        ):
-            self.iface.messageBar().pushMessage(
-                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(
-                    pv, tv
-                ),
-                level=Qgis.Critical,
-                duration=45,
-            )
-        elif template_version[0] < plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] < plugin_version[1]
-        ):
-            self.iface.messageBar().pushMessage(
-                "WARNING: Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://zenodo.org/records/13374088'>here</a>".format(
-                    pv, tv
-                ),
-                level=Qgis.Warning,
-                duration=45,
-            )
-        else:
-            self.iface.messageBar().pushMessage(
-                "SUCCESS: Plugin {} and Template {} are compatible!!".format(pv, tv),
-                level=Qgis.Success,
-                duration=15,
-            )
-
-        template_version_file.close()
-        plugin_version_file.close()
-
     def use_exif_azimuth(self):
         dec = ""
         layer_name = "Photographs_PT"
@@ -5619,3 +5457,154 @@ class GEOL_QMAPS:
                     level=Qgis.Success,
                     duration=15,
                 )
+
+
+
+################################################################################
+###                              TESTING code                            #######
+################################################################################
+
+
+    def GEOL_QMAPS_tester(self):
+        print("\n\nGEOL_QMAPS_tester started")
+        # path reference to loaded project
+        project = QgsProject.instance()
+        proj_file_path = project.fileName()
+        head_tail = os.path.split(proj_file_path)
+        self.basePath = head_tail[0] + "/"
+        grandparent_directory = os.path.dirname(self.basePath)
+        greatgrandparent_directory = os.path.dirname(grandparent_directory)
+        print(greatgrandparent_directory)  
+
+        FMDirectory=greatgrandparent_directory+"/FieldMove/"
+        Project2=greatgrandparent_directory+"/Project2_initial/Project2.qgz"
+        
+        mergeDirectory=greatgrandparent_directory+"/test_merge/"
+        clipDirectory=greatgrandparent_directory+"/test_clip/"
+        exportDirectory=greatgrandparent_directory+"/test_export/"
+        qlmDirectory=greatgrandparent_directory+"/test_qlm/"
+        phtotDirectory=greatgrandparent_directory+"/test_photo/"
+
+        newDirs=[mergeDirectory,clipDirectory,exportDirectory,qlmDirectory,phtotDirectory]
+        for directory in newDirs:
+            # Check if directory exists
+            if os.path.exists(directory) and os.path.isdir(directory):
+                # Remove directory and all its contents
+                try:
+                    shutil.rmtree(directory)
+                except:
+                    print(f"Directory '{directory}' couldn't be removed.")
+            os.makedirs(directory,exist_ok=True) 
+
+
+        #run through all funcitonality (except importing data)
+
+        try:
+            self.dlg.lineEdit_9.setText("Name")
+            self.dlg.lineEdit_10.setText("Place")
+            self.updateProjectTitle()
+            print("updateProjectTitle")
+        except:
+            print("*** updateProjectTitle failed")
+
+        try:
+            self.merge_current_to_existing()
+            print("merge_current_to_existing")
+        except:
+            print("*** merge_current_to_existing failed")
+
+        try:
+            self.FM_Import = FM_Import(None)
+            self.FM_Import.import_FM_data(self.basePath, FMDirectory)
+            print("FM_Import.import_FM_data")
+        except:
+            print("*** FM_Import.import_FM_data failed")
+
+        try:
+            self.dlg.lineEdit_11.setText(proj_file_path)
+            self.dlg.lineEdit_26.setText(Project2)
+            self.dlg.lineEdit_37.setText(mergeDirectory)
+            self.mergeProjects()
+            print("mergeProjects")
+        except:
+            print("*** mergeProjects failed")
+
+        try:
+            self.dlg.lineEdit_7.setText(exportDirectory)
+            self.exportData()
+            print("exportData")
+        except:
+            print("*** exportData failed")
+
+        try:
+            self.dlg.lineEdit_3.setText(clipDirectory)
+            self.clipToCanvas()
+            print("clipToCanvas")
+        except:
+            print("*** clipToCanvas failed")
+
+
+        try:
+            self.removeDuplicates()
+            print("removeDuplicates")
+        except:
+            print("*** removeDuplicates failed")
+
+
+        try:
+            self.dlg.lineEdit_18.setText(qlmDirectory)
+            self.save_template_style()
+            print("save_template_style")
+        except:
+            print("*** save_template_style failed")
+
+
+        try:
+            self.dlg.lineEdit_53.setText("500")
+            self.virtualStops()
+            print("virtualStops")
+        except:
+            print("*** virtualStops failed")
+
+
+        try:
+            self.dlg.lineEdit_39.setText("UnitTestUser")
+            self.set_user_by_default()
+            print("set_user_by_default")
+        except:
+            print("*** set_user_by_default failed")
+
+        try:
+            self.use_exif_azimuth()
+            print("use_exif_azimuth")
+        except:
+            print("*** use_exif_azimuth failed")
+
+        try:
+            self.dlg.lineEdit_14.setText(phtotDirectory)
+            self.update_source_photo()
+            print("update_source_photo")
+        except:
+            print("*** update_source_photo failed")
+
+        try:
+            self.dlg.rose_checkBox.setChecked(True)
+            self.set_stereoConfig()
+            print("set_stereoConfig")
+        except:
+            print("*** set_stereoConfig failed")
+
+        try:
+            current_layer = "General__List of Users"
+            self.dlg.comboBox.setCurrentText(current_layer)
+            self.dlg.lineEdit_38.setText("TestUserAdd1")
+            self.addCsvItem()
+            self.dlg.lineEdit_38.setText("TestUserAdd2")
+            self.addCsvItem()
+            self.dlg.comboBox_delete.setCurrentText("TestUserAdd2")
+            self.deleteCsvItem()
+            print("addCsvItem and deleteCsvItem")
+        except:
+            print("*** addCsvItem and deleteCsvItem failed")
+
+        print("GEOL_QMAPS_tester finished")
