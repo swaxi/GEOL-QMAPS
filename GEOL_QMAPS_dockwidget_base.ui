@@ -1968,9 +1968,9 @@ font-size: 12px;</string>
       <widget class="QPushButton" name="pushButton_save__project_template_style_2">
        <property name="geometry">
         <rect>
-         <x>630</x>
+         <x>660</x>
          <y>50</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
@@ -1982,7 +1982,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Save a New .qlr File</string>
+        <string>Save .qlr File</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_36">
@@ -1990,7 +1990,7 @@ font-size: 12px;</string>
         <rect>
          <x>10</x>
          <y>21</y>
-         <width>531</width>
+         <width>631</width>
          <height>31</height>
         </rect>
        </property>
@@ -2000,7 +2000,7 @@ font-size: 12px;
 </string>
        </property>
        <property name="text">
-        <string>Save a QGIS Layer Definition File for Customised Field Data Layers and Dictionaries:</string>
+        <string>Select a Folder to Save a QGIS Layer Definition File for Customised Field Data Layers and Dictionaries:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2009,7 +2009,7 @@ font-size: 12px;
       <widget class="QPushButton" name="pushButton_17">
        <property name="geometry">
         <rect>
-         <x>580</x>
+         <x>610</x>
          <y>50</y>
          <width>31</width>
          <height>21</height>
@@ -2037,7 +2037,7 @@ font-size: 12px;</string>
         <rect>
          <x>10</x>
          <y>50</y>
-         <width>561</width>
+         <width>591</width>
          <height>21</height>
         </rect>
        </property>
@@ -2066,7 +2066,7 @@ border-style: solid;border-width: 1px;border-color: black
         <string/>
        </property>
        <property name="placeholderText">
-        <string>***project-repository***/0. FIELD DATA/CURRENT_MISSION+DICTIONARIES.qlr</string>
+        <string>***project-repository or any-other-folder***</string>
        </property>
       </widget>
      </widget>

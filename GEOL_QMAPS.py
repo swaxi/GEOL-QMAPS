@@ -4947,7 +4947,7 @@ class GEOL_QMAPS:
 
         return defaut_value
 
-    ### Save a new CURRENT_MISSION+DICTIONARIES.qlr file ###
+    ### Save a new CURRENT_MISSION+DICTIONARIES.qlr file and a new COMPILATION.qlr file ###
     def save_template_style(self):
         """
         Save the group tree structure and all layer styles to a QLR file.
@@ -4959,6 +4959,7 @@ class GEOL_QMAPS:
         # Get the root of the layer tree
         root = QgsProject.instance().layerTreeRoot()
         group_name = "FIELD DATA"
+
         # Find the target group
         target_group = None
         for child in root.children():
@@ -4982,60 +4983,19 @@ class GEOL_QMAPS:
 
         # Save the group with its hierarchy and styles
         # Save the layers to a QLR file
-        error = QgsLayerDefinition.exportLayerDefinition(
+        qlr_file=QgsLayerDefinition.exportLayerDefinition(
             self.mynormpath(
-                self.dlg.lineEdit_18.text() + "/CURRENT_MISSION+DICTIONARIES.qlr"
+                self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr"
             ),
             [target_group],
         )
+        self.iface.messageBar().pushMessage(
+            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr")}",
+            level=Qgis.Success,
+            duration=45,
+        )
+        return qlr_file
 
-    def save_template_stylex(self):  # ADD
-
-        if os.path.exists(self.mynormpath(self.dlg.lineEdit_18.text())):
-
-            # Retrieve project layer tree
-            arbre_layers = QgsProject.instance().layerTreeRoot()
-
-            # Search for "FIELD DATA" group
-            groupe_field_data = None
-            for enfant in arbre_layers.children():
-                if enfant.name() == "FIELD DATA" and isinstance(
-                    enfant, QgsLayerTreeGroup
-                ):
-                    groupe_field_data = enfant
-                    break
-
-            # Create an XML structure for the layer tree
-            xml_root = ET.Element("qlr")
-            layer_tree_group = ET.SubElement(xml_root, "layer-tree-group")
-            layer_tree_group.set("expanded", "1")
-            layer_tree_group.set("checked", "Qt::Checked")
-            layer_tree_group.set("groupLayer", "")
-            layer_tree_group.set("name", "")
-
-            custom_properties = ET.SubElement(layer_tree_group, "customproperties")
-            option = ET.SubElement(custom_properties, "Option")
-
-            if groupe_field_data:
-                for child in groupe_field_data.children():
-                    self.build_layer_tree_xml(child, layer_tree_group)
-
-                # Save XML to a file
-                chemin_qlr = self.mynormpath(self.dlg.lineEdit_18.text())
-                chemin_complet = os.path.join(
-                    chemin_qlr, "CURRENT_MISSION+DICTIONARIES.qlr"
-                )
-                xml_tree = ET.ElementTree(xml_root)
-                xml_tree.write(chemin_complet, encoding="utf-8", xml_declaration=True)
-
-            self.iface.messageBar().pushMessage(
-                (
-                    "A new CURRENT_MISSION+DICTIONARIES.qlr file was saved in "
-                    + chemin_qlr
-                ),
-                level=Qgis.Success,
-                duration=15,
-            )
 
     # Builds the XML structure of the layer tree recursively
     def build_layer_tree_xml(self, layer, parent_element):  # ADD
@@ -5136,16 +5096,16 @@ class GEOL_QMAPS:
             self.FM_Import.import_FM_data(self.basePath, projectDirectoryPath)
 
             self.iface.messageBar().pushMessage(
-                "SUCCESS: FeldMove Project Imported",
+                "FieldMove project imported",
                 level=Qgis.Success,
-                duration=30,
+                duration=45,
             )
         else:
             if projectDirectoryPath != "":
                 self.iface.messageBar().pushMessage(
-                    "Error: FM Project Path Incorrect",
+                    "FieldMove project path incorrect",
                     level=Qgis.Critical,
-                    duration=15,
+                    duration=45,
                 )
 
     def select_file_to_import(self):
