@@ -510,7 +510,7 @@ class GEOL_QMAPS:
             and template_version[1] < plugin_version[1]
         ):
             self.iface.messageBar().pushMessage(
-                "WARNING: Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://zenodo.org/records/13374088'>here</a>".format(
+                "Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>".format(
                     pv, tv
                 ),
                 level=Qgis.Warning,
@@ -738,7 +738,7 @@ class GEOL_QMAPS:
                     #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://doi.org/10.5281/zenodo.15067027")
+                            QUrl("https://doi.org/10.5281/zenodo.15099095")
                         )
                     )
 
@@ -833,7 +833,7 @@ class GEOL_QMAPS:
         else:
 
             self.iface.messageBar().pushMessage(
-                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, you can get the template <a href='https://zenodo.org/records/13374088'>here</a>",
+                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, you can get the template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
                 level=Qgis.Critical,
                 duration=45,
             )
@@ -4990,10 +4990,11 @@ class GEOL_QMAPS:
             [target_group],
         )
         self.iface.messageBar().pushMessage(
-            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr")}",
+            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr.")}",
             level=Qgis.Success,
             duration=45,
         )
+        self.dlg.lineEdit_18.clear()
         return qlr_file
 
 

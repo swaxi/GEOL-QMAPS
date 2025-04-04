@@ -3277,7 +3277,7 @@ font-style: italic;</string>
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>M.W. Jessell* and E. Bétend - Developers of the Custom QGIS Plugin
+        <string>M.W. Jessell*, J. Perret* and E. Bétend - Developers of the Plugin
 
 J. Perret* - Developer of the GEOL-QMAPS QGIS Mapping Template 
 
@@ -3499,7 +3499,7 @@ font-weight: bold;</string>
        </font>
       </property>
       <property name="title">
-       <string>Keen to learn more about the West Africa Exploration Initiative?</string>
+       <string>Keen to Learn More About the West Africa Exploration Initiative?</string>
       </property>
       <widget class="QPlainTextEdit" name="plainTextEdit_5">
        <property name="enabled">
@@ -3592,7 +3592,7 @@ font-weight: bold;</string>
         <x>10</x>
         <y>290</y>
         <width>761</width>
-        <height>231</height>
+        <height>311</height>
        </rect>
       </property>
       <property name="font">
@@ -3604,7 +3604,7 @@ font-weight: bold;</string>
        </font>
       </property>
       <property name="title">
-       <string>Roadmap for future development</string>
+       <string>Roadmap for Future Development</string>
       </property>
       <widget class="QPlainTextEdit" name="plainTextEdit_11">
        <property name="enabled">
@@ -3615,7 +3615,7 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>731</width>
-         <height>191</height>
+         <height>281</height>
         </rect>
        </property>
        <property name="palette">
@@ -3740,19 +3740,36 @@ background-color: rgb(240, 240, 240,0);
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>Import tool: 
+        <string>GEOL-QMAPS Plugin:
+- Create groups to store layers generated when importing legacy .shp or FieldMove data
 
-- Add a button to enter references for publications or reports associated with the processed legacy field data.
+- Export layers to common themes tool: 
+(i) export geophysical measurements (MagSus and Density) and Stops, Sampling, Photograph, and Observations spots in two additional layers
+(ii) export linear features in a linear data export layer
+(iii) Delete the empty export point layer generated (bug)
+
+- Check and modify the EXIF tool in agreement with future modificatins of the layer Photographs_PT (see below)
+
+- Add a button to enter references for publications or reports associated with the processed legacy field data
 
 - Add centroids of polygon and line features when creating virtual stop layers
 
 - Generate default symbols when adding new values to dictionaries if appropriate
 
+- Add a tool to import an old GEOL-QMAPS QGIS project and automatically rejig it to the latest version
+
+
+Stereonet Plugin:
 - Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
--Update the User Guide button
+GEOL-QMAPS QGIS Template (for next release):
+- Generate a single FIELD_DATA.qlr layer definition file in 99_COMMAND_FILES_PLUGIN
 
-- Modify the Import tool to have field aliases instead of field names in the dropdown list</string>
+- Delete qmap.json file in 99_COMMAND_FILES_PLUGIN (not used anymore)
+
+- Photographs_PT layer: 
+(i) modify the HTML map tip code to ensure the correct display of photographs if 'DCIM/' is not in the Photograph field
+(ii) Add an EXIF_azimuth field to simplify retrieving of Image Direction using EXIF metadata via the plugin</string>
        </property>
        <property name="backgroundVisible">
         <bool>false</bool>
