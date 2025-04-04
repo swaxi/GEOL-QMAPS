@@ -1,6 +1,6 @@
 # GEOL-QMAPS Digital Geological Mapping Solution ![WAXI icon](icon.png)
 
-*version 3.1.2 - March 2025*
+*version 3.1.3 - April 2025*
 
 
 
@@ -12,7 +12,7 @@ It can be used in the field with a tablet PC or via the QGIS-based QField app on
 
 Designed as a general solution, the GEOL-QMAPS solution consists of a QGIS field data entry template and a custom QGIS plugin, both available on free-access online repositories.
 
-* **GEOL-QMAPS QGIS Template**: available on [Zenodo](https://zenodo.org/records/13374088)
+* **GEOL-QMAPS QGIS Template**: latest release available on [Zenodo](https://doi.org/10.5281/zenodo.7834717)
 
 * **GEOL-QMAPS QGIS Plugin**: available on [GitHub](https://github.com/swaxi/WAXI_QF)
  
@@ -34,7 +34,7 @@ If you use the GEOL-QMAPS mapping solution, we would greatly appreciate it if yo
 
 ## 3. Software Specifications
 
-The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *QField 3.5.2 (Fangorn)*.
+The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *QField 3.5.4 (Fangorn)*.
 
 > [!IMPORTANT] 
 > *Ensure that the GEOL-QMAPS tools are compatible with the version of QGIS installed on your computer, as using an incompatible version may lead to malfunctions, especially for the plugin tools.<br>
@@ -392,10 +392,33 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 ### *6.5.* Help - Roadmap *Tab*
 ![Help_window](Help_window.PNG)
 
+**Roadmap for Future Development**
+*GEOL-QMAPS Plugin:*
+* Create groups to store layers generated when importing legacy `.shp` or `FieldMove` data
+* **Export Layers to Common Themes**: 
+  * Export geophysical measurements (**MagSus_PT** and **Density_PT**) and **Stops_PT**, **Sampling_PT**, **Photograph_PT**, and **Observations_PT** spots in two additional layers
+  * Export linear features in a linear data export layer
+  * Delete the empty export point layer generated (bug)
+
+* Check and modify the EXIF tool in agreement with future modifications of the layer **Photographs_PT** (see below)
+* Add a button to enter references for publications or reports associated with the processed legacy field data
+* Add centroids of polygon and line features when creating virtual stop layers
+* Generate default symbols when adding new values to dictionaries if appropriate
+* Add a tool to import an old GEOL-QMAPS QGIS project and automatically rejig it to the latest version
+
+*Stereonet Plugin:*
+* Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
+
+*GEOL-QMAPS QGIS Template (for next release):*
+* Generate a single `FIELD_DATA.qlr` layer definition file in *99_COMMAND_FILES_PLUGIN*
+* Delete qmap.json file in *99_COMMAND_FILES_PLUGIN* (not used anymore)
+* **Photographs_PT** layer: 
+  * modify the HTML map tip code to ensure the correct display of photographs if `DCIM/` is not in the *Photograph* field
+  * Add an *EXIF_azimuth* field to simplify retrieving of Image Direction using EXIF metadata via the plugin
 
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
-* GEOL-QMAPS Custom QGIS Plugin - [M.W. Jessell](mark.jessell@uwa.edu.au), E. Bétend, [J. Perret](julien.perret@uwa.edu.au)
+* GEOL-QMAPS Custom QGIS Plugin - [M.W. Jessell](mark.jessell@uwa.edu.au), [J. Perret](julien.perret@uwa.edu.au), E. Bétend
 * User Guide-README - [J. Perret](julien.perret@uwa.edu.au), [M.W. Jessell](mark.jessell@uwa.edu.au)
  
