@@ -20,7 +20,9 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog=3.1.3 Updated import tool
+    * add tester code for non-import functionality
+    * GUI tweaks
 
 # Tags are comma separated with spaces allowed
 tags=Digital Geological Mapping, Legacy Field Data Import, FieldWork Preparation, Post-Field Processing, West Africa Exploration Initiative
