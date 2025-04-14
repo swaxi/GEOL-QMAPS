@@ -412,6 +412,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 *GEOL-QMAPS QGIS Template (for next release):*
 * Generate a single `FIELD_DATA.qlr` layer definition file in *99_COMMAND_FILES_PLUGIN*
 * Delete qmap.json file in *99_COMMAND_FILES_PLUGIN* (not used anymore)
+* Addition of *Norite* and *Troctolite* to the igneous lithologies dictionary
 * **Photographs_PT** layer: 
   * modify the HTML map tip code to ensure the correct display of photographs if `DCIM/` is not in the *Photograph* field
   * Add an *EXIF_azimuth* field to simplify retrieving of Image Direction using EXIF metadata via the plugin
