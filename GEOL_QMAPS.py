@@ -3986,15 +3986,21 @@ class GEOL_QMAPS:
             self.recursive_overwrite(src_path, dst_path, ignore=None)
 
             src_file = (
-                main_project_path + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
+                main_project_path + self.dir_99 + "/FIELD_DATA.qlr"
             )
             dst_file = (
-                merge_project_path + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
+                merge_project_path + self.dir_99 + "/FIELD_DATA.qlr"
             )
             shutil.copyfile(src_file, dst_file)
 
             proj_name = "MergedProject.qgs"
-            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))           
+            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))
+
+
+            import xml.etree.ElementTree as ET
+
+            merged_qgs = os.path.join(merge_project_path, "MergedProject.qgs")
+
 
             in_pref = main_project_path + self.dir_99
             out_pref = merge_project_path + self.dir_99
@@ -4009,18 +4015,27 @@ class GEOL_QMAPS:
                     out_pref + "columns_types_structures_WAXI4.csv",
                 ],
                 [
+                    in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
+                    out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
+                ],
+                [
                     in_pref + "stereonet.json",
                     out_pref + "stereonet.json"
                 ],
                 [
                     in_pref + "Version.txt",
                     out_pref + "Version.txt"
+                ],
+                [
+                    in_pref + "Dictionaries.gpkg",
+                    out_pref + "Dictionaries.gpkg"
                 ]
             ]
 
             for pairs in copies:
                 shutil.copyfile(pairs[0], pairs[1])
 
+            # merging CURRENT MISSION layers
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
                 if layer.name() in shps.index.tolist():
@@ -4029,18 +4044,17 @@ class GEOL_QMAPS:
                     sub_layer_path = subGpkgPath + "|layername=" + layer.name()
                     params = {
                         "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": "ogr:dbname='"
-                        + self.mynormpath(mergeGpkgPath + "' table=\"" + layer.name())
-                        + '"',
+                        "OUTPUT": (
+                                "ogr:dbname='"
+                                + self.mynormpath(mergeGpkgPath)
+                                + "' table=\""
+                                + layer.name()
+                                + '"'
+                        ),
                     }
                     merged_layers = processing.run("native:mergevectorlayers", params)
 
-            self.iface.messageBar().pushMessage(
-                "Projects merged, saved in directory" + merge_project_path,
-                level=Qgis.Success,
-                duration=5,
-            )
-
+            # merging COMPILATION layers
             for layer in project.mapLayers().values():
                 # Check if the layer name matches the target name
                 if layer.name().replace(
@@ -4051,14 +4065,55 @@ class GEOL_QMAPS:
                     sub_layer_path = subCompGpkgPath + "|layername=" + layer.name()
                     params = {
                         "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": "ogr:dbname='"
-                        + self.mynormpath(
-                            mergeCompGpkgPath + "' table=\"" + layer.name()
-                        )
-                        + '"',
+                        "OUTPUT": (
+                                "ogr:dbname='"
+                                + self.mynormpath(mergeCompGpkgPath)
+                                + "' table=\""
+                                + layer.name()
+                                + '"'
+                        ),
                     }
                     merged_layers = processing.run("native:mergevectorlayers", params)
 
+            # Write the active project to that path
+            merged_qgs_path = os.path.join(merge_project_path, "MergedProject.qgs")
+            QgsProject.instance().write(merged_qgs_path)
+
+            # Repoint every vector layer to the merged folder
+            import xml.etree.ElementTree as ET
+
+            merged_folder_all = os.path.dirname(merged_qgs_path)
+            merged_folder = os.path.basename(merged_folder_all)
+            print('merged folder:', merged_folder)
+            main_folder_all = os.path.dirname(main_project_path)
+            main_folder = os.path.basename(main_folder_all)
+            print('main folder:',main_folder)
+
+            # 1. Parse the freshly written .qgs (valid XML now)
+            tree = ET.parse(merged_qgs_path)
+            root = tree.getroot()
+
+            # 2. Repoint every <datasource> into the merged folder
+            for ds in root.iter("datasource"):
+                txt = ds.text or ""
+                if "|" in txt:
+                    path, params = txt.split("|", 1)
+                    params = "|" + params
+                else:
+                    path, params = txt, ""
+                print('Layer path:', path)
+
+                if main_folder in path:
+                    print('main_folder in', path)
+                    new_path = path.replace(main_folder, merged_folder)
+                    ds.text=new_path + params
+                else:
+                    print('main_folder not in', path)
+
+            # 3. Overwrite the QGS with corrected paths
+            tree.write(merged_qgs_path, encoding="UTF-8", xml_declaration=True)
+
+            #MessageBar
             self.iface.messageBar().pushMessage(
                 "Projects merged, saved in directory" + merge_project_path,
                 level=Qgis.Success,
