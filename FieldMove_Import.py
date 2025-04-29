@@ -44,12 +44,15 @@ class FM_Import:
         self.basePath=basePath
         self.projectDirectoryPath=projectDirectoryPath
         if(os.path.exists(self.projectDirectoryPath) and projectDirectoryPath != ""):
-                
+            
             # define specific file paths
             imagesPath=self.projectDirectoryPath+'/images'
             DCIMPath=self.basePath+'/0_FIELD_DATA/DCIM/'
             geologyPath=self.basePath+'/6_GEOLOGY/'
-
+            if os.path.exists(self.projectDirectoryPath+'/rock-units.csv'):
+                dataType='FieldMove'
+            else:
+                dataType='Clino'
 
             mainCompGpkgPath = self.mynormpath(
                     self.basePath + "99_COMMAND_FILES_PLUGIN/Dictionaries.gpkg"
@@ -59,13 +62,13 @@ class FM_Import:
 
 
             # Import different file types
-            self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath)
+            self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath,dataType=dataType)
             self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
             self.import_FM_polylines()
-            self.import_FM_lineations()
+            self.import_FM_lineations(dataType=dataType)
             self.import_FM_localities()
             self.import_FM_photos(imagesPath,DCIMPath)
-            self.import_FM_planar_structures()
+            self.import_FM_planar_structures(dataType=dataType)
         else:
             print("FieldMove project directory does not exist or is empty.")
             
@@ -73,16 +76,24 @@ class FM_Import:
         return r"" + os.path.normpath(path).replace("\\", "/")
     
     # import lithology name file and store new rock names in QFIELD csv dicitonaries (Local lithologies)
-    def import_FM_rock_types(self,projectDirectoryPath,lithoQFIELD,litho_layer,localQField,local_layer,mainCompGpkgPath):
+    def import_FM_rock_types(self,projectDirectoryPath,lithoQFIELD,litho_layer,localQField,local_layer,mainCompGpkgPath,dataType):
 
-        litho=pd.read_csv(projectDirectoryPath+'/rock-units.csv',index_col=None)
+        if dataType=='FieldMove':
+            litho=pd.read_csv(projectDirectoryPath+'/rock-units.csv',index_col=None)
+            litho=litho.drop(columns=['unitId',' type',' color'])
+            litho=litho.rename(columns={' name':'Valeur'})
+            litho.Valeur=litho.Valeur.str.lstrip()
+            litho['Description']=litho['Valeur']
+        else: # Clino import
+            names=['Horizon','Colour','Rock Type','Age','Thickness','horizonId']
+            litho=pd.read_csv(projectDirectoryPath+'/stratcolumn.csv',names=names,skiprows=7,index_col=None)
+            litho=litho.iloc[3:].reset_index(drop=True)
+            litho=litho.drop(columns=['Colour','Rock Type','Age','Thickness','horizonId'])
+            litho=litho.rename(columns={'Horizon':'Valeur'})
+            litho.Valeur=litho.Valeur.str.lstrip()
+            litho['Description']=litho['Valeur']
 
 
-        litho=litho.drop(columns=['unitId',' type',' color'])
-        litho=litho.rename(columns={' name':'Valeur'})
-        litho.Valeur=litho.Valeur.str.lstrip()
-        litho['Description']=litho['Valeur']
-        
         for i,dic in enumerate([lithoQFIELD,localQField]):
             newLitho=[]
             for i,lithoObject in litho.iterrows():
@@ -223,13 +234,18 @@ class FM_Import:
         QgsProject.instance().addMapLayer(layer)
 
     # import lineations and convert to points layer in memory
-    def import_FM_lineations(self):
+    def import_FM_lineations(self,dataType):
         lineation=pd.read_csv(self.projectDirectoryPath+'/line.csv',index_col=None)
 
         # Step 1: Create a new vector layer to store the polyline
         layer = QgsVectorLayer('Point?crs=EPSG:4326', 'LineationLayer', 'memory')
 
         # Step 2: Start editing the layer
+        if dataType=='FieldMove':
+            rockUnit='rockUInit'
+        else: # Clino import
+            rockUnit='unitId'
+
         layer.startEditing()
         layer.dataProvider().addAttributes([
             QgsField('localityName', QVariant.String),
@@ -240,7 +256,7 @@ class FM_Import:
             QgsField('plunge', QVariant.Int),
             QgsField('plungeAzimuth', QVariant.Int),
             QgsField('declination', QVariant.Int),
-            QgsField('rockUnit', QVariant.String),
+            QgsField(rockUnit, QVariant.String),
             QgsField('timedate', QVariant.String),
             QgsField('notes', QVariant.String),
         ])  
@@ -257,7 +273,7 @@ class FM_Import:
             int(lin[' plunge']),
             int(lin[' plungeAzimuth']),
             int(lin[' declination']),
-            str(lin[' rockUnit']),
+            str(lin[' '+rockUnit]),
             str(lin[' timedate']),
             str(lin[' notes'])                      
             ]
@@ -270,13 +286,18 @@ class FM_Import:
         QgsProject.instance().addMapLayer(layer)
 
     # import planare structures and store as point layer
-    def import_FM_planar_structures(self):
+    def import_FM_planar_structures(self,dataType):
         planes=pd.read_csv(self.projectDirectoryPath+'/plane.csv',index_col=None)
 
         # Step 1: Create a new vector layer to store the polyline
         layer = QgsVectorLayer('Point?crs=EPSG:4326', 'PlaneLayer', 'memory')
 
         # Step 2: Start editing the layer
+        if dataType=='FieldMove':
+            rockUnit='rockUInit'
+        else: # Clino import
+            rockUnit='unitId'
+        
         layer.startEditing()
         layer.dataProvider().addAttributes([
             QgsField('localityName', QVariant.String),
@@ -288,7 +309,7 @@ class FM_Import:
             QgsField('dipAzimuth', QVariant.Int),
             QgsField('strike', QVariant.Int),
             QgsField('declination', QVariant.Int),
-            QgsField('rockUnit', QVariant.String),
+            QgsField(rockUnit, QVariant.String),
             QgsField('timedate', QVariant.String),
             QgsField('notes', QVariant.String),
         ])   
@@ -306,7 +327,7 @@ class FM_Import:
             int(pl[' dipAzimuth']),
             int(pl[' strike']),
             int(pl[' declination']),
-            str(pl[' rockUnit']),
+            str(pl[' '+rockUnit]),
             str(pl[' timedate']),
             str(pl[' notes'])                      
             ]
