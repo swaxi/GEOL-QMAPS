@@ -18,6 +18,9 @@ Designed as a general solution, the GEOL-QMAPS solution consists of a QGIS field
  
 The plugin allows for a range of actions, from import and harmonisation of existing field databases to GEOL-QMAPS standards, customisation of the QGIS project template to different mapping guidelines, and field database management and first processing. 
 
+> [!TIP]
+> *Instructional videos are available in a separate [Zenodo repository](https://zenodo.org/uploads/15234743) to support the implementation of the GEOL-QMAPS solution*
+
 
 
 
@@ -76,7 +79,7 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
 
 
 
-## 5. Workflow
+## 5. Workflow ([Instructional Videos](https://zenodo.org/uploads/15234743))
 The figure below, adapted from Perret et al. ([2024](https://doi.org/10.1016/j.acags.2024.100197)) illustrates the procedure for using GEOL-QMAPS from the office to the field, using both QGIS and QField tools.
 
 ![Workflow](Workflow.png)
@@ -412,6 +415,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 *GEOL-QMAPS QGIS Template (for next release):*
 * Generate a single `FIELD_DATA.qlr` layer definition file in *99_COMMAND_FILES_PLUGIN*
 * Delete qmap.json file in *99_COMMAND_FILES_PLUGIN* (not used anymore)
+* Addition of *Norite* and *Troctolite* to the igneous lithologies dictionary
 * **Photographs_PT** layer: 
   * modify the HTML map tip code to ensure the correct display of photographs if `DCIM/` is not in the *Photograph* field
   * Add an *EXIF_azimuth* field to simplify retrieving of Image Direction using EXIF metadata via the plugin
