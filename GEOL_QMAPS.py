@@ -4990,7 +4990,7 @@ class GEOL_QMAPS:
             [target_group],
         )
         self.iface.messageBar().pushMessage(
-            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr.")}",
+            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + '/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr')}",
             level=Qgis.Success,
             duration=45,
         )

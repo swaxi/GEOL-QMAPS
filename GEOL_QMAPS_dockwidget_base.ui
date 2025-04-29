@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1139</width>
-    <height>905</height>
+    <width>825</width>
+    <height>890</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>791</width>
-      <height>791</height>
+      <height>751</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -87,14 +87,15 @@ QTabBar::tab:hover {
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>290</y>
+        <y>280</y>
         <width>711</width>
-        <height>471</height>
+        <height>421</height>
        </rect>
       </property>
       <property name="font">
        <font>
         <family>Arial</family>
+        <pointsize>16</pointsize>
        </font>
       </property>
       <property name="styleSheet">
@@ -145,7 +146,7 @@ QTabBar::tab:hover {
           <x>10</x>
           <y>10</y>
           <width>571</width>
-          <height>411</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -167,6 +168,9 @@ font: 8pt &quot;Arial&quot;;</string>
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
+        <property name="autoScrollMargin">
+         <number>16</number>
+        </property>
         <property name="showGrid">
          <bool>true</bool>
         </property>
@@ -180,7 +184,7 @@ font: 8pt &quot;Arial&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="rowCount">
-         <number>16</number>
+         <number>13</number>
         </property>
         <property name="columnCount">
          <number>3</number>
@@ -197,9 +201,6 @@ font: 8pt &quot;Arial&quot;;</string>
         <attribute name="verticalHeaderDefaultSectionSize">
          <number>24</number>
         </attribute>
-        <row/>
-        <row/>
-        <row/>
         <row/>
         <row/>
         <row/>
@@ -262,7 +263,7 @@ font: 8pt &quot;Arial&quot;;</string>
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>420</y>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -281,8 +282,8 @@ font-size: 12px;</string>
        <widget class="QPushButton" name="pushButton_11">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>390</y>
+          <x>470</x>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -304,7 +305,7 @@ font-size: 12px;</string>
           <x>590</x>
           <y>10</y>
           <width>101</width>
-          <height>371</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -324,9 +325,9 @@ font-size: 8pt;</string>
        <widget class="QLabel" name="label_33">
         <property name="geometry">
          <rect>
-          <x>-40</x>
-          <y>420</y>
-          <width>631</width>
+          <x>90</x>
+          <y>360</y>
+          <width>351</width>
           <height>20</height>
          </rect>
         </property>
@@ -1096,7 +1097,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>260</y>
+        <y>250</y>
         <width>691</width>
         <height>16</height>
        </rect>
@@ -1243,8 +1244,8 @@ border-style: solid;border-width: 1px;border-color: black
      <widget class="QPushButton" name="pushButton_19">
       <property name="geometry">
        <rect>
-        <x>630</x>
-        <y>730</y>
+        <x>620</x>
+        <y>660</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -2130,8 +2131,8 @@ font-size: 12px;
      <widget class="QLabel" name="label_31">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>730</y>
+        <x>0</x>
+        <y>660</y>
         <width>611</width>
         <height>21</height>
        </rect>
@@ -3153,7 +3154,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>630</x>
-        <y>730</y>
+        <y>660</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -3174,7 +3175,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>730</y>
+        <y>660</y>
         <width>611</width>
         <height>21</height>
        </rect>
@@ -3218,9 +3219,9 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>90</y>
         <width>381</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="font">
@@ -3283,6 +3284,7 @@ J. Perret* - Developer of the GEOL-QMAPS QGIS Mapping Template
 
 *Contact Us:
 
+
 Online Documentation:</string>
        </property>
        <property name="backgroundVisible">
@@ -3292,8 +3294,8 @@ Online Documentation:</string>
       <widget class="QPushButton" name="pushButton_24">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>80</y>
+         <x>110</x>
+         <y>70</y>
          <width>81</width>
          <height>21</height>
         </rect>
@@ -3315,8 +3317,8 @@ font-weight: bold;</string>
        </property>
        <property name="geometry">
         <rect>
-         <x>130</x>
-         <y>110</y>
+         <x>110</x>
+         <y>100</y>
          <width>81</width>
          <height>21</height>
         </rect>
@@ -3337,7 +3339,7 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>10</y>
         <width>761</width>
         <height>61</height>
        </rect>
@@ -3378,9 +3380,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>400</x>
-        <y>120</y>
+        <y>90</y>
         <width>371</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="font">
@@ -3443,8 +3445,8 @@ Or contact us: </string>
       <widget class="QPushButton" name="pushButton_23">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>70</y>
+         <x>240</x>
+         <y>110</y>
          <width>91</width>
          <height>21</height>
         </rect>
@@ -3463,8 +3465,8 @@ font-weight: bold;</string>
       <widget class="QPushButton" name="pushButton_28">
        <property name="geometry">
         <rect>
-         <x>90</x>
-         <y>100</y>
+         <x>110</x>
+         <y>110</y>
          <width>81</width>
          <height>21</height>
         </rect>
@@ -3485,9 +3487,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>630</y>
+        <y>570</y>
         <width>761</width>
-        <height>101</height>
+        <height>121</height>
        </rect>
       </property>
       <property name="font">
@@ -3510,7 +3512,7 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>741</width>
-         <height>101</height>
+         <height>81</height>
         </rect>
        </property>
        <property name="font">
@@ -3548,8 +3550,8 @@ For more information, please consult: </string>
       <widget class="QPushButton" name="pushButton_41">
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>70</y>
+         <x>260</x>
+         <y>90</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -3568,8 +3570,8 @@ font-weight: bold;</string>
       <widget class="QPushButton" name="pushButton_40">
        <property name="geometry">
         <rect>
-         <x>350</x>
-         <y>70</y>
+         <x>400</x>
+         <y>90</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -3590,7 +3592,7 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>290</y>
+        <y>250</y>
         <width>761</width>
         <height>311</height>
        </rect>
@@ -3780,7 +3782,7 @@ GEOL-QMAPS QGIS Template (for next release):
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>740</y>
+        <y>700</y>
         <width>781</width>
         <height>16</height>
        </rect>
