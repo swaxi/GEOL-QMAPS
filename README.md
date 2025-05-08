@@ -1,12 +1,10 @@
 # GEOL-QMAPS Digital Geological Mapping Solution ![WAXI icon](icon.png)
 
-*version 3.1.3 - April 2025*
+*author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-
-
+*version 3.1.4 - May 2025*
 
 ## 1. Description
-
 GEOL-QMAPS, an open-source, QGIS-based solution promoting digital geological mapping in a harmonised, comprehensive and flexible way.<br>
 It can be used in the field with a tablet PC or via the QGIS-based QField app on iOS or Android mobile devices, enabling synchronisation with desktop QGIS and the creation of field databases.
 
@@ -25,7 +23,6 @@ The plugin allows for a range of actions, from import and harmonisation of exist
 
 
 ## 2. Citation
-
 An open-acces paper describing the GEOL-QMAPS solution has been published:
 
 > *Perret, J., Jessell, M.W., Bétend, E., 2024. An open-source, QGIS-based solution for digital geological mapping: GEOL-QMAPS. Applied Computing and Geosciences 100197. [https://doi.org/10.1016/j.acags.2024.100197](https://doi.org/10.1016/j.acags.2024.100197)*
@@ -36,7 +33,6 @@ If you use the GEOL-QMAPS mapping solution, we would greatly appreciate it if yo
 
 
 ## 3. Software Specifications
-
 The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *QField 3.5.4 (Fangorn)*.
 
 > [!IMPORTANT] 
@@ -47,7 +43,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
 
 
 ## 4. Installation
-
 ### *4.1. GEOL-QMAPS QGIS Template* 
 * Visit [the Zenodo repository of the QGIS template](https://zenodo.org/records/13374088)
 
@@ -97,19 +92,21 @@ The `.\QGIS_TEMPLATE` repository contains several sub-folders where relevant geo
 All folders are empty, except for:
 * the `.\.\0_FIELD_DATA` sub-folder, which contains:
   * a **`CURRENT_MISSION.gpkg`** geopackage with all empty field data entry layers,
-  * a **`.\.\.\DCIM`** subfolder to store field and sample photographs,
-  * a **`CURRENT_MISSION+DICTIONARIES.qlr`** layer style definition file.
+  * a **`.\.\.\DCIM`** subfolder to store field and sample photographs.
 
-* the `1_EXISTING_FIELD_DATABASE` sub-folder, which contains a **`COMPILATION.gpkg`** geopackage, with the same field data layers as the **`CURRENT_MISSION.gpkg`** geopackage. It has been designed to store legacy field data imported to the GEOL-QMAPS QGIS project and data collected using the solution during previous field campaigns,  using the custom QGIS plugin *(see sub-section 6.4.)*,
+* the `1_EXISTING_FIELD_DATABASE` sub-folder, designed to store legacy field data imported to the GEOL-QMAPS QGIS project and data collected using the solution during previous field campaigns,  using the custom QGIS plugin *(see sub-section 6.4.)*, which contains:
+  * a **`COMPILATION.gpkg`** geopackage, with the same field data layers as the **`CURRENT_MISSION.gpkg`** geopackage,
+  * a **`.\.\.\DCIM`** subfolder to store pre-existing field and sample photographs.
 
 * the `.\.\11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY` sub-folder with an extract of ©Google Satellite imagery centred on Africa (spatial resolution of 5 km), which is used as a base map in the blank QGIS template.
+
+* the `.\.\99_COMMAND_FILES_PLUGIN` sub-folder, which contains command files facilitating the custom QGIS plugin use and a **`FIELD_DATA.qlr`** layer style definition file.
 
 Folders `.\.\2_GPS-LOCALITIES_OF_INTEREST` to `.\.\11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY` are intended for user input. Users can store relevant geodata in these folders for subsequent upload and visualisation within the QGIS project.
 
  > [!CAUTION]
 > *The last sub-folder of the QGIS project repository,* `.\.\99_COMMAND_FILES_PLUGIN`, *contains essential files for the custom QGIS plugin, and dictionaries used for field form completion.<br>
 > Please refrain from modifying this folder to prevent malfunctions in field data entry and the proper functioning of the plugin tools.*
-
 
 #### 5.1.2. QGIS Mapping Project Group Architecture and Collectable Field Data
 Double-click on `.\.\Mission_ID_Date.qgz` to open the blank QGIS mapping template.
@@ -127,6 +124,38 @@ The figure below summarises the different field data that can be collected using
 ![Field_Layers](Field_Layers.png) 
 
 A detailed description of the attributes and the design of attribute forms for each field data layer is ![attached](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf).
+
+#### 5.1.3. Coordinate Reference System
+By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojected CRS, enabling compatibility with global datasets.
+
+However, users are advised to change the project CRS to a suitable **projected** CRS (_e.g.,_ `WGS84 / UTM zone 29N` in Côte d'Ivoire) when performing structural analysis using the GEOL-QMAPS QGIS template. Projected CRSs indeed preserve **local angles**, which is critical for accurate structural representation, although they inherently distort areas and distances. 
+
+In version 3.1.4 of the QGIS project template, the rotation of structural symbols has been updated to account for CRSs where the true North orientation differs from the Y-axis of the map view (assuming no manual map rotation is applied). This improvement is based on insights and code provided by [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr) in his [QGIS Field Move Importer](https://github.com/gduclaux/FieldMoveProjectImporter_QGIS).
+
+The following examples, which illustrate potential angular distortion in `WGS 84: EPSG:4326` and the need for structural symbol rotation correction for given local projected CRSs using Antarctic data, are courtesy of [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr):
+* _CRS = WGS84 EPSG:4326:_
+  * ![WGS84.png](WGS84.png) 
+  * Horizontal exaggeration of rasters and polylines at high latitudes results in angular distortion.
+  * Point structural measurements are rotated correctly along the measured strike (or trend for linear features) **without correction** _(as in versions up to v3.1.3 of the GEOL-QMAPS QGIS template)_, since true North points to the top of the map view.<br>
+**Result:** Strike angular difference between correct structural measurements and mapped structure traces that appear distorded.
+    
+* _CRS = WGS84 / UTM zone 54S EPSG:32754 (correct UTM zone for this location, with true North aligned to the top of the map view):_
+  * ![WGS84-UTM54S.png](WGS84-UTM54S.png) 
+  * Rasters and polylines are no longer distorded.
+  * Point structural measurements are rotated correctly along the measured strike (or trend for linear features) **without correction** _(as in versions up to v3.1.3 of the GEOL-QMAPS QGIS template)_, since true North points to the top of the map view.<br>
+**Result:** Good match between structural measurements and apparent strike direction of mapped structure traces, **but only because the true North coincides with the map's Y-axis in this CRS.** 
+
+* _CRS = WGS84 / Antarctic Polar Stereographic EPSG:3031 (correct projected CRS for this location, with true North pointing to the lower-right corner of the map view):_
+  * ![WGS84-AntarcticPolarStereographic.png](WGS84-AntarcticPolarStereographic.png) 
+  * Rasters and polylines are undistorded, but rotated to match the true North orientation of the CRS.
+  * Point structural measurements are still rotated along the Y-axis of the map view **without correction**, _i.e.,_ as per the default behaviour up to v3.1.3, but this axis no longer represents true North.<br>
+**Result:** Major angular mismatch between misrotated structural measurements and the strike direction of mapped structure traces.
+
+* _same case scenario as above, but **with rotation correction** based on the true North orientation of the applied CRS (implemented in v3.1.4 of the GEOL-QMAPS QGIS project template):_
+   * ![WGS84-AntarcticPolarStereographic_RotationCorrected.png](WGS84-AntarcticPolarStereographic_RotationCorrected.png) 
+   * Point structural measurements are now correctly rotated relative to true North in the applied CRS, aligning with the measured strike (or trend for linear features).<br>
+**Result:** Accurate match between structural measurements and the apparent strike direction of mapped structure traces, regardless of the true North orientation in the selected CRS. 
+
 
 ### *5.2. Fieldwork Preparation: Setting-up the QGIS Mapping Project and Export to QField* 
 #### 5.2.1. Rename the Repository and the Name of the GEOL-QMAPS QGIS Template 
@@ -204,6 +233,7 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 > *Before heading to the field, test the exported project on the device to ensure everything works smoothly.* <br>
 > *Keep a back-up of your original QGIS project before running any export.*
 
+
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
 A detailed description of the attributes and the design of attribute forms for each field data layer is provided in the following ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf)
@@ -261,7 +291,6 @@ Modifications made by distributed field teams can be then compiled using the cus
 
 
 ## 6. Usage of the Custom GEOL-QMAPS Plugin
-
 ### *6.1. Open and Navigate the Plugin*
 > [!CAUTION]
 > *Make sure the GEOL-QMAPS plugin is installed* (see subsection 4.2.). <br>
@@ -274,7 +303,6 @@ The plugin is divided in different tabs, with tools developed to perform actions
 ### *6.2.* Import Field Data *Tab*
 #### 6.2.1. Import Legacy Field Data Shapefiles (Point Geometry)
 Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.
-
 ![Import_window](Import_window.PNG)
 
 #### *Step 1*
@@ -292,13 +320,11 @@ Generation of output QGIS layers as scratch temporary layers, once data import i
 #### *Step 4 - Optional*
 Merging any output QGIS layer into a single layer contained within a field data compilation geopackage, that may store data imported from different sources.
 
-
 #### 6.2.2. Import FieldMove Project 
 Convert existing FieldMove project into GEOL-QMAPS compatible files.
 
 
 ### *6.3.* Fieldwork Preparation *Tab*
-
 ![FieldworkPreparation_window](FieldworkPreparation_window.PNG)
 
 #### 6.3.1 Update Project ID and Location
@@ -338,7 +364,6 @@ Define a new directory to export the QGIS project containing the clipped legacy 
 > *Legacy geodata layers, which are loaded for visualisation purposes in the field, are stored in the* LOCALITIES OF INTEREST *to* SATELLITE IMAGERY-ORTHOPHOTOGRAPHY *groups within the GEOL-QMAPS QGIS template. Clipping these data layers must be performed using the QGIS Toolbox as this functionality is not handled directly by the plugin tool.*
 
 ### *6.4.* Data Management *Tab*
-
 ![DataManagement_window](DataManagement_window.PNG)
 
 #### 6.4.1. Merge Projects
