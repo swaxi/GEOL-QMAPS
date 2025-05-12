@@ -422,7 +422,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 **Roadmap for Future Development**
 *GEOL-QMAPS Plugin:*
-* Create groups to store layers generated when importing legacy `.shp` or `FieldMove` data
 * **Export Layers to Common Themes**: 
   * Export geophysical measurements (**MagSus_PT** and **Density_PT**) and **Stops_PT**, **Sampling_PT**, **Photograph_PT**, and **Observations_PT** spots in two additional layers
   * Export linear features in a linear data export layer
@@ -437,8 +436,8 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
 *QField:*
-* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs.
-* Develop a plugin to plot structural measurements in a stereonet on the fly.
+* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
+* Develop a plugin to plot structural measurements in a stereonet on the fly
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
