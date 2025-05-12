@@ -2416,7 +2416,25 @@ class GEOL_QMAPS:
     ##   Step 9 : Import the 2 fichier_output (lithology + structure) into QGIS  ##
     ###############################################################################
 
-    def import_Excel_create_QGISfile(self, file_lithology, file_structure):
+    def import_Excel_create_QGISfile(self, file_lithology, file_structure, name_input_file):
+
+        # --- ensure root group exists
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+
+        harm_group = root.findGroup("HARMONISED LEGACY SCRATCH DATA")
+        # Prepare the "HARMONISED LEGACY SCRATCH DATA" group at top of the Tree
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+        harm_group = root.findGroup("HARMONISED LEGACY SCRATCH DATA")
+        if not harm_group:
+            harm_group = root.insertGroup(0, "HARMONISED LEGACY SCRATCH DATA")
+
+        # Prepare the 'name_input_file' subgroup within the "HARMONISED LEGACY SCRATCH DATA" group
+        base_name = os.path.splitext(name_input_file)[0]
+        sub_harm_group = harm_group.findGroup(base_name)
+        if not sub_harm_group:
+            sub_harm_group = harm_group.insertGroup(0, base_name)
 
         # from openpyxl import Workbook, load_workbook
 
@@ -2541,7 +2559,8 @@ class GEOL_QMAPS:
 
                 # Add the layer to the QGIS project
                 if layer.featureCount() > 0:
-                    QgsProject.instance().addMapLayer(layer)
+                    QgsProject.instance().addMapLayer(layer,addToLegend=False)
+                    sub_harm_group.insertLayer(0, layer)
                 iface.mapCanvas().refresh()
 
     ###############################################################################
@@ -2656,7 +2675,7 @@ class GEOL_QMAPS:
     def method_import_data_as_layers(self, fichier_output_lithology, fichier_output_structures):
 
         # Step 7 : Import the Excel file into QGIS and create different QGIS files
-        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures)
+        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures, self.name_layer_to_import)
         self.iface.messageBar().pushMessage(
             "Data imported in the QGIS project ", "OK", level=Qgis.Success, duration=45
         )
