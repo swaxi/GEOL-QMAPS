@@ -321,7 +321,7 @@ Generation of output QGIS layers as scratch temporary layers, once data import i
 Merging any output QGIS layer into a single layer contained within a field data compilation geopackage, that may store data imported from different sources.
 
 #### 6.2.2. Import FieldMove Project 
-Convert existing FieldMove project into GEOL-QMAPS compatible files.
+Convert existing FieldMove project into GEOL-QMAPS compatible files, that can be then saved and imported to the legacy data compilation via the **Import Legacy Field Data Shapefiles (Point Geometry)** tool.
 
 
 ### *6.3.* Fieldwork Preparation *Tab*
