@@ -5633,13 +5633,11 @@ class GEOL_QMAPS:
         except:
             print("*** clipToCanvas failed")
 
-
         try:
             self.removeDuplicates()
             print("removeDuplicates")
         except:
             print("*** removeDuplicates failed")
-
 
         try:
             self.dlg.lineEdit_18.setText(qlmDirectory)
@@ -5648,14 +5646,12 @@ class GEOL_QMAPS:
         except:
             print("*** save_template_style failed")
 
-
         try:
             self.dlg.lineEdit_53.setText("500")
             self.virtualStops()
             print("virtualStops")
         except:
             print("*** virtualStops failed")
-
 
         try:
             self.dlg.lineEdit_39.setText("UnitTestUser")
@@ -5696,5 +5692,34 @@ class GEOL_QMAPS:
             print("addCsvItem and deleteCsvItem")
         except:
             print("*** addCsvItem and deleteCsvItem failed")
+
+        try:
+            # Test “on” style
+            self.dlg.structure_style_on_pushButton.click()
+            # either rely on clicked.connect or call explicitly
+            self.set_orientation_style()
+            layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+            idx = layer.fields().indexFromName("Measure")
+            expr = layer.defaultValueDefinition(idx).expression()
+            if expr == "'Dip - dip direction'":
+                print("structure_style_on: PASS")
+            else:
+                print(f"*** structure_style_on: FAIL (got {expr})")
+        except Exception as e:
+            print("*** structure_style_on: ERROR", e)
+
+        try:
+            # Test “off” style
+            self.dlg.structure_style_off_pushButton.click()
+            self.set_orientation_style()
+            layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+            idx = layer.fields().indexFromName("Measure")
+            expr = layer.defaultValueDefinition(idx).expression()
+            if expr == "'Strike (right-hand rule) - dip'":
+                print("structure_style_off: PASS")
+            else:
+                print(f"*** structure_style_off: FAIL (got {expr})")
+        except Exception as e:
+            print("*** structure_style_off: ERROR", e)
 
         print("GEOL_QMAPS_tester finished")
