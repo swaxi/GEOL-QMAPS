@@ -350,7 +350,7 @@ Toggle the preferred measurement convention for planar structures to establish i
 
 #### 6.3.5. Save Changes Made to the Field Data Forms
 Enables to save a new `.qlr` QGIS layer definition file in a directory to be supplied. <br>
-This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.
+This file includes group architecture, customised styles for empty field data layers and updated dictionaries of the FIELD DATA group. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.
 
 #### 6.3.6. Clip Field Data to Current Canvas
 Clip GEOL-QMAPS-standardised legacy field data layers to current QGIS Canvas, or select a polygon shapefile to be the clipping polygon.<br>
@@ -428,7 +428,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
   * Export linear features in a linear data export layer
   * Delete the empty export point layer generated (bug)
 
-* Check and modify the EXIF tool in agreement with future modifications of the layer **Photographs_PT** (see below)
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
@@ -437,14 +436,9 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 *Stereonet Plugin:*
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
-*GEOL-QMAPS QGIS Template (for next release):*
-* Generate a single `FIELD_DATA.qlr` layer definition file in *99_COMMAND_FILES_PLUGIN*
-* Delete qmap.json file in *99_COMMAND_FILES_PLUGIN* (not used anymore)
-* Addition of *Norite* and *Troctolite* to the igneous lithologies dictionary
-* **Photographs_PT** layer: 
-  * modify the HTML map tip code to ensure the correct display of photographs if `DCIM/` is not in the *Photograph* field
-  * Add an *EXIF_azimuth* field to simplify retrieving of Image Direction using EXIF metadata via the plugin
-
+*QField:*
+* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs.
+* Develop a plugin to plot structural measurements in a stereonet on the fly.
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
