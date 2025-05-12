@@ -99,6 +99,10 @@ from qgis.PyQt.QtCore import Qt
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="\\*")
+
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+
 from osgeo import ogr
 import os
 import subprocess
@@ -722,6 +726,12 @@ class GEOL_QMAPS:
                     self.dlg.pushButton_21.clicked.connect(
                         lambda: QDesktopServices.openUrl(
                             QUrl("https://github.com/swaxi/GEOL-QMAPS/tree/main#5-workflow")
+                        )
+                    )
+
+                    self.dlg.pushButton_30.clicked.connect(
+                        lambda: QDesktopServices.openUrl(
+                            QUrl("https://github.com/swaxi/GEOL-QMAPS/blob/Julien_2505/README.md#65-help---roadmap-tab")
                         )
                     )
 
@@ -2239,7 +2249,8 @@ class GEOL_QMAPS:
             ['Bedding-Lava flow-S0_PT - Normal Polarity', 'Bedding-Lava flow-S0_PT', 'Normal', ''],
             ['Bedding-Lava flow-S0_PT - Reverse Polarity', 'Bedding-Lava flow-S0_PT', 'Inverted', ''],
             ['Foliation-cleavage_PT', 'Foliation-cleavage_PT', '', ''],
-            ['Shear zones and faults_PT - Unknown Kinematics', 'Shear zones and faults_PT', 'Unknown', ''],
+            ['Shear zones and faults_PT - Unclear Kinematics', 'Shear zones and faults_PT', 'Unclear', ''],
+            ['Shear zones and faults_PT - Flattening - pure shear', 'Shear zones and faults_PT', 'Flattening - pure shear', ''],
             ['Shear zones and faults_PT - Normal-Slip', 'Shear zones and faults_PT', 'Normal-slip', ''],
             ['Shear zones and faults_PT - Low-Angle Detachment', 'Shear zones and faults_PT', 'Low-angle detachment',
              ''],
@@ -5040,12 +5051,12 @@ class GEOL_QMAPS:
         # Save the layers to a QLR file
         qlr_file=QgsLayerDefinition.exportLayerDefinition(
             self.mynormpath(
-                self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr"
+                self.dlg.lineEdit_18.text() + "/FIELD_DATA.qlr"
             ),
             [target_group],
         )
         self.iface.messageBar().pushMessage(
-            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + '/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr')}",
+            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + '/FIELD_DATA.qlr')}",
             level=Qgis.Success,
             duration=45,
         )
@@ -5396,82 +5407,145 @@ class GEOL_QMAPS:
     ###############################################################################
     ####################                   RUN                   ##################
     ###############################################################################
-    def use_exif_azimuth(self):
-        dec = ""
-        layer_name = "Photographs_PT"
-        layer = QgsProject.instance().mapLayersByName(layer_name)[0]
-        if not layer.isValid():
-            print(f"Error: Layer '{layer_name}' not found or invalid.")
-        else:
+    def extract_exif_azimuth(self, full_path):
+        """
+        Returns the GPSImgDirection in degrees as a float, or None if missing/broken.
+        """
+        try:
+            img = Image.open(full_path)
+            info = img._getexif()
+            print(f"")
+            if not info:
+                return None
 
-            # Start an edit session
+            # find the GPSInfo block
+            gps_info = info.get(34853)  # 34853 is the tag id for GPSInfo
+            if not gps_info:
+                return None
+
+            # decode GPS sub-tags
+            decoded = {}
+            for tag, val in gps_info.items():
+                name = GPSTAGS.get(tag, tag)
+                decoded[name] = val
+
+            direction = decoded.get('GPSImgDirection')
+            if direction is None:
+                return None
+
+            # direction may be an (num,den) tuple
+            if isinstance(direction, tuple) and len(direction) >= 2:
+                num, den = direction[0], direction[1]
+                return float(num) / float(den) if den else None
+
+            return float(direction)
+        except Exception:
+            return None
+
+
+    def use_exif_azimuth(self):
+        from qgis.core import (
+            QgsExpression,
+            QgsExpressionContext,
+            QgsExpressionContextUtils,
+            Qgis
+        )
+        # Names of the two photo layers to process
+        layer_names = ["Photographs_PT", "Compilation_Photographs_PT"]
+        for layer_name in layer_names:
+            layers = QgsProject.instance().mapLayersByName(layer_name)
+            if not layers:
+                self.iface.messageBar().pushMessage(
+                    f"Layer '{layer_name}' not found or invalid.",
+                    level=Qgis.Warning,
+                    duration=15
+                )
+                continue
+            layer = layers[0]
+
+            # Start editing
             if not layer.isEditable():
                 layer.startEditing()
 
-            # Loop through all features in the layer
-            for feature in layer.getFeatures():
-                # Get the feature ID
-                feature_id = feature.id()
-                # print("feature_id",feature_id)
-                # Extract values from "Photographs" and "Date" fields
-                date = feature["Date"]
-                date = date.split("/")
+            # Prepare the EXIF expression once
+            exif_expr = QgsExpression(
+                "exif(\"Full_Path\", 'Exif.GPSInfo.GPSImgDirection')"
+            )
 
-                day = int(date[2].split(" ")[0])
-                month = int(date[1])
-                year = int(date[0])
-                date = datetime(year, month, day)
-
-                # Extract latitude and longitude from the feature's geometry
-                geometry = feature.geometry()
-                if geometry.isEmpty():
-                    print(f"Feature ID {feature_id} has no geometry.")
-                    continue
-
-                # Get the point geometry as lat/lon (assuming the layer has point geometry)
-                if geometry.type() == QgsWkbTypes.PointGeometry:
-                    lat, lon = geometry.asPoint().y(), geometry.asPoint().x()
-                else:
-                    print(f"Feature ID {feature_id} does not have point geometry.")
-                    continue
-
-                lon = 0.0
-                lat = 5.0
-                date = datetime(2020, 12, 12)
-                # calculate IGRF compnents and  convert to Inc, Dec, Int
-                Be, Bn, Bu = igrf(lon, lat, 0, date)  # returns east, north, up
-                (self.RTE_P_inc, self.RTE_P_dec) = get_inclination_declination(
-                    Be, Bn, Bu, degrees=True
-                )
-
-                inc = self.RTE_P_inc.item()
-                dec = self.RTE_P_dec.item()
-
-                field_name = "Azimut"
-                # Update the "Azimuth" field with the new value
-                manipulated_value = feature[field_name] + dec
-                field_index = layer.fields().indexFromName("Azimut")
-                if field_index == -1:
-                    print(f"Field '{field_name}' not found in layer '{layer.name()}'")
-                    return
-
-                # Iterate through features and update the field value
-                for feature in layer.getFeatures():
-                    feature[field_index] = manipulated_value  # Update the field value
-                    layer.updateFeature(
-                        feature
-                    )  # Save the updated feature to the layer
-
-                # Commit changes
-                if not layer.commitChanges():
-                    print(f"Failed to commit changes to layer '{layer.name()}'")
-
+            # Field indices
+            idx_full = layer.fields().indexFromName("Full_Path")
+            idx_exif = layer.fields().indexFromName("EXIF_Azimuth")
+            idx_az = layer.fields().indexFromName("Azimut")
+            if idx_full < 0 or idx_exif < 0 or idx_az < 0:
                 self.iface.messageBar().pushMessage(
-                    "Photo orientation updated to account for declination {}".format(
-                        round(dec, 2)
-                    ),
+                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimut attributes.",
+                    level=Qgis.Critical, duration=10
+                )
+                layer.rollback()
+                continue
+
+            # Loop features
+            for feat in layer.getFeatures():
+                fid = feat.id()
+                full_path = feat["Full_Path"]
+                exif_val = feat["EXIF_Azimuth"]
+
+                # If EXIF_Azimuth is null/empty, try to compute it
+                if exif_val in [None, "", 0]:
+                    new_exif = self.extract_exif_azimuth(full_path)
+                    if new_exif is None:
+                        self.iface.messageBar().pushMessage(
+                            "Warning",
+                            f"Feature {fid}: cannot read EXIF from '{full_path}'; Entered image direction (0, by default) retained.",
+                            level=Qgis.Warning, duration=5
+                        )
+                        continue
+                    exif_val = new_exif
+                    layer.changeAttributeValue(fid, idx_exif, exif_val)
+
+                    # At this point exif_val is valid: compute declination
+                    # Extract date from "Date" field
+                    date = feat["Date"]
+                    date = date.split("/")
+
+                    day = int(date[2].split(" ")[0])
+                    month = int(date[1])
+                    year = int(date[0])
+                    date = datetime(year, month, day)
+
+                    # Extract latitude and longitude from the feature's geometry
+                    geometry = feat.geometry()
+                    if geometry.isEmpty():
+                        print(f"Feature {fid} in {layer_name}: has no geometry.")
+                        continue
+
+                    # Get the point geometry as lat/lon (assuming the layer has point geometry)
+                    if geometry.type() == QgsWkbTypes.PointGeometry:
+                        lat, lon = geometry.asPoint().y(), geometry.asPoint().x()
+                    else:
+                        print(f"Feature ID {feature_id} does not have point geometry.")
+                        continue
+
+                    # calculate IGRF compnents and  convert to Inc, Dec, Int
+                    Be, Bn, Bu = igrf(lon, lat, 0, date)
+                    inc, dec = get_inclination_declination(Be, Bn, Bu, degrees=True)
+                    corrected = exif_val + dec.item()
+    
+                    # Final corrected azimuth
+                    layer.changeAttributeValue(fid, idx_az, corrected)
+
+            # Commit all changes on this layer
+            if not layer.commitChanges():
+                self.iface.messageBar().pushMessage(
+                    f"Failed to commit Image Direction updates on '{layer_name}'.",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+            else:
+                self.iface.messageBar().pushMessage(
+                    f"Layer '{layer_name}': Image directions updated from EXIF and corrected from declination.",
                     level=Qgis.Success,
-                    duration=15,
+                    duration=5
                 )
 
 

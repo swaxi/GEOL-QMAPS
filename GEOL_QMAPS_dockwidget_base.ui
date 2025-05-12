@@ -325,20 +325,22 @@ font-size: 8pt;</string>
        <widget class="QLabel" name="label_33">
         <property name="geometry">
          <rect>
-          <x>80</x>
+          <x>10</x>
           <y>360</y>
-          <width>351</width>
-          <height>20</height>
+          <width>311</width>
+          <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </widget>
@@ -531,30 +533,32 @@ font-size: 8pt;</string>
          <string>Matching Score</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_41">
+       <widget class="QLabel" name="label_34">
         <property name="geometry">
          <rect>
-          <x>70</x>
+          <x>10</x>
           <y>360</y>
-          <width>371</width>
+          <width>311</width>
           <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
        </widget>
        <zorder>tableWidget3</zorder>
        <zorder>pushButton_25</zorder>
        <zorder>pushButton_26</zorder>
        <zorder>legendbox_2</zorder>
-       <zorder>label_41</zorder>
+       <zorder>label_34</zorder>
       </widget>
       <widget class="QWidget" name="Step3">
        <property name="layoutDirection">
@@ -740,23 +744,25 @@ font-size: 8pt;</string>
          <string>Matching Score</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_39">
+       <widget class="QLabel" name="label_38">
         <property name="geometry">
          <rect>
-          <x>90</x>
+          <x>10</x>
           <y>360</y>
-          <width>331</width>
+          <width>311</width>
           <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </widget>
@@ -2125,9 +2131,9 @@ font-size: 12px;
      <widget class="QLabel" name="label_31">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>660</y>
-        <width>611</width>
+        <width>311</width>
         <height>21</height>
        </rect>
       </property>
@@ -3238,7 +3244,7 @@ font-style: italic;</string>
          <x>10</x>
          <y>30</y>
          <width>741</width>
-         <height>101</height>
+         <height>111</height>
         </rect>
        </property>
        <property name="font">
@@ -3278,7 +3284,6 @@ J. Perret* - Developer of the GEOL-QMAPS QGIS Mapping Template
 
 *Contact Us:
 
-
 Online Documentation:</string>
        </property>
        <property name="backgroundVisible">
@@ -3311,7 +3316,7 @@ font-weight: bold;</string>
        </property>
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>130</x>
          <y>110</y>
          <width>81</width>
          <height>21</height>
@@ -3481,7 +3486,7 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>570</y>
+        <y>340</y>
         <width>761</width>
         <height>121</height>
        </rect>
@@ -3586,9 +3591,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>250</y>
+        <y>260</y>
         <width>761</width>
-        <height>311</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
@@ -3611,7 +3616,7 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>731</width>
-         <height>281</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="palette">
@@ -3736,54 +3741,47 @@ background-color: rgb(240, 240, 240,0);
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>GEOL-QMAPS Plugin:
-- Create groups to store layers generated when importing legacy .shp or FieldMove data
-
-- Export layers to common themes tool: 
-(i) export geophysical measurements (MagSus and Density) and Stops, Sampling, Photograph, and Observations spots in two additional layers
-(ii) export linear features in a linear data export layer
-(iii) Delete the empty export point layer generated (bug)
-
-- Check and modify the EXIF tool in agreement with future modificatins of the layer Photographs_PT (see below)
-
-- Add a button to enter references for publications or reports associated with the processed legacy field data
-
-- Add centroids of polygon and line features when creating virtual stop layers
-
-- Generate default symbols when adding new values to dictionaries if appropriate
-
-- Add a tool to import an old GEOL-QMAPS QGIS project and automatically rejig it to the latest version
-
-
-Stereonet Plugin:
-- Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
-
-GEOL-QMAPS QGIS Template (for next release):
-- Generate a single FIELD_DATA.qlr layer definition file in 99_COMMAND_FILES_PLUGIN
-
-- Delete qmap.json file in 99_COMMAND_FILES_PLUGIN (not used anymore)
-
-- Photographs_PT layer: 
-(i) modify the HTML map tip code to ensure the correct display of photographs if 'DCIM/' is not in the Photograph field
-(ii) Add an EXIF_azimuth field to simplify retrieving of Image Direction using EXIF metadata via the plugin</string>
+        <string>Please visit the Help - Roamap section of the User Guide:</string>
        </property>
        <property name="backgroundVisible">
         <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_30">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>300</x>
+         <y>30</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Arial; 
+font-size: 12px;
+font-style: italic;
+background-color: rgb(220, 220, 220);
+font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>User Guide - Roadmap</string>
        </property>
       </widget>
      </widget>
      <widget class="QLabel" name="label_37">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>700</y>
-        <width>781</width>
-        <height>16</height>
+        <x>10</x>
+        <y>710</y>
+        <width>311</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+       <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
       </property>
@@ -3791,7 +3789,7 @@ font-style: italic;</string>
        <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
       </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
      <zorder>groupBox_30</zorder>
