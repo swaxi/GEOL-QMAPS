@@ -5508,6 +5508,8 @@ class GEOL_QMAPS:
                 fid = feat.id()
                 full_path = feat["Full_Path"]
                 exif_val = feat["EXIF_Azimuth"]
+                az_val = feat["Azimut"]
+                new_exif = None
 
                 # If EXIF_Azimuth is null/empty, try to compute it
                 if exif_val in [None, "", 0]:
@@ -5522,35 +5524,36 @@ class GEOL_QMAPS:
                     exif_val = new_exif
                     layer.changeAttributeValue(fid, idx_exif, exif_val)
 
-                    # At this point exif_val is valid: compute declination
-                    # Extract date from "Date" field
-                    date = feat["Date"]
-                    date = date.split("/")
+                # At this point exif_val is valid: compute declination
+                # Extract date from "Date" field
+                date = feat["Date"]
+                date = date.split("/")
 
-                    day = int(date[2].split(" ")[0])
-                    month = int(date[1])
-                    year = int(date[0])
-                    date = datetime(year, month, day)
+                day = int(date[2].split(" ")[0])
+                month = int(date[1])
+                year = int(date[0])
+                date = datetime(year, month, day)
 
-                    # Extract latitude and longitude from the feature's geometry
-                    geometry = feat.geometry()
-                    if geometry.isEmpty():
-                        print(f"Feature {fid} in {layer_name}: has no geometry.")
-                        continue
+                # Extract latitude and longitude from the feature's geometry
+                geometry = feat.geometry()
+                if geometry.isEmpty():
+                    print(f"Feature {fid} in {layer_name}: has no geometry.")
+                    continue
 
-                    # Get the point geometry as lat/lon (assuming the layer has point geometry)
-                    if geometry.type() == QgsWkbTypes.PointGeometry:
-                        lat, lon = geometry.asPoint().y(), geometry.asPoint().x()
-                    else:
-                        print(f"Feature ID {feature_id} does not have point geometry.")
-                        continue
+                # Get the point geometry as lat/lon (assuming the layer has point geometry)
+                if geometry.type() == QgsWkbTypes.PointGeometry:
+                    lat, lon = geometry.asPoint().y(), geometry.asPoint().x()
+                else:
+                    print(f"Feature ID {feature_id} does not have point geometry.")
+                    continue
 
-                    # calculate IGRF compnents and  convert to Inc, Dec, Int
-                    Be, Bn, Bu = igrf(lon, lat, 0, date)
-                    inc, dec = get_inclination_declination(Be, Bn, Bu, degrees=True)
-                    corrected = exif_val + dec.item()
+                # calculate IGRF compnents and  convert to Inc, Dec, Int
+                Be, Bn, Bu = igrf(lon, lat, 0, date)
+                inc, dec = get_inclination_declination(Be, Bn, Bu, degrees=True)
+                corrected = exif_val + dec.item()
     
-                    # Final corrected azimuth
+                # Final corrected azimuth
+                if new_exif is not None or exif_val is not None:
                     layer.changeAttributeValue(fid, idx_az, corrected)
 
             # Commit all changes on this layer
