@@ -366,41 +366,57 @@ Define a new directory to export the QGIS project containing the clipped legacy 
 ### *6.4.* Data Management *Tab*
 ![DataManagement_window](DataManagement_window.PNG)
 
-#### 6.4.1. Merge Projects
+#### 6.4.1. Rejig an Old GEOL-QMAPS QGIS Project to the Latest Version
+Select an existing GEOL-QMAPS project folder **(version≥3.1.0)** and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository. <br>
+Upon completion, an updated project folder named `OldQGISProjectFolderName_rejigged` is created at the same directory level as the original folder. <br>
+A blank, unzipped copy of the latest `GEOL-QMAPS_vX.Y.Z` archive file downloaded from Zenodo is stored in the same parent directory. It contains a blank `QGIS_TEMPLATE` project folder and documentation for further use.
+
+> [!WARNING]
+> ***This tool is only compatible with projects created in GEOL-QMAPS version 3.1.0 or later** <br>
+> If you attempt to rejig a **v3.1.0** GEOL-QMAPS project, please note that the layer* `Compilation_Deformation zones_PG` *will not be recognised and loaded automatically due to a historical layer naming issue that was resolved in version 3.1.1. When opening the rejigged project, the* Handle Unavailable Layers *window will appear.<br>
+> ![6.4.1_HandleUnavailableLayers_1](6.4.1_HandleUnavailableLayers_1.PNG)
+> To restore this layer: <br>
+> (i) In the “Datasource” column, manually edit* layername=Compilation_Deformation_zones_PG *to* layername=Compilation_Deformation_zones_PG *(space instead of underscore between "Deformation" and "zones"),<br>
+> (ii) Click* `Auto-Find` *, the URI in the Datasource field should be updated automatically and turn green,<br>
+> ![6.4.1_HandleUnavailableLayers_2](6.4.1_HandleUnavailableLayers_2.PNG)
+> (iii) Press* `Apply changes` *.<br>
+> The layer will be correctly linked to the updated database but may remain empty if the original project’s data used the previous incorrect name. In that case, feature transfer is skipped during the rejigging process to maintain schema compatibility.*
+
+#### 6.4.2. Merge Projects
 Select two existing GEOL-QMAPS projects by selecting two existing project directories and a new one to store newly merged projects. <br>
 In more details, both current and GEOL-QMAPS-standardised legacy field data (contained in the *FIELD DATA > CURRENT MISSION* and *FIELD DATA > EXISTING FIELD GEODATABASE* groups in the QGIS template) from both projects are merged. Duplicate rows in each layer will be deleted.
 
 > [!TIP]
 > *Use this tool on a regular basis to merge data collected by distributed field teams. This ensures a consolidated dataset before exporting an updated* `QField Project Folder` *for the next days of mapping.*
 
-#### 6.4.2. Archive Current Field Data
+#### 6.4.3. Archive Current Field Data
 Transfer of all field data from the **`CURRENT_MISSION.gpkg`** geopackage (stored under the *CURRENT MISSION* group in the GEOL-QMAPS QGIS project) to the **`COMPILATION.gpkg`** geopackage, loaded in the *EXISTING FIELD GEODATABASE* sub-group in the GEOL-QMAPS QGIS project.<br>
 This ensures that all field data from the current mission are archived in the compiled geodatabase for long-term management and future use.
 
-#### 6.4.3 Remove Duplicate UUIDs from Project
+#### 6.4.4. Remove Duplicate UUIDs from Project
 After using the **Merge Projects** or **Archive Current Field Data** tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical *UUIDs*. 
 
-#### 6.4.4. Export Layers to Common Themes
+#### 6.4.5. Export Layers to Common Themes
 Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into three thematic shapefiles for zones, structures and lithologies.<br>
 This ensures data is organised into commonly used categories, facilitating streamlined analysis and integration into other workflows or GIS systems.
 
 > [!CAUTION]
 > *As layers merged do not have the same attribute list, merging attribute tables from different layers results in very large tables that can be challenging to manage. This may lead to performance issues, difficulties in navigation, or complications during data analysis and processing.* <br>
 
-#### 6.4.5. Create Virtual Stops
+#### 6.4.6. Create Virtual Stops
 Define clustering distance to add a cluster code to all different types of points observations according to locality, using a DBSCAN algorithm.<br> 
 This will create a new layer called *Virtual_Stops_datestamp*.
 
 > [!TIP]
 > *This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.* <br>
 
-#### 6.4.6. Stereographic Projection Settings
+#### 6.4.7. Stereographic Projection Settings
 Control fork of [custom Stereonet plugin](https://github.com/swaxi/qgis-stereonet) display.
 
 > [!TIP]
 > *Click on the GitHub link above to download the plugin .zip file, and install it in QGIS* via *the QGIS Plugin Manager.* <br>
 
-#### 6.4.7. Picture Management
+#### 6.4.8. Picture Management
 Allows a new directory to be defined for the storage of field and sampling pictures.
 
 > [!TIP]
