@@ -133,7 +133,15 @@ from qgis.core import (
     QgsFeature,
     QgsVectorDataProvider,
     QgsField,
+    QgsFeature
 )
+
+import urllib.request
+import tempfile
+import zipfile
+import shutil
+from pathlib import Path
+from qgis.PyQt.QtWidgets import QFileDialog
 
 from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
@@ -628,6 +636,10 @@ class GEOL_QMAPS:
                     # self.dlg.setFixedSize(1131, 600)
 
                     ### Connection of PushButtons ###
+
+                    # Rejig Project
+                    self.dlg.pushButton_37.clicked.connect(self.select_old_project_folder)
+                    self.dlg.rejig_pushButton_4.clicked.connect(self.rejig_project)
 
                     # Project_parameters
                     self.dlg.projName_pushButton.clicked.connect(
@@ -3471,7 +3483,195 @@ class GEOL_QMAPS:
     ################       Page 3 : Field Data Management           ###############
     ###############################################################################
 
-    ### Merge Projects ### to modifie with the new architecture of the plugin
+    ### Rejig Project ###
+    def select_old_project_folder(self):
+        """Let the user pick an existing GEOL-QMAPS project folder."""
+        folder = QFileDialog.getExistingDirectory(
+            self.dlg, "Select old GEOL-QMAPS project folder", ""
+        )
+        if folder:
+            self.dlg.lineEdit_15.setText(folder)
+
+    def rejig_project(self):
+        """Main entry – validate old project, fetch template, assemble rejigged copy."""
+        old = Path(self.dlg.lineEdit_15.text().strip())
+        parent = old.parent
+
+        # 1. Validate it’s a GEOL-QMAPS project
+        gpkg = old / "1_EXISTING_FIELD_DATABASE" / "COMPILATION.gpkg"
+        ver_txt = old / "99_COMMAND_FILES_PLUGIN" / "Version.txt"
+        if not gpkg.exists() or not ver_txt.exists():
+            self.iface.messageBar().pushMessage(
+                "ERROR: Selected folder is not a valid GEOL-QMAPS project.",
+                level=Qgis.Critical, duration=10
+            )
+            return
+
+        else:
+            print (f"{old} is a GEOL-QMAPS project")
+
+        # 2. Check version > 3.1.0
+        with open(ver_txt, 'r') as f:
+            raw = f.readline().lstrip('v').strip()
+        parts = [int(x) for x in raw.split('.')]
+        if parts < [3, 1, 0]:
+            self.iface.messageBar().pushMessage(
+                f"ERROR: Project version {raw} is older than 3.1.0; cannot rejig.",
+                level=Qgis.Critical, duration=10
+            )
+            return
+        else:
+            print (f"{old} is version {raw} and can be rejigged")
+
+        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.3 at the moment
+        tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
+        url = "https://zenodo.org/records/15099095/files/GEOL-QMAPS_v3.1.3.zip?download=1"
+        try:
+            urllib.request.urlretrieve(url, str(tmpzip))
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                f"ERROR downloading template: {e}", level=Qgis.Critical, duration=10
+            )
+            return
+        print (f"GEOL-QMAPS download completed: {tmpzip}")
+
+        with zipfile.ZipFile(str(tmpzip), 'r') as zf:
+            zf.extractall(str(parent))
+        tmpzip.unlink()
+        print(f"GEOL-QMAPS archive file unzipped in: {old.parent}")
+
+        # 4. Find the inner QGIS_TEMPLATE folder
+        found = list(parent.glob("*/QGIS_TEMPLATE"))
+        if found:
+            template_src = found[0]
+            print(f"QGIS_TEMPLATE found in {template_src}")
+
+        if not template_src.is_dir():
+            self.iface.messageBar().pushMessage(
+                "ERROR: Could not locate the extracted QGIS_TEMPLATE folder.",
+                level=Qgis.Critical, duration=10
+            )
+            return
+
+        # Prepare the destination name and remove any stale copy
+        rejigged = parent / f"{old.name}_rejigged"
+        if rejigged.exists():
+            shutil.rmtree(str(rejigged))
+
+        # 5. Copy the template into projects folder and rename in one go
+        shutil.copytree(str(template_src), str(rejigged))
+        self.iface.messageBar().pushMessage(
+            f"Template unpacked and renamed → '{rejigged.name}'",
+            level=Qgis.Success, duration=6
+        )
+        print(f"QGIS_TEMPLATE renamed and copied at {rejigged}")
+
+
+        # 6. Copy the old .qgz into the new folder (deleting any existing .qgz)
+        for f in rejigged.glob("*.qgz"):
+            f.unlink()
+        old_qgz = next(old.glob("*.qgz"), None)
+        if old_qgz:
+            shutil.copy2(str(old_qgz), str(rejigged))
+        print(f"Old .qgz project file copied in: {rejigged}")
+
+        # 7. Copy array of subfolders
+        folders = [
+            "2_GPS-LOCALITIES_OF_INTEREST",
+            "3_GEOCHEMISTRY", "4_GEOCHRONOLOGY", "5_MINING_AND_EXPLORATION",
+            "6_GEOLOGY", "7_GEOPHYSICS", "8_LAND_USE", "9_GEOGRAPHY",
+            "10_TOPOGRAPHY", "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY"
+        ]
+        for sub in folders:
+            src = old / sub
+            dst = rejigged / sub
+            if dst.exists():
+                shutil.rmtree(str(dst))
+            if src.exists():
+                shutil.copytree(str(src), str(dst))
+        # also DCIM sub-folders
+        for branch in ["0_FIELD_DATA/DCIM", "1_EXISTING_FIELD_DATABASE/DCIM"]:
+            src = old / Path(branch)
+            dst = rejigged / Path(branch)
+            if dst.exists():
+                shutil.rmtree(str(dst))
+            if src.exists():
+                shutil.copytree(str(src), str(dst))
+
+        print(f"Folders and DCIM copied in: {rejigged}")
+
+        # 8. Copy features from the two GeoPackages using OGR
+        from osgeo import ogr
+
+        driver = ogr.GetDriverByName("GPKG")
+        raw_version = raw  # the version string you read earlier, e.g. "3.1.0"
+
+        for pkg_rel in ["0_FIELD_DATA/CURRENT_MISSION.gpkg",
+                        "1_EXISTING_FIELD_DATABASE/COMPILATION.gpkg"]:
+            old_pkg = str(old / pkg_rel)
+            new_pkg = str(rejigged / pkg_rel)
+
+            # open source (read) and destination (update) datasets
+            src_ds = ogr.Open(old_pkg, 0)
+            dst_ds = ogr.Open(new_pkg, 1)
+            if src_ds is None or dst_ds is None:
+                self.iface.messageBar().pushMessage(
+                    f"WARNING: Could not open {pkg_rel} for copying.", level=Qgis.Warning, duration=5
+                )
+                continue
+
+            # loop through each layer in the source
+            for i in range(src_ds.GetLayerCount()):
+                src_layer = src_ds.GetLayerByIndex(i)
+                # skip non-spatial tables
+                if src_layer.GetGeomType() in (ogr.wkbNone, ogr.wkbUnknown):
+                    continue
+
+                # special rename for old v3.1.0
+                old_name = src_layer.GetName()
+                new_name = old_name
+                if raw_version == "3.1.0" and old_name == "Compilation_Deformation_zones_PG":
+                    new_name = "Compilation_Deformation zones_PG"
+
+                dst_layer = dst_ds.GetLayerByName(new_name)
+                if dst_layer is None:
+                    # skip layers that aren't in the new template
+                    continue
+
+                dst_def = dst_layer.GetLayerDefn()
+                # start transaction for speed
+                dst_layer.StartTransaction()
+                src_layer.ResetReading()
+                feat = src_layer.GetNextFeature()
+                while feat:
+                    # build a new feature matching the dst schema
+                    out_feat = ogr.Feature(dst_def)
+                    # copy only fields that exist in dst
+                    for fi in range(dst_def.GetFieldCount()):
+                        fld_def = dst_def.GetFieldDefn(fi)
+                        fld_name = fld_def.GetName()
+                        if feat.GetFieldIndex(fld_name) != -1:
+                            out_feat.SetField(fld_name, feat.GetField(fld_name))
+                    # copy geometry
+                    geom = feat.GetGeometryRef()
+                    if geom:
+                        out_feat.SetGeometry(geom.Clone())
+                    # insert into dst
+                    dst_layer.CreateFeature(out_feat)
+                    # cleanup
+                    out_feat = None
+                    feat = src_layer.GetNextFeature()
+                dst_layer.CommitTransaction()
+
+            # explicitly close datasets to release file locks
+            src_ds = None
+            dst_ds = None
+
+        self.iface.messageBar().pushMessage(
+            f"Rejig complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
+        )
+
+    ### Merge Projects ###
 
     def list_csv_files(directory):
         files = []
@@ -5609,7 +5809,7 @@ class GEOL_QMAPS:
             os.makedirs(directory,exist_ok=True) 
 
 
-        #run through all funcitonality (except importing data)
+        #run through all funcitonality (except importing shp legacy data)
 
         try:
             self.dlg.lineEdit_9.setText("Name")
@@ -5743,5 +5943,13 @@ class GEOL_QMAPS:
                 print(f"*** structure_style_off: FAIL (got {expr})")
         except Exception as e:
             print("*** structure_style_off: ERROR", e)
+
+        try:
+            current_proj_folder = head_tail[0]
+            self.dlg.lineEdit_15.setText(current_proj_folder)
+            self.rejig_project()
+            print("rejig_project")
+        except:
+            print("*** rejig_project failed")
 
         print("GEOL_QMAPS_tester finished")
