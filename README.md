@@ -438,11 +438,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 **Roadmap for Future Development**
 *GEOL-QMAPS Plugin:*
-* **Export Layers to Common Themes**: 
-  * Export geophysical measurements (**MagSus_PT** and **Density_PT**) and **Stops_PT**, **Sampling_PT**, **Photograph_PT**, and **Observations_PT** spots in two additional layers
-  * Export linear features in a linear data export layer
-  * Delete the empty export point layer generated (bug)
-
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
