@@ -396,8 +396,8 @@ This ensures that all field data from the current mission are archived in the co
 #### 6.4.4. Remove Duplicate UUIDs from Project
 After using the **Merge Projects** or **Archive Current Field Data** tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical *UUIDs*. 
 
-#### 6.4.5. Export Layers to Common Themes
-Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into three thematic shapefiles for zones, structures and lithologies.<br>
+#### 6.4.5. Export Compilation Layers to Common Themes
+Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<br>
 This ensures data is organised into commonly used categories, facilitating streamlined analysis and integration into other workflows or GIS systems.
 
 > [!CAUTION]
