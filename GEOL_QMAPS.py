@@ -4398,17 +4398,10 @@ class GEOL_QMAPS:
 
             file = []
             # merge zone data
-            """file.append(
-                self.geopackage_file_path + "|layername=Compilation_Fractured zones_PG"
-            )"""
             file.append(
                 self.geopackage_file_path
                 + "|layername=Compilation_Deformation zones_PG"
             )
-            """file.append(
-                self.geopackage_file_path
-                + "|layername=Compilation_Cataclastic zones_PG"
-            )"""
             file.append(
                 self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
             )
@@ -4497,23 +4490,37 @@ class GEOL_QMAPS:
                 self.geopackage_file_path
                 + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
-            file2 = self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT"
-            """file3 = (
-                self.geopackage_file_path
-                + "|layername=Compilation_Fold and crenulation axial planes_PT"
-            )"""
-            file4 = self.geopackage_file_path + "|layername=Compilation_Folds_PT"
-            file5 = (
+            file2 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Foliation-cleavage_PT"
             )
-            file6 = self.geopackage_file_path + "|layername=Compilation_Fractures_PT"
-            file7 = self.geopackage_file_path + "|layername=Compilation_Lineations_PT"
-            file8 = (
+            file3 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Shear zones and faults_PT"
             )
-            file9 = self.geopackage_file_path + "|layername=Compilation_Veins_PT"
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Folds_PT"
+            )
+            file5 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Fractures_PT"
+            )
+            file6 = (self.geopackage_file_path
+                     + "|layername=Compilation_Veins_PT"
+            )
+            file7 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Dikes-Sills_PT"
+                    )
+            file8 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Lithological contacts_PT"
+            )
+            file9 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Lineations_PT"
+            )
 
             newLayer = (
                 "ogr:dbname='"
@@ -4528,24 +4535,118 @@ class GEOL_QMAPS:
                 "LAYERS": [
                     file1,
                     file2,
-                    # file3,
+                    file3,
                     file4,
                     file5,
                     file6,
                     file7,
                     file8,
-                    file9,
+                    file9
                 ],
                 "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
+
+            # merge Geophysical data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Density_PT"
+            )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Magnetic susceptibility_PT"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "geophy_data"
+                + '" (geom)'
+            )
+
+            # merge shapefiles
+            params = {
+                "LAYERS": [file1, file2],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
+            # merge Stops-Samples-Photographs-Comments data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Stops_PT"
+            )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Sampling_PT"
+            )
+            file3 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Photographs_PT"
+            )
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Observations_PT"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "stops-sampling-photographs-commentsPT_data"
+                + '" (geom)'
+            )
+
+            # merge shapefiles
+            params = {
+                "LAYERS": [file1, file2, file3, file4],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
+            # merge linear data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Observations_LN"
+            )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_GPS Tracks_LN"
+            )
+            file3 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Lithological contacts_LN"
+            )
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Planar structures_LN"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "linear_data"
+                + '" (geom)'
+            )
+
+            # merge shapefiles
+            params = {
+                "LAYERS": [file1, file2, file3, file4],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
             self.iface.messageBar().pushMessage(
                 "Layers merged, saved in directory" + self.dlg.lineEdit_7.text(),
                 level=Qgis.Success,
                 duration=5,
             )
-
         else:
             self.iface.messageBar().pushMessage(
                 "Directory not found: " + self.dlg.lineEdit_7.text(),

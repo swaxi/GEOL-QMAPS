@@ -344,6 +344,212 @@ font-style: italic;</string>
         </property>
        </widget>
       </widget>
+      <widget class="QWidget" name="Step3">
+       <property name="layoutDirection">
+        <enum>Qt::LeftToRight</enum>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <attribute name="title">
+        <string>Lithology Names</string>
+       </attribute>
+       <widget class="QTableWidget" name="tableWidget2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>571</width>
+          <height>341</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>8</pointsize>
+          <weight>50</weight>
+          <italic>false</italic>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-family: Arial; 
+font: 8pt &quot;Arial&quot;;</string>
+        </property>
+        <property name="lineWidth">
+         <number>5</number>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
+        </property>
+        <property name="showGrid">
+         <bool>true</bool>
+        </property>
+        <property name="gridStyle">
+         <enum>Qt::SolidLine</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+        <property name="cornerButtonEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="rowCount">
+         <number>13</number>
+        </property>
+        <property name="columnCount">
+         <number>3</number>
+        </property>
+        <attribute name="horizontalHeaderMinimumSectionSize">
+         <number>29</number>
+        </attribute>
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>182</number>
+        </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>19</number>
+        </attribute>
+        <attribute name="verticalHeaderDefaultSectionSize">
+         <number>24</number>
+        </attribute>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <row/>
+        <column>
+         <property name="text">
+          <string>Legacy data value</string>
+         </property>
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Assigned standard value</string>
+         </property>
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>Modify the assigned value</string>
+         </property>
+         <property name="font">
+          <font>
+           <family>Arial</family>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+        </column>
+       </widget>
+       <widget class="QPushButton" name="pushButton_10">
+        <property name="geometry">
+         <rect>
+          <x>590</x>
+          <y>360</y>
+          <width>101</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+        </property>
+        <property name="text">
+         <string>Lithologies OK</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_12">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>360</y>
+          <width>101</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+        </property>
+        <property name="text">
+         <string>Undo</string>
+        </property>
+       </widget>
+       <widget class="QGroupBox" name="legendbox">
+        <property name="geometry">
+         <rect>
+          <x>590</x>
+          <y>10</y>
+          <width>101</width>
+          <height>341</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>Arial</family>
+          <pointsize>8</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">font-family: Arial; 
+font-size: 8pt;</string>
+        </property>
+        <property name="title">
+         <string>Matching Score</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_38">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>360</y>
+          <width>311</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"> font-family: Arial; 
+font-size: 11px;
+font-style: italic;</string>
+        </property>
+        <property name="text">
+         <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </widget>
       <widget class="QWidget" name="Step4">
        <property name="styleSheet">
         <string notr="true">Step 4 :</string>
@@ -559,212 +765,6 @@ font-style: italic;</string>
        <zorder>pushButton_26</zorder>
        <zorder>legendbox_2</zorder>
        <zorder>label_34</zorder>
-      </widget>
-      <widget class="QWidget" name="Step3">
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <attribute name="title">
-        <string>Lithology Names</string>
-       </attribute>
-       <widget class="QTableWidget" name="tableWidget2">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>571</width>
-          <height>341</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>8</pointsize>
-          <weight>50</weight>
-          <italic>false</italic>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-family: Arial; 
-font: 8pt &quot;Arial&quot;;</string>
-        </property>
-        <property name="lineWidth">
-         <number>5</number>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustIgnored</enum>
-        </property>
-        <property name="showGrid">
-         <bool>true</bool>
-        </property>
-        <property name="gridStyle">
-         <enum>Qt::SolidLine</enum>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="cornerButtonEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="rowCount">
-         <number>13</number>
-        </property>
-        <property name="columnCount">
-         <number>3</number>
-        </property>
-        <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>29</number>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>182</number>
-        </attribute>
-        <attribute name="verticalHeaderMinimumSectionSize">
-         <number>19</number>
-        </attribute>
-        <attribute name="verticalHeaderDefaultSectionSize">
-         <number>24</number>
-        </attribute>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <row/>
-        <column>
-         <property name="text">
-          <string>Legacy data value</string>
-         </property>
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <weight>75</weight>
-           <italic>true</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Assigned standard value</string>
-         </property>
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <weight>75</weight>
-           <italic>true</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Modify the assigned value</string>
-         </property>
-         <property name="font">
-          <font>
-           <family>Arial</family>
-           <weight>75</weight>
-           <italic>true</italic>
-           <bold>true</bold>
-          </font>
-         </property>
-        </column>
-       </widget>
-       <widget class="QPushButton" name="pushButton_10">
-        <property name="geometry">
-         <rect>
-          <x>590</x>
-          <y>360</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-        </property>
-        <property name="text">
-         <string>Lithologies OK</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_12">
-        <property name="geometry">
-         <rect>
-          <x>470</x>
-          <y>360</y>
-          <width>101</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-        </property>
-        <property name="text">
-         <string>Undo</string>
-        </property>
-       </widget>
-       <widget class="QGroupBox" name="legendbox">
-        <property name="geometry">
-         <rect>
-          <x>590</x>
-          <y>10</y>
-          <width>101</width>
-          <height>341</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>Arial</family>
-          <pointsize>8</pointsize>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-family: Arial; 
-font-size: 8pt;</string>
-        </property>
-        <property name="title">
-         <string>Matching Score</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_38">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>360</y>
-          <width>311</width>
-          <height>21</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"> font-family: Arial; 
-font-size: 11px;
-font-style: italic;</string>
-        </property>
-        <property name="text">
-         <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-        </property>
-       </widget>
       </widget>
      </widget>
      <widget class="QLabel" name="label_19">
@@ -2175,7 +2175,7 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>110</y>
         <width>761</width>
         <height>91</height>
        </rect>
@@ -2423,7 +2423,7 @@ border-style: solid;border-width: 1px;border-color: black
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>240</y>
+        <y>300</y>
         <width>491</width>
         <height>91</height>
        </rect>
@@ -2437,7 +2437,7 @@ border-style: solid;border-width: 1px;border-color: black
        </font>
       </property>
       <property name="title">
-       <string>Export Layers to Common Themes</string>
+       <string>Export Compilation Layers to Common Themes</string>
       </property>
       <widget class="QPushButton" name="export_pushButton">
        <property name="geometry">
@@ -2488,7 +2488,7 @@ border-style: solid;border-width: 1px;border-color: black
         <string/>
        </property>
        <property name="placeholderText">
-        <string>Select a folder to store field data layers merged by theme</string>
+        <string>***compilation-field-data-layers-merged-by-theme-folder***</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_5">
@@ -2533,7 +2533,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>240</y>
+        <y>300</y>
         <width>261</width>
         <height>91</height>
        </rect>
@@ -2617,7 +2617,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>360</y>
+        <y>410</y>
         <width>761</width>
         <height>111</height>
        </rect>
@@ -2829,9 +2829,9 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>500</y>
+        <y>540</y>
         <width>761</width>
-        <height>151</height>
+        <height>141</height>
        </rect>
       </property>
       <property name="font">
@@ -2992,7 +2992,7 @@ font-size: 12px;
        <property name="geometry">
         <rect>
          <x>340</x>
-         <y>120</y>
+         <y>110</y>
          <width>231</width>
          <height>21</height>
         </rect>
@@ -3013,7 +3013,7 @@ font-size: 12px;
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>120</y>
+         <y>110</y>
          <width>341</width>
          <height>21</height>
         </rect>
@@ -3041,7 +3041,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>400</x>
-        <y>150</y>
+        <y>220</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -3113,7 +3113,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>220</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -3154,7 +3154,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>630</x>
-        <y>660</y>
+        <y>690</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -3175,7 +3175,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>660</y>
+        <y>690</y>
         <width>611</width>
         <height>21</height>
        </rect>
@@ -3192,6 +3192,118 @@ font-style: italic;</string>
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
+     <widget class="QGroupBox" name="groupBox_22">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>761</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="title">
+       <string>Rejig an Old GEOL-QMAPS QGIS Project to the Latest Version</string>
+      </property>
+      <widget class="QPushButton" name="rejig_pushButton_4">
+       <property name="geometry">
+        <rect>
+         <x>650</x>
+         <y>30</y>
+         <width>101</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Rejig Project</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_39">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>241</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+       </property>
+       <property name="text">
+        <string>Old Project Folder ( version must be &gt;v3.1.0):</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_15">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>30</y>
+         <width>331</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>***old-project-folder***</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_37">
+       <property name="geometry">
+        <rect>
+         <x>600</x>
+         <y>30</y>
+         <width>31</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
      <zorder>groupBox_11</zorder>
      <zorder>groupBox_12</zorder>
      <zorder>groupBox_10</zorder>
@@ -3201,6 +3313,7 @@ font-style: italic;</string>
      <zorder>groupBox_21</zorder>
      <zorder>pushButton_22</zorder>
      <zorder>label_32</zorder>
+     <zorder>groupBox_22</zorder>
     </widget>
     <widget class="QWidget" name="Help">
      <property name="styleSheet">
