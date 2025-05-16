@@ -366,21 +366,21 @@ Define a new directory to export the QGIS project containing the clipped legacy 
 ### *6.4.* Data Management *Tab*
 ![DataManagement_window](DataManagement_window.PNG)
 
-#### 6.4.1. Rejig an Old GEOL-QMAPS QGIS Project to the Latest Version
+#### 6.4.1. Update an Old GEOL-QMAPS QGIS Project to the Latest Version (requires and Internet connection)
 Select an existing GEOL-QMAPS project folder **(version≥3.1.0)** and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository. <br>
-Upon completion, an updated project folder named `OldQGISProjectFolderName_rejigged` is created at the same directory level as the original folder. <br>
-A blank, unzipped copy of the latest `GEOL-QMAPS_vX.Y.Z` archive file downloaded from Zenodo is stored in the same parent directory. It contains a blank `QGIS_TEMPLATE` project folder and documentation for further use.
+Upon completion, an updated project folder named `OldQGISProjectFolderName_updatedversion` is created at the same directory level as the original folder. <br>
+A blank, unzipped copy of the latest `GEOL-QMAPS_vX.X.X` archive file downloaded from Zenodo is stored in the same parent directory. It contains a blank `QGIS_TEMPLATE` project folder and documentation for further use.
 
 > [!WARNING]
 > ***This tool is only compatible with projects created in GEOL-QMAPS version 3.1.0 or later** <br>
-> If you attempt to rejig a **v3.1.0** GEOL-QMAPS project, please note that the layer* `Compilation_Deformation zones_PG` *will not be recognised and loaded automatically due to a historical layer naming issue that was resolved in version 3.1.1. When opening the rejigged project, the* Handle Unavailable Layers *window will appear.<br>
+> If you attempt to rejig a **v3.1.0** GEOL-QMAPS project, please note that the layer* `Compilation_Deformation zones_PG` *will not be recognised and loaded automatically due to a historical layer naming issue that was resolved in version 3.1.1. When opening the updated project, the* Handle Unavailable Layers *window will appear.<br>
 > ![6.4.1_HandleUnavailableLayers_1](6.4.1_HandleUnavailableLayers_1.PNG)
 > To restore this layer: <br>
 > (i) In the “Datasource” column, manually edit* layername=Compilation_Deformation_zones_PG *to* layername=Compilation_Deformation_zones_PG *(space instead of underscore between "Deformation" and "zones"),<br>
 > (ii) Click* `Auto-Find` *, the URI in the Datasource field should be updated automatically and turn green,<br>
 > ![6.4.1_HandleUnavailableLayers_2](6.4.1_HandleUnavailableLayers_2.PNG)
 > (iii) Press* `Apply changes` *.<br>
-> The layer will be correctly linked to the updated database but may remain empty if the original project’s data used the previous incorrect name. In that case, feature transfer is skipped during the rejigging process to maintain schema compatibility.*
+> The layer will be correctly linked to the updated database but may remain empty if the original project’s data used the previous incorrect name. In that case, feature transfer is skipped during the updating process to maintain schema compatibility.*
 
 #### 6.4.2. Merge Projects
 Select two existing GEOL-QMAPS projects by selecting two existing project directories and a new one to store newly merged projects. <br>
