@@ -657,13 +657,14 @@ class GEOL_QMAPS:
                     )
 
                     # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
-
                     self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
                     self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                     self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                     self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
+                    self.dlg.pushButton_14.clicked.connect(self.Generate_Output_QGIS_Layers)
                     self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
 
+                    #User by default
                     self.dlg.pushButton_user_default.clicked.connect(
                         self.set_user_by_default
                     )  # ADD
@@ -764,20 +765,7 @@ class GEOL_QMAPS:
                         )
                     )
 
-                    #  Connection to the WAXI articles :
-                    # self.dlg.pushButton_38.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(
-                    #        QUrl("https://waxi4.org/publications/journal-articles/")
-                    #    )
-                    # )
-                    # self.dlg.pushButton_39.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(
-                    #        QUrl("https://waxi4.org/publications/theses/")
-                    #    )
-                    # )
-
                     # PushButtons to search for files on the computer
-
                     self.dlg.pushButton_FM_project_select.clicked.connect(
                         self.import_FM_Project
                     )
@@ -849,8 +837,6 @@ class GEOL_QMAPS:
 
                     ### Show the dialog
                     self.dlg.show()
-
-                # result = self.dlg.exec_()
 
         else:
 
@@ -2471,10 +2457,23 @@ class GEOL_QMAPS:
             # loop through all the sheets in the Excel workbook
             for sheet in workbook:
 
-                # sheet = workbook[sheet_name]
+                # Get the sheet’s DataFrame
+                df = workbook[sheet]
 
                 # Retrieve column names
-                headers = list(workbook[sheet].columns)
+                headers = list(df.columns)
+
+                # Retrieve some key indices
+                dipdir_idx = headers.index("Dip_Dir") if "Dip_Dir" in headers else None
+                # print(f"dip dir index in {layer_name} is:{dipdir_idx}")
+                strike_idx = headers.index("Strike_RHR") if "Strike_RHR" in headers else None
+                # print(f"strike index in {layer_name} is:{strike_idx}")
+                measure_idx = headers.index("Measure") if "Measure" in headers else None
+                # print(f"Type of structural measurement index in {layer_name} is:{measure_idx}")
+                trend_idx = headers.index("Trend") if "Trend" in headers else None
+                # print(f"Younging trend index in {layer_name} is:{trend_idx}")
+                younging_idx = headers.index("Younging") if "Younging" in headers else None
+                # print(f"Younging indication index in {layer_name} is:{younging_idx}")
 
                 # Retrieve geometry column index
                 geometry_column_index = headers.index("Geometry")
@@ -2527,11 +2526,61 @@ class GEOL_QMAPS:
                 # Add fields content by looping through sheet rows
                 for index, row in workbook[sheet].iterrows():
 
-                    # Geometry
+                    # Convert row to mutable list
+                    row_vals = list(row)
+
+                    #Measure field --> structural measurement
+                    if measure_idx is not None:
+                        dipdir_val = row_vals[dipdir_idx] if dipdir_idx   is not None else None
+                        strike_val = row_vals[strike_idx] if strike_idx   is not None else None
+                        try:
+                            dipdir_num = float(dipdir_val)
+                        except (TypeError, ValueError):
+                            dipdir_num = None
+                        try:
+                            strike_num = float(strike_val)
+                        except (TypeError, ValueError):
+                            strike_num = None
+                        #print(f"Structural measurement confirmed: fixing DipDir ({dipdir_num}) or Strike value({strike_num}) for entity {index} in {layer_name} ongoing...")
+
+                        # 1) If Dip_Dir is non-null & Strike_RHR is null ⇒ compute Strike_RHR & Measure
+                        if dipdir_idx is not None and strike_idx is not None and pd.notna(dipdir_val) and (pd.isna(strike_val) or strike_val == ""):
+                            computed = dipdir_num - 90 if dipdir_num > 90 else dipdir_num + 270
+                            row_vals[strike_idx] = str(computed)
+                            row_vals[measure_idx] = "Dip - dip direction"
+                            #print(f"Structural measurement with DipDir: new Strike value({row_vals[strike_idx]})")
+
+                        # 2) Else if Strike_RHR is non-null & Dip_Dir is null ⇒ compute Dip_Dir & Measure
+                        elif dipdir_idx is not None and strike_idx is not None and pd.notna(strike_val) and (pd.isna(dipdir_val) or dipdir_val == ""):
+                            computed = strike_num + 90 if strike_num < 270 else strike_num - 270
+                            row_vals[dipdir_idx] = str(computed)
+                            row_vals[measure_idx] = "Strike (right-hand rule) - dip"
+                            #print(f"Structural measurement with Strike: new DipDir value({row_vals[dipdir_idx]})")
+
+                        #print(f"field values for entity {index} in {layer_name} are {row_vals} ")
+
+                    # 3) If Trend is non-null ⇒ set Younging = 'Yes'
+                    if trend_idx is not None and younging_idx is not None:
+                        trend_val = row_vals[trend_idx]
+                        try:
+                            trend_num = float(trend_val)
+                        except (TypeError, ValueError):
+                            trend_num = None
+                        #print(f"Lithology point with Younging indication confirmed: fixing Younging indication for entity {index} in {layer_name} ongoing...")
+                        if pd.notna(trend_val) and trend_val != "":
+                            row_vals[younging_idx] = "Yes"
+                        #print(f"Younging indicator now set to {row_vals[younging_idx]}")
+
+                    #print(f"field values for entity {index} in {layer_name} are {row_vals} ")
+
+                    # rebuild row from the updated row_vals list so geometry + attributes use the new values
+                    row = pd.Series(row_vals, index=row.index)
+
+                    # Geometry updated with row_vals
                     feature = QgsFeature(layer.fields())
                     geometry_wkt = row[geometry_column_index]
                     feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
-
+                    
                     # Other fields of the attribute table by looping through sheet columns
                     for i, value in enumerate(row):
 
@@ -2758,22 +2807,26 @@ class GEOL_QMAPS:
         """
         Generates scratch QGIS layers based on the DataFrames produced by the check_OK methods.
         If only lithologies or only structures were checked, only that set of layers is created.
-        If both were checked, layers for both are generated.
+        Allows independent generation if only lithologies or only structures were validated.
         """
-        # Generate lithologies layers if the flag is set
-        if self.create_lithologies is not None and self.fichier_output_lithology is not None and self.create_structures is not None and self.fichier_output_structures is not None:
-            self.iface.messageBar().pushMessage("Generating lithologies and structures layers...", level=Qgis.Info, duration=10)
+        # Both lithologies and structures
+        if getattr(self, 'create_lithologies', False) and self.fichier_output_lithology is not None and getattr(self, 'create_structures', False) and self.fichier_output_structures is not None:
+            self.iface.messageBar().pushMessage("Generating lithologies and structures layers...",level=Qgis.Info, duration=10)
             self.method_import_data_as_layers(self.fichier_output_lithology, self.fichier_output_structures)
 
-        # Generate structures layers if the flag is set
-        elif self.create_lithologies is not None and self.fichier_output_lithology is not None:
-            self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info, duration=10)
+        # Only lithologies
+        elif getattr(self, 'create_lithologies', False) and self.fichier_output_lithology is not None:
+            self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info,duration=10)
             self.method_import_data_as_layers(self.fichier_output_lithology, None)
 
-        # Generate structures layers if the flag is set
-        elif self.create_structures is None and self.fichier_output_structures is None:
-            self.iface.messageBar().pushMessage("Generating structures layers...", level=Qgis.Info, duration=10)
+        # Only structures
+        elif getattr(self, 'create_structures', False) and self.fichier_output_structures is not None:
+            self.iface.messageBar().pushMessage("Generating structures layers...", level=Qgis.Info,duration=10)
             self.method_import_data_as_layers(None, self.fichier_output_structures)
+
+        # Nothing validated
+        else:
+            self.iface.messageBar().pushMessage("Please validate lithologies and/or structures before creating layers.",level = Qgis.Warning,duration = 45)
 
         # Reset the flags after generation
         self.create_lithologies = False
@@ -3483,7 +3536,7 @@ class GEOL_QMAPS:
     ################       Page 3 : Field Data Management           ###############
     ###############################################################################
 
-    ### Rejig Project ###
+    ### Update Project to the Latest Version ###
     def select_old_project_folder(self):
         """Let the user pick an existing GEOL-QMAPS project folder."""
         folder = QFileDialog.getExistingDirectory(
@@ -3493,7 +3546,7 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.setText(folder)
 
     def rejig_project(self):
-        """Main entry – validate old project, fetch template, assemble rejigged copy."""
+        """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
         parent = old.parent
 
@@ -3502,7 +3555,7 @@ class GEOL_QMAPS:
         ver_txt = old / "99_COMMAND_FILES_PLUGIN" / "Version.txt"
         if not gpkg.exists() or not ver_txt.exists():
             self.iface.messageBar().pushMessage(
-                "ERROR: Selected folder is not a valid GEOL-QMAPS project.",
+                "ERROR: Selected folder is either not a valid GEOL-QMAPS project, or too old to be automatically updated to the latest version (version < 3.1.0).",
                 level=Qgis.Critical, duration=10
             )
             return
@@ -3516,12 +3569,12 @@ class GEOL_QMAPS:
         parts = [int(x) for x in raw.split('.')]
         if parts < [3, 1, 0]:
             self.iface.messageBar().pushMessage(
-                f"ERROR: Project version {raw} is older than 3.1.0; cannot rejig.",
+                f"ERROR: Project version {raw} is older than 3.1.0; cannot be updated to the latest version automatically.",
                 level=Qgis.Critical, duration=10
             )
             return
         else:
-            print (f"{old} is version {raw} and can be rejigged")
+            print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
         # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.3 at the moment
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
@@ -3554,7 +3607,7 @@ class GEOL_QMAPS:
             return
 
         # Prepare the destination name and remove any stale copy
-        rejigged = parent / f"{old.name}_rejigged"
+        rejigged = parent / f"{old.name}_updatedversion"
         if rejigged.exists():
             shutil.rmtree(str(rejigged))
 
@@ -3668,7 +3721,7 @@ class GEOL_QMAPS:
             dst_ds = None
 
         self.iface.messageBar().pushMessage(
-            f"Rejig complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
+            f"Version update complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
         )
 
     ### Merge Projects ###

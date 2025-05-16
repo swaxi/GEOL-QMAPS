@@ -3210,7 +3210,7 @@ font-style: italic;</string>
        </font>
       </property>
       <property name="title">
-       <string>Rejig an Old GEOL-QMAPS QGIS Project to the Latest Version</string>
+       <string>Update an Old GEOL-QMAPS QGIS Project to the Latest Version (requires an Internet connection)</string>
       </property>
       <widget class="QPushButton" name="rejig_pushButton_4">
        <property name="geometry">
@@ -3229,7 +3229,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Rejig Project</string>
+        <string>Update Version</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_39">
