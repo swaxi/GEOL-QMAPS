@@ -2832,6 +2832,10 @@ class GEOL_QMAPS:
         self.create_lithologies = False
         self.create_structures = False
 
+        #Clean the input field once done
+        self.dlg.lineEdit_13.clear()
+
+
     def click_Reset_This_Window(self):
         self.resetWindow_import_data()
 
@@ -3577,36 +3581,53 @@ class GEOL_QMAPS:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
         # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.3 at the moment
-        tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/15099095/files/GEOL-QMAPS_v3.1.3.zip?download=1"
+        # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
+        import socket
         try:
-            urllib.request.urlretrieve(url, str(tmpzip))
-        except Exception as e:
+            socket.create_connection(("8.8.8.8", 53), timeout=5)
+        except OSError:
+            #No internet connection
             self.iface.messageBar().pushMessage(
-                f"ERROR downloading template: {e}", level=Qgis.Critical, duration=10
-            )
-            return
-        print (f"GEOL-QMAPS download completed: {tmpzip}")
-
-        with zipfile.ZipFile(str(tmpzip), 'r') as zf:
-            zf.extractall(str(parent))
-        tmpzip.unlink()
-        print(f"GEOL-QMAPS archive file unzipped in: {old.parent}")
-
-        # 4. Find the inner QGIS_TEMPLATE folder
-        found = list(parent.glob("*/QGIS_TEMPLATE"))
-        if found:
-            template_src = found[0]
-            print(f"QGIS_TEMPLATE found in {template_src}")
-
-        if not template_src.is_dir():
-            self.iface.messageBar().pushMessage(
-                "ERROR: Could not locate the extracted QGIS_TEMPLATE folder.",
+                "No internet connection detected. Please check your network and try again.",
                 level=Qgis.Critical, duration=10
             )
             return
 
-        # Prepare the destination name and remove any stale copy
+        # 3b) Attempt download with 60 s timeout
+        tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
+        url = "https://zenodo.org/records/15099095/files/GEOL-QMAPS_v3.1.3.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        from urllib.request import urlopen
+        try:
+            with urlopen(url, timeout=60) as resp:
+                data = resp.read()
+            local_path = str(tmpzip)
+            with open(local_path, 'wb') as f:
+                f.write(data)
+
+        except socket.timeout:
+            self.iface.messageBar().pushMessage(
+                "Download timed out after 60 seconds. Please try again later with a more stable connection.",
+                level=Qgis.Critical, duration=10
+            )
+            return
+
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                f"An unexpected error occurred while downloading:\n{e}",
+                level=Qgis.Critical, duration=10
+            )
+            return
+
+        # 3c) Unzip the downloaded archive into the parent folder
+        import zipfile
+        with zipfile.ZipFile(local_path, 'r') as zf:
+            zf.extractall(str(parent))
+
+        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
+        template_src = parent / "GEOL-QMAPS_v3.1.3" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+
+
+        # 4b) Prepare the destination name and remove any stale copy
         rejigged = parent / f"{old.name}_updatedversion"
         if rejigged.exists():
             shutil.rmtree(str(rejigged))
@@ -3628,28 +3649,23 @@ class GEOL_QMAPS:
             shutil.copy2(str(old_qgz), str(rejigged))
         print(f"Old .qgz project file copied in: {rejigged}")
 
-        # 7. Copy array of subfolders
-        folders = [
-            "2_GPS-LOCALITIES_OF_INTEREST",
-            "3_GEOCHEMISTRY", "4_GEOCHRONOLOGY", "5_MINING_AND_EXPLORATION",
-            "6_GEOLOGY", "7_GEOPHYSICS", "8_LAND_USE", "9_GEOGRAPHY",
-            "10_TOPOGRAPHY", "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY"
-        ]
-        for sub in folders:
-            src = old / sub
-            dst = rejigged / sub
-            if dst.exists():
-                shutil.rmtree(str(dst))
-            if src.exists():
-                shutil.copytree(str(src), str(dst))
-        # also DCIM sub-folders
+        # 7. Copy array of subfolders except for 0_, 1_ and 99_
+        exclude = {"0_FIELD_DATA", "1_EXISTING_FIELD_DATABASE", "99_COMMAND_FILES_PLUGIN"}
+        for src_path in old.iterdir():
+            if not src_path.is_dir() or src_path.name in exclude:
+                continue
+
+            dst_path = rejigged / src_path.name
+            shutil.copytree(str(src_path), str(dst_path), dirs_exist_ok=True)
+
+        # copy of DCIM sub-folders
         for branch in ["0_FIELD_DATA/DCIM", "1_EXISTING_FIELD_DATABASE/DCIM"]:
             src = old / Path(branch)
             dst = rejigged / Path(branch)
             if dst.exists():
                 shutil.rmtree(str(dst))
             if src.exists():
-                shutil.copytree(str(src), str(dst))
+                shutil.copytree(str(src), str(dst), dirs_exist_ok=True)
 
         print(f"Folders and DCIM copied in: {rejigged}")
 
@@ -3723,6 +3739,9 @@ class GEOL_QMAPS:
         self.iface.messageBar().pushMessage(
             f"Version update complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
         )
+
+        # Clear the input field once done
+        self.dlg.lineEdit_15.clear()
 
     ### Merge Projects ###
 
@@ -4461,6 +4480,7 @@ class GEOL_QMAPS:
             file.append(
                 self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
             )
+
             newGeopackagePath = self.mynormpath(
                 self.dlg.lineEdit_7.text() + "/export.gpkg"
             )
@@ -5472,22 +5492,31 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def resetWindow_import_data(self):
-
         self.dlg.lineEdit_13.clear()
+        self.dlg.lineEdit_FM_project_path.clear()
         self.dlg.tableWidget1.setRowCount(0)
         self.dlg.tableWidget2.setRowCount(0)
         self.dlg.tableWidget3.setRowCount(0)
+        self.dlg.comboBox_merge1_2.setCurrentIndex(-1)
+        self.dlg.comboBox_merge2_2.setCurrentIndex(-1)
 
     def resetWindow_fieldwork_preparation(self):
         self.dlg.lineEdit_8.clear()
         self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_39.clear()
         self.dlg.lineEdit_38.clear()
+        self.dlg.lineEdit_18.clear()
         self.dlg.lineEdit_9.clear()
         self.dlg.lineEdit_10.clear()
         self.dlg.lineEdit_39.clear()
+        self.dlg.comboBox_layers_user.setCurrentIndex(-1)
+        self.dlg.comboBox.setCurrentIndex(-1)
+        self.dlg.comboBox_delete.setCurrentIndex(-1)
 
     def resetWindow_data_management(self):
         self.dlg.lineEdit_11.clear()
+        self.dlg.lineEdit_15.clear()
+        self.dlg.lineEdit_14.clear()
         self.dlg.lineEdit_26.clear()
         self.dlg.lineEdit_37.clear()
         self.dlg.lineEdit_7.clear()
