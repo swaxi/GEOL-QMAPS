@@ -488,6 +488,8 @@ class GEOL_QMAPS:
         template_version_file = open(template_version_file_path, "r")
         version = template_version_file.readline()
         template_version = version[1:].split(".")
+        template_version = [int(x) for x in version.lstrip("v").strip().split(".")]
+        print(f"Template version {template_version}")
 
         metadata_path = self.mynormpath(
             os.path.dirname(os.path.realpath(__file__)) + "/metadata.txt"
@@ -498,39 +500,89 @@ class GEOL_QMAPS:
             parts = line.split("=")
             if len(parts) == 2 and parts[0] == "version":
                 pversion = parts[1]
-                plugin_version = parts[1].split(".")
-        plugin_version[2] = plugin_version[2].strip()
+                plugin_version = [int(x) for x in parts[1].strip().split(".")]
 
         version_text = "Plugin v" + pversion.rstrip() + "  Template " + version
         self.dlg.versions_label.setText(version_text)
 
-        pv = ".".join(plugin_version)
-        tv = ".".join(template_version)
-        if template_version[0] > plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] > plugin_version[1]
+        pv = ".".join(str(x) for x in plugin_version)
+        tv = ".".join(str(x) for x in template_version)
+
+        # 1. Template is newer than plugin
+        if (
+                (template_version[0] > plugin_version[0])
+                or (
+                template_version[0] == plugin_version[0]
+                and template_version[1] > plugin_version[1]
+        )
         ):
             self.iface.messageBar().pushMessage(
-                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(
-                    pv, tv
-                ),
+                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(pv, tv),
                 level=Qgis.Critical,
                 duration=45,
             )
-        elif template_version[0] < plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] < plugin_version[1]
+
+        # 2. Template version < 3.1.0
+        elif (
+                template_version[0] < 3
+                or (
+                        template_version[0] == 3
+                        and template_version[1] == 0
+                )
         ):
+            print("Template version < 3.1.0")
             self.iface.messageBar().pushMessage(
-                "Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>".format(
-                    pv, tv
-                ),
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider reimplementing a GEOL-QMAPS project manually from the "
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
                 level=Qgis.Warning,
                 duration=45,
             )
-        else:
+
+        # 3. Template version = 3.1.0
+        elif (
+                template_version[0] == 3
+                and template_version[1] == 1
+                and template_version[2] == 0
+        ):
+            print("Template version = 3.1.0")
             self.iface.messageBar().pushMessage(
-                "SUCCESS: Plugin {} and Template {} are compatible!!".format(pv, tv),
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider either reimplementing a GEOL-QMAPS project manually from the "
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.15099095'>here</a> "
+                "or using the Update Template Version tool in the Database Management tab of the plugin "
+                "(Compilation_Deformation zones_PG layer not handled though).",
+                level=Qgis.Warning,
+                duration=45,
+            )
+
+        # 3. Plugin is newer than template (any patch/minor difference)
+        elif (
+                (template_version[0] < plugin_version[0])
+                or (
+                        template_version[0] == plugin_version[0]
+                        and template_version[1] < plugin_version[1]
+                )
+                or (
+                        template_version[0] == plugin_version[0]
+                        and template_version[1] == plugin_version[1]
+                        and template_version[2] < plugin_version[2]
+                )
+        ):
+            print ("Plugin is newer than template (any patch/minor difference)")
+            self.iface.messageBar().pushMessage(
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider using the Update Template Version tool in the Database Management "
+                "tab of the plugin.",
+                level=Qgis.Warning,
+                duration=45,
+            )
+
+        # 4. All good
+        else:
+            print("Plugin and Template - same version")
+            self.iface.messageBar().pushMessage(
+                "SUCCESS: Plugin {} and Template {} are compatible.".format(pv, tv),
                 level=Qgis.Success,
                 duration=15,
             )
