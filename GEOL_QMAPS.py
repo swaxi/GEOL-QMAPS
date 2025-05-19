@@ -3580,7 +3580,7 @@ class GEOL_QMAPS:
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
-        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.3 at the moment
+        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.4 at the moment
         # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
         import socket
         try:
@@ -3595,7 +3595,7 @@ class GEOL_QMAPS:
 
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/15099095/files/GEOL-QMAPS_v3.1.3.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        url = "https://zenodo.org/records/15460411/files/GEOL-QMAPS_v3.1.4.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.request import urlopen
         try:
             with urlopen(url, timeout=60) as resp:
