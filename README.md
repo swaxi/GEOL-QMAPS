@@ -302,7 +302,7 @@ The plugin is divided in different tabs, with tools developed to perform actions
 
 ### *6.2.* Import Field Data *Tab*
 #### 6.2.1. Import Legacy Field Data Shapefiles (Point Geometry)
-Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.
+Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.<br>
 ![Import_window](Import_window.PNG)
 
 #### *Step 1*
