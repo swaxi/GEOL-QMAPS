@@ -1407,8 +1407,11 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def DataFrame_columns_check(self, input_file, list_columns_check, name_input_file):
-        # list_columns_check might look like: [[old_legacy_field, alias], ... ]
+        # Guard against None (so an empty mapping still yields the default cols)
+        if list_columns_check is None:
+            list_columns_check = []
 
+        # list_columns_check might look like: [[old_legacy_field, alias], ... ]
         fichier_output = pd.DataFrame()
         list_columns_check3 = []
 
@@ -2596,18 +2599,20 @@ class GEOL_QMAPS:
                         #print(f"Structural measurement confirmed: fixing DipDir ({dipdir_num}) or Strike value({strike_num}) for entity {index} in {layer_name} ongoing...")
 
                         # 1) If Dip_Dir is non-null & Strike_RHR is null ⇒ compute Strike_RHR & Measure
-                        if dipdir_idx is not None and strike_idx is not None and pd.notna(dipdir_val) and (pd.isna(strike_val) or strike_val == ""):
+                        if dipdir_idx is not None and strike_idx is not None and dipdir_num is not None and (
+                                strike_num is None or pd.isna(strike_val) or strike_val == ""):
+                            # Now dipdir_num is guaranteed not None, so comparison is safe
                             computed = dipdir_num - 90 if dipdir_num > 90 else dipdir_num + 270
                             row_vals[strike_idx] = str(computed)
                             row_vals[measure_idx] = "Dip - dip direction"
-                            #print(f"Structural measurement with DipDir: new Strike value({row_vals[strike_idx]})")
 
                         # 2) Else if Strike_RHR is non-null & Dip_Dir is null ⇒ compute Dip_Dir & Measure
-                        elif dipdir_idx is not None and strike_idx is not None and pd.notna(strike_val) and (pd.isna(dipdir_val) or dipdir_val == ""):
+                        elif dipdir_idx is not None and strike_idx is not None and strike_num is not None and (
+                                dipdir_num is None or pd.isna(dipdir_val) or dipdir_val == ""):
+                            # Now strike_num is guaranteed not None
                             computed = strike_num + 90 if strike_num < 270 else strike_num - 270
                             row_vals[dipdir_idx] = str(computed)
                             row_vals[measure_idx] = "Strike (right-hand rule) - dip"
-                            #print(f"Structural measurement with Strike: new DipDir value({row_vals[dipdir_idx]})")
 
                         #print(f"field values for entity {index} in {layer_name} are {row_vals} ")
 
