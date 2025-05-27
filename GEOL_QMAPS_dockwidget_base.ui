@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1139</width>
-    <height>905</height>
+    <width>825</width>
+    <height>890</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>791</width>
-      <height>791</height>
+      <height>841</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -87,14 +87,15 @@ QTabBar::tab:hover {
       <property name="geometry">
        <rect>
         <x>40</x>
-        <y>290</y>
+        <y>280</y>
         <width>711</width>
-        <height>471</height>
+        <height>491</height>
        </rect>
       </property>
       <property name="font">
        <font>
         <family>Arial</family>
+        <pointsize>16</pointsize>
        </font>
       </property>
       <property name="styleSheet">
@@ -145,7 +146,7 @@ QTabBar::tab:hover {
           <x>10</x>
           <y>10</y>
           <width>571</width>
-          <height>411</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -167,6 +168,9 @@ font: 8pt &quot;Arial&quot;;</string>
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
+        <property name="autoScrollMargin">
+         <number>16</number>
+        </property>
         <property name="showGrid">
          <bool>true</bool>
         </property>
@@ -180,7 +184,7 @@ font: 8pt &quot;Arial&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="rowCount">
-         <number>16</number>
+         <number>13</number>
         </property>
         <property name="columnCount">
          <number>3</number>
@@ -197,9 +201,6 @@ font: 8pt &quot;Arial&quot;;</string>
         <attribute name="verticalHeaderDefaultSectionSize">
          <number>24</number>
         </attribute>
-        <row/>
-        <row/>
-        <row/>
         <row/>
         <row/>
         <row/>
@@ -262,7 +263,7 @@ font: 8pt &quot;Arial&quot;;</string>
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>420</y>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -281,8 +282,8 @@ font-size: 12px;</string>
        <widget class="QPushButton" name="pushButton_11">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>390</y>
+          <x>470</x>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -304,7 +305,7 @@ font-size: 12px;</string>
           <x>590</x>
           <y>10</y>
           <width>101</width>
-          <height>371</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -324,20 +325,22 @@ font-size: 8pt;</string>
        <widget class="QLabel" name="label_33">
         <property name="geometry">
          <rect>
-          <x>-40</x>
-          <y>420</y>
-          <width>631</width>
-          <height>20</height>
+          <x>10</x>
+          <y>360</y>
+          <width>311</width>
+          <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </widget>
@@ -357,7 +360,7 @@ font-style: italic;</string>
           <x>10</x>
           <y>10</y>
           <width>571</width>
-          <height>411</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -392,7 +395,7 @@ font: 8pt &quot;Arial&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="rowCount">
-         <number>16</number>
+         <number>13</number>
         </property>
         <property name="columnCount">
          <number>3</number>
@@ -409,9 +412,6 @@ font: 8pt &quot;Arial&quot;;</string>
         <attribute name="verticalHeaderDefaultSectionSize">
          <number>24</number>
         </attribute>
-        <row/>
-        <row/>
-        <row/>
         <row/>
         <row/>
         <row/>
@@ -469,7 +469,7 @@ font: 8pt &quot;Arial&quot;;</string>
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>420</y>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -488,8 +488,8 @@ font-size: 12px;</string>
        <widget class="QPushButton" name="pushButton_12">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>390</y>
+          <x>470</x>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -511,7 +511,7 @@ font-size: 12px;</string>
           <x>590</x>
           <y>10</y>
           <width>101</width>
-          <height>371</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -528,23 +528,25 @@ font-size: 8pt;</string>
          <string>Matching Score</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_39">
+       <widget class="QLabel" name="label_38">
         <property name="geometry">
          <rect>
-          <x>-40</x>
-          <y>420</y>
-          <width>631</width>
+          <x>10</x>
+          <y>360</y>
+          <width>311</width>
           <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
         </property>
        </widget>
       </widget>
@@ -558,8 +560,8 @@ font-style: italic;</string>
        <widget class="QPushButton" name="pushButton_25">
         <property name="geometry">
          <rect>
-          <x>590</x>
-          <y>390</y>
+          <x>470</x>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -579,7 +581,7 @@ font-size: 12px;</string>
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>420</y>
+          <y>360</y>
           <width>101</width>
           <height>21</height>
          </rect>
@@ -601,7 +603,7 @@ font-size: 12px;</string>
           <x>10</x>
           <y>10</y>
           <width>571</width>
-          <height>411</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -636,7 +638,7 @@ font: 8pt &quot;Arial&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="rowCount">
-         <number>16</number>
+         <number>13</number>
         </property>
         <property name="columnCount">
          <number>3</number>
@@ -653,9 +655,6 @@ font: 8pt &quot;Arial&quot;;</string>
         <attribute name="verticalHeaderDefaultSectionSize">
          <number>24</number>
         </attribute>
-        <row/>
-        <row/>
-        <row/>
         <row/>
         <row/>
         <row/>
@@ -722,7 +721,7 @@ font: 8pt &quot;Arial&quot;;</string>
           <x>590</x>
           <y>10</y>
           <width>101</width>
-          <height>371</height>
+          <height>341</height>
          </rect>
         </property>
         <property name="font">
@@ -740,30 +739,32 @@ font-size: 8pt;</string>
          <string>Matching Score</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_41">
+       <widget class="QLabel" name="label_34">
         <property name="geometry">
          <rect>
-          <x>-40</x>
-          <y>420</y>
-          <width>631</width>
+          <x>10</x>
+          <y>360</y>
+          <width>311</width>
           <height>21</height>
          </rect>
         </property>
         <property name="styleSheet">
-         <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+         <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
         </property>
         <property name="text">
          <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
        </widget>
        <zorder>tableWidget3</zorder>
        <zorder>pushButton_25</zorder>
        <zorder>pushButton_26</zorder>
        <zorder>legendbox_2</zorder>
-       <zorder>label_41</zorder>
+       <zorder>label_34</zorder>
       </widget>
      </widget>
      <widget class="QLabel" name="label_19">
@@ -1076,7 +1077,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>630</x>
-        <y>200</y>
+        <y>250</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -1096,7 +1097,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>260</y>
+        <y>250</y>
         <width>691</width>
         <height>16</height>
        </rect>
@@ -1217,6 +1218,53 @@ border-style: solid;border-width: 1px;border-color: black
        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>400</x>
+        <y>180</y>
+        <width>371</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="title">
+       <string>Dictionary Import/Export</string>
+      </property>
+      <widget class="QPushButton" name="pushButton_dicImport">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>30</y>
+         <width>75</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Import</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_dicExport">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>30</y>
+         <width>75</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Export</string>
+       </property>
+      </widget>
+     </widget>
      <zorder>groupBox_3</zorder>
      <zorder>groupBox</zorder>
      <zorder>tabWidget_Step2_3</zorder>
@@ -1226,6 +1274,7 @@ border-style: solid;border-width: 1px;border-color: black
      <zorder>label_35</zorder>
      <zorder>groupBox_19</zorder>
      <zorder>versions_label</zorder>
+     <zorder>groupBox_2</zorder>
     </widget>
     <widget class="QWidget" name="Fieldwork_preparation">
      <property name="styleSheet">
@@ -1243,8 +1292,8 @@ border-style: solid;border-width: 1px;border-color: black
      <widget class="QPushButton" name="pushButton_19">
       <property name="geometry">
        <rect>
-        <x>630</x>
-        <y>730</y>
+        <x>620</x>
+        <y>660</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -1968,9 +2017,9 @@ font-size: 12px;</string>
       <widget class="QPushButton" name="pushButton_save__project_template_style_2">
        <property name="geometry">
         <rect>
-         <x>630</x>
+         <x>660</x>
          <y>50</y>
-         <width>121</width>
+         <width>91</width>
          <height>21</height>
         </rect>
        </property>
@@ -1982,7 +2031,7 @@ font-family: Arial;
 font-size: 12px;</string>
        </property>
        <property name="text">
-        <string>Save a New .qlr File</string>
+        <string>Save .qlr File</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_36">
@@ -1990,7 +2039,7 @@ font-size: 12px;</string>
         <rect>
          <x>10</x>
          <y>21</y>
-         <width>531</width>
+         <width>631</width>
          <height>31</height>
         </rect>
        </property>
@@ -2000,7 +2049,7 @@ font-size: 12px;
 </string>
        </property>
        <property name="text">
-        <string>Save a QGIS Layer Definition File for Customised Field Data Layers and Dictionaries:</string>
+        <string>Select a Folder to Save a QGIS Layer Definition File for Customised Field Data Layers and Dictionaries:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2009,7 +2058,7 @@ font-size: 12px;
       <widget class="QPushButton" name="pushButton_17">
        <property name="geometry">
         <rect>
-         <x>580</x>
+         <x>610</x>
          <y>50</y>
          <width>31</width>
          <height>21</height>
@@ -2037,7 +2086,7 @@ font-size: 12px;</string>
         <rect>
          <x>10</x>
          <y>50</y>
-         <width>561</width>
+         <width>591</width>
          <height>21</height>
         </rect>
        </property>
@@ -2066,7 +2115,7 @@ border-style: solid;border-width: 1px;border-color: black
         <string/>
        </property>
        <property name="placeholderText">
-        <string>***project-repository***/0. FIELD DATA/CURRENT_MISSION+DICTIONARIES.qlr</string>
+        <string>***project-repository or any-other-folder***</string>
        </property>
       </widget>
      </widget>
@@ -2131,8 +2180,8 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>730</y>
-        <width>611</width>
+        <y>660</y>
+        <width>311</width>
         <height>21</height>
        </rect>
       </property>
@@ -2174,7 +2223,7 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>110</y>
         <width>761</width>
         <height>91</height>
        </rect>
@@ -2422,7 +2471,7 @@ border-style: solid;border-width: 1px;border-color: black
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>240</y>
+        <y>300</y>
         <width>491</width>
         <height>91</height>
        </rect>
@@ -2436,7 +2485,7 @@ border-style: solid;border-width: 1px;border-color: black
        </font>
       </property>
       <property name="title">
-       <string>Export Layers to Common Themes</string>
+       <string>Export Compilation Layers to Common Themes</string>
       </property>
       <widget class="QPushButton" name="export_pushButton">
        <property name="geometry">
@@ -2487,7 +2536,7 @@ border-style: solid;border-width: 1px;border-color: black
         <string/>
        </property>
        <property name="placeholderText">
-        <string>Select a folder to store field data layers merged by theme</string>
+        <string>***compilation-field-data-layers-merged-by-theme-folder***</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_5">
@@ -2532,7 +2581,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>240</y>
+        <y>300</y>
         <width>261</width>
         <height>91</height>
        </rect>
@@ -2616,7 +2665,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>360</y>
+        <y>410</y>
         <width>761</width>
         <height>111</height>
        </rect>
@@ -2828,9 +2877,9 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>500</y>
+        <y>540</y>
         <width>761</width>
-        <height>151</height>
+        <height>141</height>
        </rect>
       </property>
       <property name="font">
@@ -2991,7 +3040,7 @@ font-size: 12px;
        <property name="geometry">
         <rect>
          <x>340</x>
-         <y>120</y>
+         <y>110</y>
          <width>231</width>
          <height>21</height>
         </rect>
@@ -3012,7 +3061,7 @@ font-size: 12px;
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>120</y>
+         <y>110</y>
          <width>341</width>
          <height>21</height>
         </rect>
@@ -3040,7 +3089,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>400</x>
-        <y>150</y>
+        <y>220</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -3112,7 +3161,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>220</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -3153,7 +3202,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>630</x>
-        <y>730</y>
+        <y>690</y>
         <width>141</width>
         <height>21</height>
        </rect>
@@ -3174,7 +3223,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>730</y>
+        <y>690</y>
         <width>611</width>
         <height>21</height>
        </rect>
@@ -3191,6 +3240,118 @@ font-style: italic;</string>
        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
+     <widget class="QGroupBox" name="groupBox_22">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>761</width>
+        <height>61</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>12</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="title">
+       <string>Update an Old GEOL-QMAPS QGIS Project to the Latest Version (requires an Internet connection)</string>
+      </property>
+      <widget class="QPushButton" name="rejig_pushButton_4">
+       <property name="geometry">
+        <rect>
+         <x>650</x>
+         <y>30</y>
+         <width>101</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(220, 220, 220);
+font-weight: bold;
+font-style: italic;
+font-family: Arial; 
+font-size: 12px;</string>
+       </property>
+       <property name="text">
+        <string>Update Version</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_39">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>241</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Arial; 
+font-size: 12px;
+</string>
+       </property>
+       <property name="text">
+        <string>Old Project Folder ( version must be &gt;v3.1.0):</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lineEdit_15">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>30</y>
+         <width>331</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>Arial</family>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLineEdit {
+    border-radius:0px; /* Ajustez la valeur pour contrôler l'arrondi des coins */
+    background-color: rgb(255, 255, 255, 255);
+
+border-style: solid;border-width: 1px;border-color: black
+}
+</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>***old-project-folder***</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_37">
+       <property name="geometry">
+        <rect>
+         <x>600</x>
+         <y>30</y>
+         <width>31</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(220, 220, 220, 255);</string>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
      <zorder>groupBox_11</zorder>
      <zorder>groupBox_12</zorder>
      <zorder>groupBox_10</zorder>
@@ -3200,6 +3361,7 @@ font-style: italic;</string>
      <zorder>groupBox_21</zorder>
      <zorder>pushButton_22</zorder>
      <zorder>label_32</zorder>
+     <zorder>groupBox_22</zorder>
     </widget>
     <widget class="QWidget" name="Help">
      <property name="styleSheet">
@@ -3218,9 +3380,9 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>90</y>
         <width>381</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="font">
@@ -3243,7 +3405,7 @@ font-style: italic;</string>
          <x>10</x>
          <y>30</y>
          <width>741</width>
-         <height>101</height>
+         <height>111</height>
         </rect>
        </property>
        <property name="font">
@@ -3277,7 +3439,7 @@ font-style: italic;</string>
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>M.W. Jessell* and E. Bétend - Developers of the Custom QGIS Plugin
+        <string>M.W. Jessell*, J. Perret* and E. Bétend - Developers of the Plugin
 
 J. Perret* - Developer of the GEOL-QMAPS QGIS Mapping Template 
 
@@ -3292,7 +3454,7 @@ Online Documentation:</string>
       <widget class="QPushButton" name="pushButton_24">
        <property name="geometry">
         <rect>
-         <x>80</x>
+         <x>110</x>
          <y>80</y>
          <width>81</width>
          <height>21</height>
@@ -3337,7 +3499,7 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>10</y>
         <width>761</width>
         <height>61</height>
        </rect>
@@ -3378,9 +3540,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>400</x>
-        <y>120</y>
+        <y>90</y>
         <width>371</width>
-        <height>141</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="font">
@@ -3443,8 +3605,8 @@ Or contact us: </string>
       <widget class="QPushButton" name="pushButton_23">
        <property name="geometry">
         <rect>
-         <x>250</x>
-         <y>70</y>
+         <x>240</x>
+         <y>110</y>
          <width>91</width>
          <height>21</height>
         </rect>
@@ -3463,8 +3625,8 @@ font-weight: bold;</string>
       <widget class="QPushButton" name="pushButton_28">
        <property name="geometry">
         <rect>
-         <x>90</x>
-         <y>100</y>
+         <x>110</x>
+         <y>110</y>
          <width>81</width>
          <height>21</height>
         </rect>
@@ -3485,9 +3647,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>630</y>
+        <y>340</y>
         <width>761</width>
-        <height>101</height>
+        <height>121</height>
        </rect>
       </property>
       <property name="font">
@@ -3499,7 +3661,7 @@ font-weight: bold;</string>
        </font>
       </property>
       <property name="title">
-       <string>Keen to learn more about the West Africa Exploration Initiative?</string>
+       <string>Keen to Learn More About the West Africa Exploration Initiative?</string>
       </property>
       <widget class="QPlainTextEdit" name="plainTextEdit_5">
        <property name="enabled">
@@ -3510,7 +3672,7 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>741</width>
-         <height>101</height>
+         <height>81</height>
         </rect>
        </property>
        <property name="font">
@@ -3548,8 +3710,8 @@ For more information, please consult: </string>
       <widget class="QPushButton" name="pushButton_41">
        <property name="geometry">
         <rect>
-         <x>210</x>
-         <y>70</y>
+         <x>260</x>
+         <y>90</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -3568,8 +3730,8 @@ font-weight: bold;</string>
       <widget class="QPushButton" name="pushButton_40">
        <property name="geometry">
         <rect>
-         <x>350</x>
-         <y>70</y>
+         <x>400</x>
+         <y>90</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -3590,9 +3752,9 @@ font-weight: bold;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>290</y>
+        <y>260</y>
         <width>761</width>
-        <height>231</height>
+        <height>61</height>
        </rect>
       </property>
       <property name="font">
@@ -3604,7 +3766,7 @@ font-weight: bold;</string>
        </font>
       </property>
       <property name="title">
-       <string>Roadmap for future development</string>
+       <string>Roadmap for Future Development</string>
       </property>
       <widget class="QPlainTextEdit" name="plainTextEdit_11">
        <property name="enabled">
@@ -3615,7 +3777,7 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>731</width>
-         <height>191</height>
+         <height>31</height>
         </rect>
        </property>
        <property name="palette">
@@ -3740,37 +3902,47 @@ background-color: rgb(240, 240, 240,0);
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>Import tool: 
-
-- Add a button to enter references for publications or reports associated with the processed legacy field data.
-
-- Add centroids of polygon and line features when creating virtual stop layers
-
-- Generate default symbols when adding new values to dictionaries if appropriate
-
-- Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
-
--Update the User Guide button
-
-- Modify the Import tool to have field aliases instead of field names in the dropdown list</string>
+        <string>Please visit the Help - Roamap section of the User Guide:</string>
        </property>
        <property name="backgroundVisible">
         <bool>false</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_30">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>300</x>
+         <y>30</y>
+         <width>141</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-family: Arial; 
+font-size: 12px;
+font-style: italic;
+background-color: rgb(220, 220, 220);
+font-weight: bold;</string>
+       </property>
+       <property name="text">
+        <string>User Guide - Roadmap</string>
        </property>
       </widget>
      </widget>
      <widget class="QLabel" name="label_37">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>740</y>
-        <width>781</width>
-        <height>16</height>
+        <x>10</x>
+        <y>710</y>
+        <width>311</width>
+        <height>21</height>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">qproperty-alignment: 'AlignCenter';  
-font-family: Arial; 
+       <string notr="true"> font-family: Arial; 
 font-size: 11px;
 font-style: italic;</string>
       </property>
@@ -3778,7 +3950,7 @@ font-style: italic;</string>
        <string>© 2025 West African Exploration Initiative. All Rights Reserved.</string>
       </property>
       <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
       </property>
      </widget>
      <zorder>groupBox_30</zorder>
