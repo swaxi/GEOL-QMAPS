@@ -4214,35 +4214,51 @@ class GEOL_QMAPS:
                     if not os.path.exists(df): shutil.copy2(sf, df)
 
         def append_gpkg(src_gpkg, dst_gpkg):
+            # Append features from src_gpkg into dst_gpkg without editing layer state
             ds_src = ogr.Open(src_gpkg)
-            ds_dst = ogr.Open(dst_gpkg, 1)
-            if not ds_src or not ds_dst: return
+            ds_dst = ogr.Open(dst_gpkg, 1)  # open for update
+            if not ds_src or not ds_dst:
+                return
             for i in range(ds_src.GetLayerCount()):
-                name = ds_src.GetLayer(i).GetName()
+                layer = ds_src.GetLayer(i)
+                name = layer.GetName()
+                # Prepare URIs
                 dst_uri = f"{dst_gpkg}|layername={name}"
+                src_uri = f"{src_gpkg}|layername={name}"
                 dst_vl = QgsVectorLayer(dst_uri, name, 'ogr')
-                src_vl = QgsVectorLayer(f"{src_gpkg}|layername={name}", name, 'ogr')
-                pks = dst_vl.dataProvider().pkAttributeIndexes()
-                with edit(dst_vl):
-                    for feat in src_vl.getFeatures():
-                        nf = QgsFeature(dst_vl.fields())
-                        nf.setGeometry(feat.geometry())
-                        attrs = feat.attributes()
-                        for idx in pks:
-                            if 0 <= idx < len(attrs): attrs[idx]=None
-                        nf.setAttributes(attrs)
-                        nf.setId(-1)
-                        dst_vl.addFeature(nf)
-            ds_src = ds_dst = None
+                src_vl = QgsVectorLayer(src_uri, name, 'ogr')
+                # Identify PK fields to null out
+                pk_indices = dst_vl.dataProvider().pkAttributeIndexes()
+                to_add = []
+                for feat in src_vl.getFeatures():
+                    new_feat = QgsFeature(dst_vl.fields())
+                    new_feat.setGeometry(feat.geometry())
+                    attrs = feat.attributes()
+                    for idx in pk_indices:
+                        if 0 <= idx < len(attrs):
+                            attrs[idx] = None
+                    new_feat.setAttributes(attrs)
+                    new_feat.setId(-1)
+                    to_add.append(new_feat)
+                if to_add:
+                    dst_vl.dataProvider().addFeatures(to_add)
+            ds_src = None
+            ds_dst = None
 
         # Merge GPKGs and DCIM
         for repo in (self.dir_0, self.dir_1):
-            mrep = os.path.join(merge_root, repo)
-            srep = os.path.join(sub_folder, repo)
+            merge_rep = os.path.join(merge_root, repo)
+            sub_rep = os.path.join(sub_folder, repo)
+            #main_rep = os.path.join(main_folder, repo)
             for gpkg in ('CURRENT_MISSION.gpkg','COMPILATION.gpkg'):
-                sg = os.path.join(srep,gpkg); dg = os.path.join(mrep,gpkg)
-                if os.path.isfile(sg) and os.path.isfile(dg): append_gpkg(sg,dg)
-            merge_folder(os.path.join(srep,'DCIM'), os.path.join(mrep,'DCIM'))
+                if (repo == self.dir_0 and gpkg == 'CURRENT_MISSION.gpkg') or (repo == self.dir_1 and gpkg == 'COMPILATION.gpkg'):
+                    sub_g = os.path.join(sub_rep,gpkg)
+                    #main_g = os.path.join(main_rep,gpkg)
+                    merge_g = os.path.join(merge_rep,gpkg)
+                    #append_gpkg(main_g, merge_g)
+                    append_gpkg(sub_g,merge_g)
+            #merge_folder(os.path.join(main_rep, 'DCIM'), os.path.join(merge_rep, 'DCIM'))
+            merge_folder(os.path.join(sub_rep,'DCIM'), os.path.join(merge_rep,'DCIM'))
 
         # Merge other directories
         excl = {self.dir_0.strip('/\\'),self.dir_1.strip('/\\'),'DCIM'}
@@ -4281,14 +4297,31 @@ class GEOL_QMAPS:
         # Rewrite QGZ internals to use relative paths
         import zipfile, tempfile, xml.etree.ElementTree as ET
         tmp = tempfile.mkdtemp()
+
         with zipfile.ZipFile(merged_path,'r') as zin: zin.extractall(tmp)
         qgs = os.path.join(tmp,os.path.splitext(os.path.basename(main_qgz))[0]+'.qgs')
+
+        # find the first .qgs we laid down
+        import glob
+        qgs_files = glob.glob(os.path.join(tmp, '*.qgs'))
+        if not qgs_files:
+            self.iface.messageBar().pushMessage(
+                "Could not find the embedded .qgs inside the merged QGZ.",
+                level=Qgis.Critical, duration=10
+            )
+            shutil.rmtree(tmp)
+            return
+
+        qgs = qgs_files[0]
+        # now parse & rewrite relative paths
         tree = ET.parse(qgs); root = tree.getroot()
         for ds in root.findall('.//datasource'):
             p = ds.text
             if p and os.path.isabs(p):
                 ds.text = os.path.relpath(p, merge_root)
         tree.write(qgs,encoding='UTF-8')
+
+        # repack and clean up
         with zipfile.ZipFile(merged_path,'w',zipfile.ZIP_DEFLATED) as zout:
             for fn in os.listdir(tmp): zout.write(os.path.join(tmp,fn),arcname=fn)
         shutil.rmtree(tmp)
