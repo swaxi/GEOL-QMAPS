@@ -2915,195 +2915,104 @@ class GEOL_QMAPS:
     ### Clip to Canvas ###
 
     def clipToCanvas(self):
-        # Clips all WAXI QFIELD vector layers to current canvas and
-        # saves out layers in a new directory
-
-        if self.dlg.lineEdit_3.text():
-
-            # set up paths
-            project = QgsProject.instance()
-            proj_file_path = project.fileName()
-            head_tail = os.path.split(proj_file_path)
-
-            oldProjPath = head_tail[0] + "/"
-            oldGpkgPath = (
-                oldProjPath + "/1_EXISTING_FIELD_DATABASE/" + "COMPILATION.gpkg"
-            )
-            newProjPath = self.mynormpath(self.dlg.lineEdit_3.text()).strip() + "/"
-            newGpkgPath = (
-                newProjPath + "/1_EXISTING_FIELD_DATABASE/" + "COMPILATION.gpkg"
-            )
-            shp_list = self.mynormpath(
-                os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
-            )
-
-            clip_poly_shp = self.mynormpath(self.dlg.lineEdit_8.text())
-
-            shps = pd.read_csv(shp_list, names=["name", "dir_code"])
-            shps = shps.set_index("name")
-
-            # clipping rectangle from shapefile polygon
-            if self.dlg.lineEdit_8.text():
-
-                clip_layer = QgsVectorLayer(
-                    os.path.split(clip_poly_shp)[0],
-                    os.path.split(clip_poly_shp)[1],
-                    "ogr",
-                )
-            # clipping rectangle from Canvas
-            else:
-                e = self.iface.mapCanvas().extent()
-
-                extent = QgsRectangle(
-                    e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum()
-                )  # Replace with the desired extents
-                geom = QgsGeometry().fromRect(extent)
-                ftr = QgsFeature()
-                ftr.setGeometry(geom)
-                project = QgsProject.instance()
-                crs = project.crs()
-                clip_layer = QgsVectorLayer(
-                    "Polygon?{}".format(crs), "Test_polygon", "memory"
-                )
-                with edit(clip_layer):
-                    clip_layer.addFeature(ftr)
-
-            # create directory structure
-
-            dirs = [
-                newProjPath,
-                newProjPath + self.dir_0,
-                newProjPath + self.dir_99,
-                newProjPath + "/1_EXISTING_FIELD_DATABASE/",
-            ]
-
-            for dirpath in dirs:
-                if not os.path.exists(self.mynormpath(dirpath)):
-                    os.mkdir(self.mynormpath(dirpath))
-
-            # copy over files that are not clipped
-            cp_dirs = [
-                # "1_EXISTING_FIELD_DATABASE",
-                "2_GPS-LOCALITIES_OF_INTEREST",
-                "3_GEOCHEMISTRY",
-                "4_GEOCHRONOLOGY",
-                "5_MINING_AND_EXPLORATION",
-                "6_GEOLOGY",
-                "7_GEOPHYSICS",
-                "8_LAND_USE",
-                "9_GEOGRAPHY",
-                "10_TOPOGRAPHY",
-                # "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY",
-                # self.dir_0 + "/DCIM/",
-            ]
-
-            for cp_dir in cp_dirs:
-                src_path = oldProjPath + cp_dir
-                dst_path = self.mynormpath(newProjPath + cp_dir)
-                self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_99 + "Dictionaries.gpkg"
-            dst_path = newProjPath + self.dir_99 + "Dictionaries.gpkg"
-
-            self.safe_copy_file(src_path, dst_path)
-
-            shutil.copyfile(
-                proj_file_path,
-                newProjPath + "/" + head_tail[1].replace(".qgz", "_clip.qgz"),
-            )
-
-            shutil.copyfile(oldGpkgPath, newGpkgPath)
-
-            shutil.copyfile(
-                oldProjPath + "/0_FIELD_DATA/" + "CURRENT_MISSION.gpkg",
-                newProjPath + "/0_FIELD_DATA/" + "CURRENT_MISSION.gpkg",
-            )
-
-            src_path = oldProjPath + self.dir_0 + "/DCIM/"
-            dst_path = self.mynormpath(newProjPath + self.dir_0 + "/DCIM/")
-            self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_11
-            dst_path = self.mynormpath(newProjPath + self.dir_11)
-            self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
-            dst_path = newProjPath + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
-            self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + "/1_EXISTING_FIELD_DATABASE/" + "/COMPILATION.qlr"
-            dst_path = newProjPath + "/1_EXISTING_FIELD_DATABASE/" + "/COMPILATION.qlr"
-            if os.path.exists(src_path):
-                self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
-            dst_path = newProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
-            if os.path.exists(src_path):
-                self.safe_copy_file(src_path, dst_path)
-
-            in_pref = oldProjPath + self.dir_99
-            out_pref = newProjPath + self.dir_99
-
-            copies = [
-                [oldGpkgPath, newGpkgPath],
-                [in_pref + "columns_reference_WAXI4.csv", out_pref + "columns_reference_WAXI4.csv"],
-                [in_pref + "columns_types_structures_WAXI4.csv", out_pref + "columns_types_structures_WAXI4.csv"],
-                [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                [in_pref + "Version.txt", out_pref + "Version.txt"],
-                [in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv", out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv"],
-                [in_pref + "Dictionaries.gpkg", out_pref + "Dictionaries.gpkg"],
-                [in_pref + "qmap.json", out_pref + "qmap.json"],
-            ]
-
-            for pairs in copies:
-                shutil.copyfile(self.mynormpath(pairs[0]), self.mynormpath(pairs[1]))
-
-            # Prepare the output shapefile parameters for clipping
-
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-
-                """
-                if layer.name() in shps.index.tolist():
-                if (
-                    ("_PG" in layer.name()
-                    or "_PT" in layer.name()
-                    or "_LN" in layer.name()) and "Compilation_" in layer.name()
-                ):"""
-                # Get the file path of the layer
-                if layer.name().startswith("Compilation_"):
-                    input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-
-                    output_path_gpkg = self.mynormpath(newGpkgPath)
-
-                    processing.run(
-                        "native:clip",
-                        {
-                            "INPUT": input_path,
-                            "OVERLAY": clip_layer,
-                            "OUTPUT": "ogr:dbname='"
-                            + output_path_gpkg
-                            + "' table=\""
-                            + layer.name()
-                            + '" (geom)',
-                        },
-                    )
-
-                else:
-                    pass
-
+        """Clips all layers in the CURRENT_MISSION and COMPILATION GeoPackages to the current canvas extent or an optional polygon."""
+        # Get output directory
+        out_dir = self.dlg.lineEdit_3.text().strip()
+        if not out_dir:
             self.iface.messageBar().pushMessage(
-                "Files clipped to current extent, saved in directory" + newProjPath,
-                level=Qgis.Success,
-                duration=15,
+                "Please provide an output directory for clipping.", level=Qgis.Warning, duration=10
             )
+            return
 
+        project = QgsProject.instance()
+        old_proj = os.path.dirname(project.fileName()) + "/"
+        new_proj = self.mynormpath(out_dir) + "/"
+
+        # Validate filename and folder name lengths (Windows max 256 chars)
+        bad_paths = []
+        for root, dirs, files in os.walk(old_proj):
+            for name in dirs + files:
+                if len(name) >= 256:
+                    bad_paths.append(os.path.join(root, name))
+        if bad_paths:
+            self.iface.messageBar().pushMessage(
+                "Some filenames or folder names exceed 256 characters. Please shorten them before clipping.",
+                level=Qgis.Critical, duration=15
+            )
+            return
+
+        # Paths for the two GeoPackages to clip
+        gpkg_paths = [
+            (old_proj + self.dir_1 + "COMPILATION.gpkg", new_proj + self.dir_1 + "COMPILATION.gpkg"),
+            (old_proj + self.dir_0 + "CURRENT_MISSION.gpkg", new_proj + self.dir_0 + "CURRENT_MISSION.gpkg")
+        ]
+
+        # Determine clipping layer: polygon shapefile or canvas extent
+        clip_shp = self.dlg.lineEdit_8.text().strip()
+        if clip_shp:
+            clip_layer = QgsVectorLayer(clip_shp, os.path.basename(clip_shp), "ogr")
         else:
-            self.iface.messageBar().pushMessage(
-                "Directory not found: " + self.dlg.lineEdit_3.text(),
-                level=Qgis.Warning,
-                duration=45,
+            e = self.iface.mapCanvas().extent()
+            geom = QgsGeometry().fromRect(
+                QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())
             )
+            clip_layer = QgsVectorLayer(f"Polygon?crs={project.crs().authid()}", "canvas_extent", "memory")
+            with edit(clip_layer):
+                feat = QgsFeature()
+                feat.setGeometry(geom)
+                clip_layer.addFeature(feat)
+
+        # Create required directories
+        for path in [new_proj, new_proj + self.dir_0, new_proj + self.dir_1, new_proj + self.dir_99]:
+            os.makedirs(self.mynormpath(path), exist_ok=True)
+
+        # Automatically copy other project folders without clipping
+        all_dirs = [d for d in os.listdir(old_proj) if os.path.isdir(os.path.join(old_proj, d))]
+        exclude = {self.dir_0.strip('/'), self.dir_1.strip('/')}
+        for d in all_dirs:
+            if d not in exclude:
+                src_path = os.path.join(old_proj, d)
+                dst_path = os.path.join(new_proj, d)
+                # Remove existing destination to avoid FileExistsError
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                self.safe_copy_tree(src_path + '/', dst_path + '/')
+
+        # Copy project file
+        shutil.copyfile(
+            project.fileName(),
+            new_proj + os.path.basename(project.fileName()).replace('.qgz', '_clip.qgz')
+        )
+
+        # Clip each layer in both GeoPackages
+        for src, dst in gpkg_paths:
+            # Copy original GeoPackage
+            self.safe_copy_file(src, dst)
+            ds = ogr.Open(src)
+            if not ds:
+                continue
+            # Ensure tables are empty before writing
+            for i in range(ds.GetLayerCount()):
+                lyr = ds.GetLayer(i)
+                self.drop_layer_contents(dst, lyr.GetName())
+            # Perform clipping
+            for i in range(ds.GetLayerCount()):
+                lyr = ds.GetLayer(i)
+                name = lyr.GetName()
+                input_uri = f"{src}|layername={name}"
+                output_uri = f"ogr:dbname='{dst}' table=\"{name}\" (geom)"
+                processing.run(
+                    "native:clip",
+                    {"INPUT": input_uri, "OVERLAY": clip_layer, "OUTPUT": output_uri}
+                )
+
+        # Clear input fields for next operation
+        self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_8.clear()
+
+        self.iface.messageBar().pushMessage(
+            f"Project with field data clipped to selected extent saved in {new_proj}", level=Qgis.Success, duration=15
+        )
 
     ### CSV TOOLS ###
     def get_csv_items(self, layer_name):
@@ -4230,262 +4139,177 @@ class GEOL_QMAPS:
         else:
             print("Layer not found.")
 
+    #Merge Projects
     def mergeProjects(self):
-        # Takes two WAXI QFIELD Projects and combines them,
-        # removing duplicates and saves out the full structure to a new directory
-
-        if (
-            self.dlg.lineEdit_11.text()
-            and self.dlg.lineEdit_26.text()
-            and self.dlg.lineEdit_37.text()
-        ):
-
-            project = (
-                QgsProject.instance()
-            )  # assumes one of the projects is actually open!  Could use copy stored in plugin?
-
-            # set up directory structure and load filename lists
-
-            shp_list = self.mynormpath(
-                os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
-            )
-
-            project = QgsProject.instance()
-            proj_file_path = project.fileName()
-
-            head_tail = os.path.split(proj_file_path)
-            main_project_path = head_tail[0] + "/"
-
-            # self.csvs = self.get_csv_list(main_project_path + self.dir_99 + "/Dictionaries.gpkg")
-
-            shps = pd.read_csv(shp_list, names=["name", "dir_code"])
-            shps = shps.set_index("name")
-            # csvs = pd.read_csv(csv_list, names=["name"])
-
-            merge_project_path = self.dlg.lineEdit_37.text() + "/"
-
-            head_tail_main = os.path.split(self.dlg.lineEdit_11.text())
-            head_tail_sub = os.path.split(self.dlg.lineEdit_26.text())
-
-            main_project_path = head_tail_main[0] + "/"
-            sub_project_path = head_tail_sub[0] + "/"
-
-            mainGpkgPath = self.mynormpath(
-                main_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-            subGpkgPath = self.mynormpath(
-                sub_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-            mergeGpkgPath = self.mynormpath(
-                merge_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-
-            mainCompGpkgPath = self.mynormpath(
-                main_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-            subCompGpkgPath = self.mynormpath(
-                sub_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-            mergeCompGpkgPath = self.mynormpath(
-                merge_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-
-            # create new directory structures
-            dirs = [
-                merge_project_path,
-                merge_project_path + self.dir_0,
-                merge_project_path + self.dir_99,
-            ]
-
-            for dirpath in dirs:
-                if not os.path.exists(self.mynormpath(dirpath)):
-                    os.mkdir(self.mynormpath(dirpath))
-
-            main_path = self.mynormpath(
-                main_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            sub_path = self.mynormpath(
-                sub_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            merge_path = self.mynormpath(
-                merge_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            csvs = self.get_csv_list(main_path)
-            csvs = csvs[1:]
-            # merge and de-duplicate csv files
-            for file in csvs:
-
-                self.merge_text_tables_remove_duplicates(
-                    main_path, file, sub_path, file, merge_path, file
-                )
-
-            cp_dirs = [
-                "1_EXISTING_FIELD_DATABASE",
-                "2_GPS-LOCALITIES_OF_INTEREST",
-                "3_GEOCHEMISTRY",
-                "4_GEOCHRONOLOGY",
-                "5_MINING_AND_EXPLORATION",
-                "6_GEOLOGY",
-                "7_GEOPHYSICS",
-                "8_LAND_USE",
-                "9_GEOGRAPHY",
-                "10_TOPOGRAPHY",
-                "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY",
-                self.dir_0 + "/DCIM/",
-            ]
-            for cp_dir in cp_dirs:
-                src_path = main_project_path + cp_dir
-                dst_path = self.mynormpath(merge_project_path + cp_dir)
-                self.safe_copy_tree(src_path, dst_path)
-            main_path = main_project_path + self.dir_0 + "/DCIM/"
-            src_path = sub_project_path + self.dir_0 + "/DCIM/"
-            dst_path = self.mynormpath(merge_project_path + self.dir_0 + "/DCIM/")
-
-            self.recursive_overwrite(main_path, dst_path, ignore=None)
-            self.recursive_overwrite(src_path, dst_path, ignore=None)
-
-            src_file = (
-                main_project_path + self.dir_99 + "/FIELD_DATA.qlr"
-            )
-            dst_file = (
-                merge_project_path + self.dir_99 + "/FIELD_DATA.qlr"
-            )
-            shutil.copyfile(src_file, dst_file)
-
-            proj_name = "MergedProject.qgs"
-            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))
-
-
-            import xml.etree.ElementTree as ET
-
-            merged_qgs = os.path.join(merge_project_path, "MergedProject.qgs")
-
-
-            in_pref = main_project_path + self.dir_99
-            out_pref = merge_project_path + self.dir_99
-            copies = [
-                [mainGpkgPath, mergeGpkgPath],
-                [
-                    in_pref + "columns_reference_WAXI4.csv",
-                    out_pref + "columns_reference_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_types_structures_WAXI4.csv",
-                    out_pref + "columns_types_structures_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
-                    out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
-                ],
-                [
-                    in_pref + "stereonet.json",
-                    out_pref + "stereonet.json"
-                ],
-                [
-                    in_pref + "Version.txt",
-                    out_pref + "Version.txt"
-                ],
-                [
-                    in_pref + "Dictionaries.gpkg",
-                    out_pref + "Dictionaries.gpkg"
-                ]
-            ]
-
-            for pairs in copies:
-                shutil.copyfile(pairs[0], pairs[1])
-
-            # merging CURRENT MISSION layers
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-                if layer.name() in shps.index.tolist():
-
-                    main_layer_path = mainGpkgPath + "|layername=" + layer.name()
-                    sub_layer_path = subGpkgPath + "|layername=" + layer.name()
-                    params = {
-                        "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": (
-                                "ogr:dbname='"
-                                + self.mynormpath(mergeGpkgPath)
-                                + "' table=\""
-                                + layer.name()
-                                + '"'
-                        ),
-                    }
-                    merged_layers = processing.run("native:mergevectorlayers", params)
-
-            # merging COMPILATION layers
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-                if layer.name().replace(
-                    "Compilation_", ""
-                ) in shps.index.tolist() and layer.name().startswith("Compilation_"):
-
-                    main_layer_path = mainCompGpkgPath + "|layername=" + layer.name()
-                    sub_layer_path = subCompGpkgPath + "|layername=" + layer.name()
-                    params = {
-                        "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": (
-                                "ogr:dbname='"
-                                + self.mynormpath(mergeCompGpkgPath)
-                                + "' table=\""
-                                + layer.name()
-                                + '"'
-                        ),
-                    }
-                    merged_layers = processing.run("native:mergevectorlayers", params)
-
-            # Write the active project to that path
-            merged_qgs_path = os.path.join(merge_project_path, "MergedProject.qgs")
-            QgsProject.instance().write(merged_qgs_path)
-
-            # Repoint every vector layer to the merged folder
-            import xml.etree.ElementTree as ET
-
-            merged_folder_all = os.path.dirname(merged_qgs_path)
-            merged_folder = os.path.basename(merged_folder_all)
-            print('merged folder:', merged_folder)
-            main_folder_all = os.path.dirname(main_project_path)
-            main_folder = os.path.basename(main_folder_all)
-            print('main folder:',main_folder)
-
-            # 1. Parse the freshly written .qgs (valid XML now)
-            tree = ET.parse(merged_qgs_path)
-            root = tree.getroot()
-
-            # 2. Repoint every <datasource> into the merged folder
-            for ds in root.iter("datasource"):
-                txt = ds.text or ""
-                if "|" in txt:
-                    path, params = txt.split("|", 1)
-                    params = "|" + params
-                else:
-                    path, params = txt, ""
-                print('Layer path:', path)
-
-                if main_folder in path:
-                    print('main_folder in', path)
-                    new_path = path.replace(main_folder, merged_folder)
-                    ds.text=new_path + params
-                else:
-                    print('main_folder not in', path)
-
-            # 3. Overwrite the QGS with corrected paths
-            tree.write(merged_qgs_path, encoding="UTF-8", xml_declaration=True)
-
-            #MessageBar
+        """Merge a main and a sub QGIS project into a single output project folder."""
+        # Retrieve inputs
+        main_qgz = self.dlg.lineEdit_11.text().strip()
+        sub_qgz = self.dlg.lineEdit_26.text().strip()
+        out_dir = self.dlg.lineEdit_37.text().strip()
+        if not all([main_qgz, sub_qgz, out_dir]):
             self.iface.messageBar().pushMessage(
-                "Projects merged, saved in directory" + merge_project_path,
-                level=Qgis.Success,
-                duration=5,
+                "Please specify main project, sub project, and output directory.",
+                level=Qgis.Warning, duration=10
             )
+            return
 
+        # Define folders
+        main_folder = os.path.dirname(main_qgz) + os.sep
+        sub_folder = os.path.dirname(sub_qgz) + os.sep
+        merge_root = self.mynormpath(out_dir.rstrip('/\\')) + os.sep
+
+        # Pre-flight: check path lengths
+        bad = []
+        for base in (main_folder, sub_folder):
+            for root, dirs, files in os.walk(base):
+                for name in dirs + files:
+                    full = os.path.join(merge_root, os.path.relpath(os.path.join(root, name), base))
+                    if len(full) >= 256:
+                        bad.append(full)
+        if bad:
+            self.iface.messageBar().pushMessage(
+                f"Paths too long: {bad}", level=Qgis.Critical, duration=15
+            )
+            return
+
+        # Unload any existing layers from prior merges
+        proj = QgsProject.instance()
+        for lyr in list(proj.mapLayers().values()):
+            if lyr.source().startswith(merge_root):
+                proj.removeMapLayer(lyr.id())
+
+        # Flush caches and GC
+        try:
+            from osgeo import gdal
+            if hasattr(gdal, 'GDALFlushCache'): gdal.GDALFlushCache()
+        except:
+            pass
+        import gc; gc.collect()
+
+        # Remove old output directory
+        def _rm_readonly(func, path, exc):
+            import stat
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        if os.path.isdir(merge_root):
+            shutil.rmtree(merge_root, onerror=_rm_readonly)
+
+        # Copy main project tree, ignoring project files
+        shutil.copytree(
+            main_folder, merge_root,
+            ignore=shutil.ignore_patterns('*.qgs','*.qgz','*.bak')
+        )
+
+        # Helpers
+        def merge_folder(src, dst):
+            if not os.path.isdir(src): return
+            os.makedirs(dst, exist_ok=True)
+            for root, dirs, files in os.walk(src):
+                rel = os.path.relpath(root, src)
+                odir = os.path.join(dst, rel)
+                os.makedirs(odir, exist_ok=True)
+                for f in files:
+                    sf = os.path.join(root, f)
+                    df = os.path.join(odir, f)
+                    if not os.path.exists(df): shutil.copy2(sf, df)
+
+        def append_gpkg(src_gpkg, dst_gpkg):
+            ds_src = ogr.Open(src_gpkg)
+            ds_dst = ogr.Open(dst_gpkg, 1)
+            if not ds_src or not ds_dst: return
+            for i in range(ds_src.GetLayerCount()):
+                name = ds_src.GetLayer(i).GetName()
+                dst_uri = f"{dst_gpkg}|layername={name}"
+                dst_vl = QgsVectorLayer(dst_uri, name, 'ogr')
+                src_vl = QgsVectorLayer(f"{src_gpkg}|layername={name}", name, 'ogr')
+                pks = dst_vl.dataProvider().pkAttributeIndexes()
+                with edit(dst_vl):
+                    for feat in src_vl.getFeatures():
+                        nf = QgsFeature(dst_vl.fields())
+                        nf.setGeometry(feat.geometry())
+                        attrs = feat.attributes()
+                        for idx in pks:
+                            if 0 <= idx < len(attrs): attrs[idx]=None
+                        nf.setAttributes(attrs)
+                        nf.setId(-1)
+                        dst_vl.addFeature(nf)
+            ds_src = ds_dst = None
+
+        # Merge GPKGs and DCIM
+        for repo in (self.dir_0, self.dir_1):
+            mrep = os.path.join(merge_root, repo)
+            srep = os.path.join(sub_folder, repo)
+            for gpkg in ('CURRENT_MISSION.gpkg','COMPILATION.gpkg'):
+                sg = os.path.join(srep,gpkg); dg = os.path.join(mrep,gpkg)
+                if os.path.isfile(sg) and os.path.isfile(dg): append_gpkg(sg,dg)
+            merge_folder(os.path.join(srep,'DCIM'), os.path.join(mrep,'DCIM'))
+
+        # Merge other directories
+        excl = {self.dir_0.strip('/\\'),self.dir_1.strip('/\\'),'DCIM'}
+        for d in os.listdir(sub_folder):
+            if d in excl: continue
+            sp = os.path.join(sub_folder,d)
+            if os.path.isdir(sp): merge_folder(sp, os.path.join(merge_root,d))
+
+        # Determine merged project name based on longest common substring of input names
+        def longest_common_substring(s1, s2):
+            """Return the longest common substring between s1 and s2 (case-insensitive)."""
+            s1_low, s2_low = s1.lower(), s2.lower()
+            m = [[0] * (len(s2_low) + 1) for _ in range(len(s1_low) + 1)]
+            longest, x_longest = 0, 0
+            for i in range(1, len(s1_low) + 1):
+                for j in range(1, len(s2_low) + 1):
+                    if s1_low[i-1] == s2_low[j-1]:
+                        m[i][j] = m[i-1][j-1] + 1
+                        if m[i][j] > longest:
+                            longest = m[i][j]
+                            x_longest = i
+            # extract substring from original-cased s1
+            return s1[x_longest-longest: x_longest]
+
+        main_base = os.path.splitext(os.path.basename(main_qgz))[0]
+        sub_base = os.path.splitext(os.path.basename(sub_qgz))[0]
+        common = longest_common_substring(main_base, sub_base)
+        if len(common) >= 5:
+            prefix = common
+            merged_filename = f"{prefix}_merged.qgz"
         else:
-            self.iface.messageBar().pushMessage(
-                "Directory not found", level=Qgis.Warning, duration=45
-            )
+            merged_filename = "Merged.qgz"
+        merged_path = os.path.join(merge_root, merged_filename)
+        shutil.copyfile(main_qgz, merged_path)
+
+        # Rewrite QGZ internals to use relative paths
+        import zipfile, tempfile, xml.etree.ElementTree as ET
+        tmp = tempfile.mkdtemp()
+        with zipfile.ZipFile(merged_path,'r') as zin: zin.extractall(tmp)
+        qgs = os.path.join(tmp,os.path.splitext(os.path.basename(main_qgz))[0]+'.qgs')
+        tree = ET.parse(qgs); root = tree.getroot()
+        for ds in root.findall('.//datasource'):
+            p = ds.text
+            if p and os.path.isabs(p):
+                ds.text = os.path.relpath(p, merge_root)
+        tree.write(qgs,encoding='UTF-8')
+        with zipfile.ZipFile(merged_path,'w',zipfile.ZIP_DEFLATED) as zout:
+            for fn in os.listdir(tmp): zout.write(os.path.join(tmp,fn),arcname=fn)
+        shutil.rmtree(tmp)
+
+        # Final GC
+        try:
+            from osgeo import gdal
+            if hasattr(gdal,'GDALFlushCache'): gdal.GDALFlushCache()
+        except: pass
+        import gc; gc.collect()
+
+        # Clear input fields for next operation
+        self.dlg.lineEdit_11.clear()
+        self.dlg.lineEdit_26.clear()
+        self.dlg.lineEdit_37.clear()
+
+        self.iface.messageBar().pushMessage(
+            f"Projects merged into {merged_path}", level=Qgis.Success, duration=15
+        )
 
     ### Export Data ###
-
     def exportData(self):
         # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
 
@@ -5219,24 +5043,6 @@ class GEOL_QMAPS:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    """def set_qmapsConfig(self):
-        project = QgsProject.instance()
-        proj_file_path = project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        qmapConfigPath = head_tail[0] + "/" + self.dir_99 + "/qmap.json"
-        layer = project.mapLayersByName("Sampling_PT")[0]
-
-        if os.path.exists(qmapConfigPath):
-            with open(qmapConfigPath, "r") as json_file:
-                qmapConfig = json.load(json_file)
-        else:
-            qmapConfig = {
-                "autoInc": True,
-            }
-
-        with open(qmapConfigPath, "w") as outfile:
-            json.dump(qmapConfig, outfile, indent=4)"""
 
     ### Merge 2 layers old version###
 
