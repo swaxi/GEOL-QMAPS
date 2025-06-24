@@ -147,6 +147,8 @@ from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
 import hashlib
 
+import tempfile, zipfile, shutil, os
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 
 # Libraries for manipulating Excel files
 import pandas as pd
@@ -236,22 +238,6 @@ class GEOL_QMAPS:
             except subprocess.CalledProcessError as e:
                 print(f"Error installing {library_name}: {e}")
 
-        # Library Xlswriter
-        """ 
-        try:
-            import xlsxwriter
-
-        except:
-            install_library("xlsxwriter")
-
-        # Library Openpyxl
-        try:
-            import openpyxl
-
-        except:
-            install_library("openpyxl")
-        """
-
         # Library fiona
         try:
             import fiona
@@ -266,12 +252,6 @@ class GEOL_QMAPS:
         except:
             install_library("fuzzywuzzy")
 
-        """# Library Geopandas
-        try:
-            import geopandas
-
-        except:
-            install_library("geopandas")"""
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -287,31 +267,6 @@ class GEOL_QMAPS:
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("GEOL_QMAPS", message)
-
-   # Lipari colorscale
-    def lipari_color(self, score):
-        """
-        Returns a QColor based on the given normalized score (0 to 100)
-        using a Roma colorscale (Cramieri et al.).
-        """
-        stops = [
-            (0, QColor("#FF0000")),  # red
-            (50, QColor("#FFFFFF")),  # white
-            (100, QColor("#00FF00"))  # green
-        ]
-        if score <= stops[0][0]:
-            return stops[0][1]
-        if score >= stops[-1][0]:
-            return stops[-1][1]
-        for i in range(1, len(stops)):
-            if score <= stops[i][0]:
-                lower_score, lower_color = stops[i - 1]
-                upper_score, upper_color = stops[i]
-                t = (score - lower_score) / (upper_score - lower_score)
-                r = lower_color.red() + t * (upper_color.red() - lower_color.red())
-                g = lower_color.green() + t * (upper_color.green() - lower_color.green())
-                b = lower_color.blue() + t * (upper_color.blue() - lower_color.blue())
-                return QColor(int(r), int(g), int(b))
 
     # create legend with colorbar
     def create_legend_widget(self):
@@ -590,6 +545,29 @@ class GEOL_QMAPS:
         template_version_file.close()
         plugin_version_file.close()
 
+
+    # GEOL-QMAPS Project Validation
+    def is_valid_geol_qmaps_project(self, qgis_folder):
+        """
+        Validate that the selected folder is a GEOL-QMAPS project by checking
+        for the presence of COMPILATION.gpkg in the 1_EXISTING_FIELD_DATABASE subfolder.
+        """
+        expected_0 = os.path.join(qgis_folder, "0_FIELD_DATA", "CURRENT_MISSION.gpkg")
+        expected_1 = os.path.join(qgis_folder, "1_EXISTING_FIELD_DATABASE", "COMPILATION.gpkg")
+        expected_99 = os.path.join(qgis_folder, "99_COMMAND_FILES_PLUGIN")
+        if os.path.exists(expected_0) and os.path.exists(expected_1) and os.path.exists(expected_99):
+            return True
+        else:
+            self.iface.messageBar().pushMessage(
+                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, "
+                "you can get the template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
+                level=Qgis.Critical,
+                duration=45,
+            )
+            return False
+
+
+    #RUN
     def run(self):
         """Run method that loads and starts the plugin"""
 
@@ -636,7 +614,7 @@ class GEOL_QMAPS:
 
         self.FM_Import = FM_Import(None)
 
-        if os.path.exists(self.geopackage_file_path):
+        if self.is_valid_geol_qmaps_project(self.basePath) is True:
             if not self.pluginIsActive:
                 self.pluginIsActive = True
 
@@ -688,25 +666,23 @@ class GEOL_QMAPS:
                     # self.dlg.setFixedSize(1131, 600)
 
                     ### Connection of PushButtons ###
+                    # QField to QGIS Sync
+                    self.dlg.pushButton_QFieldPackage.clicked.connect(self.select_QFieldPackage)
+                    self.dlg.pushButton_QGISFolder.clicked.connect(self.select_QGISFolder)
+                    self.dlg.pushButton_SyncQFieldToQGIS.clicked.connect(self.SyncQFieldToQGIS)
 
                     # Rejig Project
                     self.dlg.pushButton_37.clicked.connect(self.select_old_project_folder)
                     self.dlg.rejig_pushButton_4.clicked.connect(self.rejig_project)
 
                     # Project_parameters
-                    self.dlg.projName_pushButton.clicked.connect(
-                        self.updateProjectTitle
-                    )
+                    self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
                     self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
                     self.dlg.merge_pushButton_2.clicked.connect(self.removeDuplicates)
-                    self.dlg.merge_layers_pushButton_2.clicked.connect(
-                        self.merge_2_layers
-                    )
+                    self.dlg.merge_layers_pushButton_2.clicked.connect(self.merge_2_layers)
 
                     self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
-                    self.dlg.pushButton_19.clicked.connect(
-                        self.resetWindow_fieldwork_preparation
-                    )
+                    self.dlg.pushButton_19.clicked.connect(self.resetWindow_fieldwork_preparation)
 
                     # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
                     self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
@@ -715,27 +691,18 @@ class GEOL_QMAPS:
                     self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
                     self.dlg.pushButton_14.clicked.connect(self.Generate_Output_QGIS_Layers)
                     self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
+                    self.dlg.pushButton_14.clicked.connect(lambda: self.Generate_Output_QGIS_Layers())
 
                     #User by default
-                    self.dlg.pushButton_user_default.clicked.connect(
-                        self.set_user_by_default
-                    )  # ADD
-                    self.fill_ComboBox_layers_user()  # ADD
-
-                    self.dlg.pushButton_update_source_photo.clicked.connect(
-                        self.update_source_photo
-                    )  # ADD
+                    self.dlg.pushButton_user_default.clicked.connect(self.set_user_by_default)
+                    self.fill_ComboBox_layers_user()
 
                     # Save a new CURRENT_MISSION+DICTIONARIES.qlr file
-                    self.dlg.pushButton_save__project_template_style_2.clicked.connect(
-                        self.save_template_style
-                    )  # ADD
+                    self.dlg.pushButton_save__project_template_style_2.clicked.connect(self.save_template_style)  # ADD
 
                     # Export_data
                     self.dlg.export_pushButton.clicked.connect(self.exportData)
-                    self.dlg.pushButton_22.clicked.connect(
-                        self.resetWindow_data_management
-                    )
+                    self.dlg.pushButton_22.clicked.connect(self.resetWindow_data_management)
 
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
@@ -748,15 +715,14 @@ class GEOL_QMAPS:
                         )
                     )
 
-                    # auto inc
-                    """self.set_qmapsConfig()"""
-
-                    # CSV
+                    # Dictinaries
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
-                    # HELP
+                    #Picture Management
+                    self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo)
 
+                    # HELP
                     # Send email to Mark Jessell and Julien Perret
                     self.dlg.pushButton_24.clicked.connect(
                         lambda: QDesktopServices.openUrl(
@@ -772,8 +738,6 @@ class GEOL_QMAPS:
                             )
                         )
                     )
-
-                    # Help
 
                     # Connection to the Github issues page site  : https://github.com/swaxi/WAXI_QF/issues/
                     self.dlg.pushButton_23.clicked.connect(
@@ -805,11 +769,6 @@ class GEOL_QMAPS:
                         lambda: QDesktopServices.openUrl(QUrl("https://amira.global/"))
                     )
 
-                    #  Connection to the CET site : https://www.cet.edu.au/
-                    # self.dlg.pushButton_37.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
-                    # )
-
                     #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
@@ -818,9 +777,7 @@ class GEOL_QMAPS:
                     )
 
                     # PushButtons to search for files on the computer
-                    self.dlg.pushButton_FM_project_select.clicked.connect(
-                        self.import_FM_Project
-                    )
+                    self.dlg.pushButton_FM_project_select.clicked.connect(self.import_FM_Project)
                     self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
                     self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
                     self.dlg.pushButton.clicked.connect(self.select_dst_directory)
@@ -828,36 +785,22 @@ class GEOL_QMAPS:
                     self.dlg.pushButton_20.clicked.connect(self.select_sub_project)
                     self.dlg.pushButton_27.clicked.connect(self.select_merged_directory)
                     self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-                    self.dlg.pushButton_15.clicked.connect(
-                        self.select_file_source_path_photo
-                    )  # ADD
-                    self.dlg.pushButton_17.clicked.connect(
-                        self.select_file_export_template_style
-                    )  # ADD
+                    self.dlg.pushButton_15.clicked.connect(self.select_file_source_path_photo)  # ADD
+                    self.dlg.pushButton_17.clicked.connect(self.select_file_export_template_style)  # ADD
 
-                    self.dlg.comboBox.currentIndexChanged.connect(
-                        self.update_combobox_delete
-                    )
-                    self.dlg.structure_style_on_pushButton.clicked.connect(
-                        self.set_orientation_style
-                    )
-                    self.dlg.structure_style_off_pushButton.clicked.connect(
-                        self.set_orientation_style
-                    )
+                    self.dlg.comboBox.currentIndexChanged.connect(self.update_combobox_delete)
 
-                    self.dlg.merge_current_existing_pushButton_3.clicked.connect(
-                        self.merge_current_to_existing
-                    )
+                    #Set Orientation Measurement Style
+                    self.dlg.structure_style_on_pushButton.clicked.connect(self.set_orientation_style)
+                    self.dlg.structure_style_off_pushButton.clicked.connect(self.set_orientation_style)
 
-                    self.dlg.pushButton_use_exif_azimuth.clicked.connect(
-                        self.use_exif_azimuth
-                    )
+                    self.dlg.merge_current_existing_pushButton_3.clicked.connect(self.merge_current_to_existing)
+
+                    self.dlg.pushButton_use_exif_azimuth.clicked.connect(self.use_exif_azimuth)
 
                     head_tail = os.path.split(proj_file_path)
                     main_project_path = head_tail[0] + "/"
-                    self.dictionaries_path = (
-                        main_project_path + self.dir_99 + "/Dictionaries.gpkg"
-                    )
+                    self.dictionaries_path = (main_project_path + self.dir_99 + "/Dictionaries.gpkg")
                     self.csvs = self.get_csv_list(self.dictionaries_path)
                     self.csvs = self.csvs[1:]
 
@@ -870,9 +813,7 @@ class GEOL_QMAPS:
                     field_index = layer.fields().indexFromName("Measure")
 
                     # Update default field value
-                    default_value = layer.defaultValueDefinition(
-                        field_index
-                    ).expression()
+                    default_value = layer.defaultValueDefinition(field_index).expression()
 
                     if default_value == "'Dip - dip direction'":
                         self.dlg.structure_style_on_pushButton.setChecked(True)
@@ -901,13 +842,6 @@ class GEOL_QMAPS:
     ###############################################################################
     ####################         Page 1 : Import data            ##################
     ###############################################################################
-
-    """
-    Author: Eliott Betend
-    For : WAXI Project (Stage 4) - CET 
-    Condition : version de QGIS > 3.22
-    """
-
     ###############################################################################
     ################# Step 0 : Check the input file nature ########################
     ###############################################################################
@@ -3709,8 +3643,188 @@ class GEOL_QMAPS:
         # Clear the input field once done
         self.dlg.lineEdit_15.clear()
 
-    ### Merge Projects ###
 
+    # --------------------------------------------------------------------------
+    # QField ↔ QGIS Sync Tool
+    # --------------------------------------------------------------------------
+    def select_QFieldPackage(self):
+        """
+        Slot to browse and select a QField package (folder or ZIP).
+        """
+        # Ask whether to select a ZIP or a folder
+        choice = QtWidgets.QMessageBox.question(
+            self.iface.mainWindow(),
+            "Select QField Package: zip file or folder?",
+            "Select QField package type (zip file = Yes or folder = No):",
+            QtWidgets.QMessageBox.StandardButtons(
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            ),
+            QtWidgets.QMessageBox.Yes
+        )
+        # Yes = ZIP, No = Folder
+        if choice == QtWidgets.QMessageBox.Yes:
+            path, _ = QFileDialog.getOpenFileName(
+                self.iface.mainWindow(),
+                "Select QField ZIP package",
+                "",
+                "ZIP archives (*.zip)"
+            )
+        else:
+            path = QFileDialog.getExistingDirectory(
+                self.iface.mainWindow(),
+                "Select QField package folder",
+                "",
+                QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+            )
+        if path:
+            self.dlg.lineEdit_QFieldPackage.setText(path)
+
+    def select_QGISFolder(self):
+        """
+        Slot to browse and select a GEOL‑QMAPS QGIS project folder.
+        """
+        folder = QFileDialog.getExistingDirectory(
+            self.iface.mainWindow(),
+            "Select the master GEOL‑QMAPS project folder to update with new data collected in the field",
+            "",
+            QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+        )
+        if folder:
+            self.dlg.lineEdit_QGISFolder.setText(folder)
+
+    def SyncQFieldToQGIS(self):
+        """
+        Sync data from a QField package into a copy of the QGIS project,
+        overwriting existing field data with the QField version.
+        """
+        # Retrieve paths
+        qfield_path = self.dlg.lineEdit_QFieldPackage.text().strip()
+        qgis_folder = self.dlg.lineEdit_QGISFolder.text().strip()
+
+        # Basic validation
+        if not qfield_path or not qgis_folder:
+            self.iface.messageBar().pushMessage(
+                "Please select both a QField package and a GEOL-QMAPS QGIS project folder.",
+                level=Qgis.Warning,
+                duration=10
+            )
+            return
+
+        # Confirm overwrite
+        reply = QtWidgets.QMessageBox.warning(
+            self.iface.mainWindow(),
+            "Confirm Sync",
+            ("This operation will create a copy of the QGIS project folder and "
+             "overwrite its current field data with that from the QField package. "
+             "Ensure both sources are the latest versions. Continue?"),
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel
+        )
+        if reply != QtWidgets.QMessageBox.Ok:
+            return
+
+        # Drive check (C: or other non-removable)
+        drive = os.path.splitdrive(qfield_path)[0]
+        if drive.upper().startswith('\\') or not drive:
+            self.iface.messageBar().pushMessage(
+                "Please place the QField package on a local or fixed external drive.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+
+        # Step 1: Handle QField package (ZIP or folder)
+        temp_dir = None
+        if qfield_path.lower().endswith('.zip'):
+            temp_dir = tempfile.TemporaryDirectory()
+            with zipfile.ZipFile(qfield_path, 'r') as zf:
+                zf.extractall(temp_dir.name)
+            package_root = temp_dir.name
+        else:
+            package_root = qfield_path
+
+        # Step 1b: Locate .qgs file and set root for CURRENT_MISSION.gpkg
+        qgs_files = []
+        for root, dirs, files in os.walk(package_root):
+            for f in files:
+                if f.lower().endswith('.qgs'):
+                    qgs_files.append(os.path.join(root, f))
+        if not qgs_files:
+            self.iface.messageBar().pushMessage(
+                "No .qgs project file found in the QField package: may be corrupted.",
+                level=Qgis.Critical,
+                duration=5
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+        qgs_path = qgs_files[0]
+        pkg_root = os.path.dirname(qgs_path)
+
+        # Check for CURRENT_MISSION.gpkg in QField root
+        qfield_pkg = os.path.join(pkg_root, 'CURRENT_MISSION.gpkg')
+        if not os.path.isfile(qfield_pkg):
+            self.iface.messageBar().pushMessage(
+                "No CURRENT_MISSION.gpkg found in the QField package: corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+
+        # Step 2: Validate QGIS project via existing function
+        if not self.is_valid_geol_qmaps_project(qgis_folder):
+            self.iface.messageBar().pushMessage(
+                "Selected QGIS folder is not a valid GEOL‑QMAPS project.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+            return
+
+        # Step 3: Copy QGIS folder
+        base_dir, name = os.path.split(qgis_folder.rstrip(os.sep))
+        synced_name = f"{name}_Synced"
+        dest_folder = os.path.join(base_dir, synced_name)
+        if os.path.exists(dest_folder):
+            shutil.rmtree(dest_folder)
+        shutil.copytree(qgis_folder, dest_folder)
+
+        # Step 4: Overwrite CURRENT_MISSION.gpkg
+        dest_pkg = os.path.join(dest_folder, self.dir_0, 'CURRENT_MISSION.gpkg')
+        shutil.copy2(qfield_pkg, dest_pkg)
+
+        # Step 5: Copy DCIM (if present)
+        qfield_dcim = os.path.join(pkg_root, 'DCIM')
+        dest_dcim = os.path.join(dest_folder, self.dir_0, 'DCIM')
+        if os.path.isdir(qfield_dcim):
+            os.makedirs(dest_dcim, exist_ok=True)
+            for fname in os.listdir(qfield_dcim):
+                src_file = os.path.join(qfield_dcim, fname)
+                dst_file = os.path.join(dest_dcim, fname)
+                shutil.copy2(src_file, dst_file)
+
+        # Clean up temporary directory
+        if temp_dir:
+            temp_dir.cleanup()
+
+        self.iface.messageBar().pushMessage(
+            f"Synchronisation complete: '{dest_folder}' created.",
+            level=Qgis.Success,
+            duration=5
+        )
+
+        # Clear the input field once done
+        self.dlg.lineEdit_QFieldPackage.clear()
+        self.dlg.lineEdit_QGISFolder.clear()
+
+
+    ### Merge Projects ###
     def list_csv_files(directory):
         files = []
         for filename in os.listdir(directory):
@@ -5585,122 +5699,197 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def define_tips(self):
-        Value_tooltip = "<p>Value of Item to be stored in csv File selected from List Name dropdown menu.</p>"
-        Description_tooltip = "<p>Additional info for Item to be stored in csv File selected from List Name dropdown menu.</p>"
-        Clip_Polygon_tooltip = "<p>Path to clipping polygon shapefile- Leave blank if you want to use the current QGIS Canvas rectangle.</p>"
-        Clip_path_tooltip = "<p>Path to new clipped QGIS project directory.</p>"
-        Export_path_tooltip = "<p>Path to directory to store combined layers.</p>"
-        Proj_name_tooltip = "<p>Name of Project, e.g. Username & date.</p>"
-        Proj_region_tooltip = "<p>Region project applies to e.g. Sefwi Belt.</p>"
-        Merge_main_tooltip = "<p>Path to directory of global QGIS Project.</p>"
-        Merge_sub_tooltip = "<p>Path to directory of local QGIS Project.</p>"
-        Merge_output_tooltip = "<p>Path to directory of newly merged QGIS Project.</p>"
-        Csv_list_tooltip = "Select CSV file to add item to"
-        Epsilon_tooltip = "The radius of the circle to be created around each data point to check the density (in metres)"
-        Clip_tooltip = "Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project"
-        Add_item_tooltip = "Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD"
-        Export_tooltip = "Provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)"
-        Update_tooltip = "Provide new Name and Region info for project"
-        Merge_tooltip = "Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed."
-        Virtualstop_tooltip = "Combine all point layers to get virtual Stop IDS"
-        gtCircles_tooltip = (
-            "Select Checkbox to switch to Great Circle Display for Stereonet Plugin"
-        )
-        contours_tooltip = "Select Checkbox to add Contour Display for Stereonet Plugin"
-        kinematics_tooltip = "Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin"
-        linPlanes_tooltip = "Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin"
-        rose_tooltip = "Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin"
-        stereonet_tooltip = (
-            "Select Checkbox to control Display behaviour for Stereonet Plugin"
-        )
-        FieldMove_Import_tooltip = "Select a directory with a FieldMove project and the csv files will be converted to shapefiles, \nthe photos imported to the project, the maps loaded as temporary files and the lithologies added to Local Lithologies"
+        #Reset the Window
+        ResetWindow_tooltip = "Reset this window..."
+        self.dlg.pushButton_13.setToolTip(ResetWindow_tooltip)
+        self.dlg.pushButton_19.setToolTip(ResetWindow_tooltip)
+        self.dlg.pushButton_22.setToolTip(ResetWindow_tooltip)
 
-        # Titles
-        self.dlg.groupBox_4.setToolTip(Clip_tooltip)
-        self.dlg.label_37.setToolTip(Add_item_tooltip)
-        self.dlg.groupBox_10.setToolTip(Export_tooltip)
+        #Browse
+        Browse_tooltip = "Browse..."
+        self.dlg.pushButton_7.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_FM_project_select.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_17.setToolTip(Browse_tooltip)
+        self.dlg.pushButton.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_6.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_37.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_QFieldPackage.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_QGISFolder.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_29.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_20.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_27.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_5.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_15.setToolTip(Browse_tooltip)
+
+        #IMPORT FIELD DATA
+        # Import Legacy SHP
+        ImportShp_tooltip = "<p>Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.<p>"
+        self.dlg.label_19.setToolTip(ImportShp_tooltip)
+
+        ImportShpStep1_tooltip = "<p>Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).<p>"
+        self.dlg.groupBox.setToolTip(ImportShpStep1_tooltip)
+
+        ImportShpStep2_tooltip = "<p>Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.<p>"
+        self.dlg.label_35.setToolTip(ImportShpStep2_tooltip)
+        ImportShpStep2Fields_tooltip = "<p>Validate standard field names assigned to legacy database fields.<p>"
+        self.dlg.pushButton_9.setToolTip(ImportShpStep2Fields_tooltip)
+        ImportShpStep2Litho_tooltip = "<p>Validate standard lithology names assigned to legacy lithologies.<p>"
+        self.dlg.pushButton_10.setToolTip(ImportShpStep2Litho_tooltip)
+        ImportShpStep2Struct_tooltip = "<p>Validate standard structure types assigned to legacy structures.<p>"
+        self.dlg.pushButton_26.setToolTip(ImportShpStep2Struct_tooltip)
+        ImportShpStep2Undo_tooltip = "<p>Undo the last edit.<p>"
+        self.dlg.pushButton_11.setToolTip(ImportShpStep2Undo_tooltip)
+        self.dlg.pushButton_12.setToolTip(ImportShpStep2Undo_tooltip)
+        self.dlg.pushButton_25.setToolTip(ImportShpStep2Undo_tooltip)
+
+        ImportShpStep3_tooltip = "<p>Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!<p>"
+        self.dlg.groupBox_3.setToolTip(ImportShpStep3_tooltip)
+
+        ImportShpStep4_tooltip = "<p>Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.<p>"
+        self.dlg.groupBox_15.setToolTip(ImportShpStep4_tooltip)
+
+        #Import FieldMove Project
+        ImportFM_tooltip = "<p>Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.<p>"
+        self.dlg.groupBox_19.setToolTip(ImportFM_tooltip)
+
+
+        #FIELDWORK PREPARATION
+        # Update Project ID and Location
+        Update_tooltip = "<p>Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.<p>"
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
-        self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
-
-        # Project Parameters
-        self.dlg.projName_pushButton.setToolTip("Update project name")
-        self.dlg.merge_pushButton.setToolTip("Merge projects")
-        self.dlg.merge_pushButton_2.setToolTip("Remove Duplicate UUIDs")
-        self.dlg.merge_layers_pushButton_2.setToolTip("Merge two QGIS layers")
-        self.dlg.clip_pushButton.setToolTip("Clip to current canvas")
+        Proj_name_tooltip = "<p>Type the updated name of the project, e.g. Mission ID/Year.</p>"
         self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
+        Proj_region_tooltip = "<p>Type the name of the region the project applies to e.g. Sefwi Belt.</p>"
         self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
+        self.dlg.projName_pushButton.setToolTip("<p>Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.<p>")
 
-        # CSV
-        self.dlg.csv_pushButton.setToolTip("Add new item to CSV file")
-        self.dlg.csv_pushButton_2.setToolTip("Delete an item from CSV file")
+        # Set User by Default
+        DefaultUser_tooltip = "<p>Assign an existing or new user to be the default for one layer or all field data layers going forward.<p>"
+        self.dlg.groupBox_18.setToolTip(DefaultUser_tooltip)
+        DefaultUserOneLayer_tooltip = "<p>If toggled on, select the field data layer to update with a new default value for the User field.<p>"
+        self.dlg.radioButton_Some.setToolTip(DefaultUserOneLayer_tooltip)
+        DefaultUserOneLayerSelect_tooltip = "<p>Select in the dropdown list the field data layer to update with a new default value for the User field.<p>"
+        self.dlg.comboBox_layers_user.setToolTip(DefaultUserOneLayerSelect_tooltip)
+        DefaultUserAllLayers_tooltip = "<p>If toggled on, all field data layers will be updated with a new default value for the User field.<p>"
+        self.dlg.radioButton_All.setToolTip(DefaultUserAllLayers_tooltip)
+        self.dlg.pushButton_user_default.setToolTip("<p>Update the User metadata value for one or all field data layers.<p>")
 
-        # Stop
-        self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
+        #Edit Dictionaries
+        EditDico_tooltip = "<p>Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.<p>"
+        self.dlg.groupBox_5.setToolTip(EditDico_tooltip)
+        Dico_tooltip = "<p>Select which dictionary to add or delete item to from the dropdown list.</p>"
+        self.dlg.comboBox.setToolTip(Dico_tooltip)
+        AddValue_tooltip = "<p>Type a new value to add to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.</p>"
+        self.dlg.lineEdit_38.setToolTip(AddValue_tooltip)
+        self.dlg.csv_pushButton.setToolTip("<p>Add new item to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.<p>")
+        DeleteValue_tooltip = "<p>Select what item to delete from the selected dictionary.</p>"
+        self.dlg.comboBox_delete.setToolTip(DeleteValue_tooltip)
+        self.dlg.csv_pushButton_2.setToolTip("<p>Delete the selected item from the related dictionary. Update the layer's symbology accordingly to remove those referring to deleted items.<p>")
 
-        # Import Data
-        self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
+        #Define Default Structural Measurement for Planar Structures
+        StructConv_tooltip = "<p>Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.<p>"
+        self.dlg.groupBox_20.setToolTip(StructConv_tooltip)
+        DipDir_tooltip = "<p>If toggled on, planar measurements should be then entered as dip/dip direction by default.<p>"
+        self.dlg.structure_style_on_pushButton.setToolTip(DipDir_tooltip)
+        RHR_tooltip = "<p>If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.<p>"
+        self.dlg.structure_style_off_pushButton.setToolTip(RHR_tooltip)
 
-        self.dlg.pushButton_11.setToolTip("Undo previous edits")
-        self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
+        #Save Changes Made to the Field Data Forms
+        SaveQLR_tooltip = "<p>Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.<p>"
+        self.dlg.groupBox_17.setToolTip(SaveQLR_tooltip)
+        SaveButton_tooltip = "<p>Save the updated GEOL-QMAPS layer definition file to the specified folder.<p>"
+        self.dlg.pushButton_save__project_template_style_2.setToolTip(SaveButton_tooltip)
 
-        self.dlg.pushButton_12.setToolTip("Undo previous edits")
-        self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
+        #Clip Field Data to Current Canvas
+        ClipTool_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.<p>"
+        self.dlg.groupBox_4.setToolTip(ClipTool_tooltip)
+        Clip_path_tooltip = "<p>Path to new clipped GEOL-QMAPS project directory.</p>"
+        self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
+        ClipPolygon_tooltip = "<p>Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.</p>"
+        self.dlg.lineEdit_8.setToolTip(ClipPolygon_tooltip)
+        ClippingButton_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers.<p>"
+        self.dlg.clip_pushButton.setToolTip(ClippingButton_tooltip)
 
-        self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
-        self.dlg.pushButton_14.clicked.connect(
-            lambda: self.Generate_Output_QGIS_Layers()
-        )
 
-        self.dlg.pushButton_13.setToolTip("Reset this window")
-        self.dlg.pushButton_19.setToolTip("Reset this window")
-        self.dlg.pushButton_22.setToolTip("Reset this window")
+        #DATA MANAGEMENT
+        #Rejig to the Latest GEOL-QMAPS Version
+        RejigTool_tooltip = "<p>Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.<p>"
+        self.dlg.groupBox_22.setToolTip(RejigTool_tooltip)
+        RejigValidate_tooltip = "<p>Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.<p>"
+        self.dlg.rejig_pushButton_4.setToolTip(RejigValidate_tooltip)
 
-        self.dlg.pushButton_FM_project_select.setToolTip(FieldMove_Import_tooltip)
+        #Synchronise a QField Package to the QGIS Master Project
+        SyncTool_tooltip = "<p>Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.<p>"
+        self.dlg.groupBox_23.setToolTip(SyncTool_tooltip)
+        SyncValidate_tooltip = "<p>Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.<p>"
+        self.dlg.pushButton_SyncQFieldToQGIS.setToolTip(SyncValidate_tooltip)
 
-        # Export Data
+        #Merge Projects
+        MergeTool_tooltip = "<p>Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.<p>"
+        self.dlg.groupBox_8.setToolTip(MergeTool_tooltip)
+        Merge_main_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.</p>"
+        self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
+        Merge_sub_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.</p>"
+        self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
+        Merge_output_tooltip = "<p>Path to directory of newly merged GEOL-QMAPS QGIS project.</p>"
+        self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
+        MergeValidate_tooltip = "<p>Merge selected GEOL-QMAPS QGIS projects.<p>"
+        self.dlg.merge_pushButton.setToolTip(MergeValidate_tooltip)
+
+        #Archive Current Field Data
+        ArchiveTool_tooltip = "<p>Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.<p>"
+        self.dlg.groupBox_21.setToolTip(ArchiveTool_tooltip)
+        self.dlg.merge_current_existing_pushButton_3.setToolTip(ArchiveTool_tooltip)
+
+        #Remove Duplicate UUIDs from Project
+        RemoveDuplicateTool_tooltip = "<p>After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.<p>"
+        self.dlg.groupBox_9.setToolTip(RemoveDuplicateTool_tooltip)
+        self.dlg.merge_pushButton_2.setToolTip("<p>Remove duplicates in current and compilation field data layers.<p>")
+
+        #Export Compilation Layers to Common Themes
+        ExportTool_tooltip = "<p>Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<p>"
+        self.dlg.groupBox_10.setToolTip(ExportTool_tooltip)
+        ExportPath_tooltip = "<p>Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.<p>"
+        self.dlg.lineEdit_7.setToolTip(ExportPath_tooltip)
+        ExportValidate_tooltip = "<p>Export compilation layers to common themes.<p>"
+        self.dlg.pushButton_5.setToolTip(ExportValidate_tooltip)
         self.dlg.export_pushButton.setToolTip("Export layers")
 
-        # Stereo
-        self.dlg.stereonet_pushButton.setToolTip("Update setting of stereonet display")
-
-        # Help
-        # self.dlg.pushButton_33.setToolTip("Click here to access to WAXI website")
-        # self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
-        # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
-        # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
-
-        # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
-        # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
-
-        # LineEdit
-        self.dlg.lineEdit_38.setToolTip(Value_tooltip)
-
-        self.dlg.lineEdit_8.setToolTip(Clip_Polygon_tooltip)
-        self.dlg.pushButton_6.setToolTip(Clip_Polygon_tooltip)
-
-        self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
-        self.dlg.pushButton.setToolTip(Clip_path_tooltip)
-
-        self.dlg.lineEdit_7.setToolTip(Export_path_tooltip)
-        self.dlg.pushButton_5.setToolTip(Export_path_tooltip)
-
-        self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
-        self.dlg.pushButton_29.setToolTip(Merge_main_tooltip)
-
-        self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
-        self.dlg.pushButton_20.setToolTip(Merge_sub_tooltip)
-
-        self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
-        self.dlg.pushButton_27.setToolTip(Merge_output_tooltip)
-
+        #Create Virtual Stops
+        VirtualStops_tooltip = "<p>Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.<p>"
+        self.dlg.groupBox_11.setToolTip(VirtualStops_tooltip)
+        Epsilon_tooltip = "<p> Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.<p>"
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
+        self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
 
+        # Stereographic Projection
+        self.dlg.stereonet_pushButton.setToolTip("<p>Control fork of custom Stereonet plugin display.<p>")
+        gtCircles_tooltip = "<p>Select Checkbox to switch to Great Circle Display for Stereonet Plugin<p>"
+        contours_tooltip = "<p>Select Checkbox to add Contour Display for Stereonet Plugin<p>"
+        kinematics_tooltip = "<p>Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin<p>"
+        linPlanes_tooltip = "<p>Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin<p>"
+        rose_tooltip = "<p>Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin<p>"
+        stereonet_tooltip = "<p>Select Checkbox to control Display behaviour for Stereonet Plugin<p>"
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
         self.dlg.contours_checkBox.setToolTip(contours_tooltip)
         self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
         self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
         self.dlg.rose_checkBox.setToolTip(rose_tooltip)
+
+        #Picture Management
+        PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
+        self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
+        PictureFolder_tooltip = "<p>Browse to the folder that contains field and sample photographs.<p>"
+        self.dlg.lineEdit_14.setToolTip(PictureFolder_tooltip)
+        FilepathExisting_tooltip = "<p>If toogled on, the filepath of existing photographs will be updated to the selected folder.<p>"
+        self.dlg.option1_ckeckbox.setToolTip(FilepathExisting_tooltip)
+        FilepathDefault_tooltip = "<p>If toogled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.<p>"
+        self.dlg.option2_ckeckbox.setToolTip(FilepathDefault_tooltip)
+        FilepathValidate_tooltip = "<p>Update photograph repository information.<p>"
+        self.dlg.option2_ckeckbox.setToolTip(FilepathValidate_tooltip)
+        EXIF_tooltip = "<p>Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.<p>"
+        self.dlg.pushButton_use_exif_azimuth.setToolTip(EXIF_tooltip)
+
 
     ###############################################################################
     ####################                   RUN                   ##################
