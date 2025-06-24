@@ -566,6 +566,49 @@ class GEOL_QMAPS:
             )
             return False
 
+    # Filename Length Check Helper
+    import tempfile
+    import os
+
+    def _check_max_filename_length(self, directory, max_length=256):
+        """
+        Walk through 'directory' and gather any full file‐paths longer than max_length.
+        If any are found, write them to a text file and show a clickable link in a
+        QGIS Critical message. Returns True if all paths are OK, False otherwise.
+        """
+        bad_paths = []
+        for root, dirs, files in os.walk(directory):
+            for name in files + dirs:
+                full_path = os.path.abspath(os.path.join(root, name))
+                if len(full_path) > max_length:
+                    bad_paths.append(full_path)
+
+        if bad_paths:
+            # Write the list to a temp file
+            log_file = os.path.join(tempfile.gettempdir(), "geol_qmaps_bad_paths.txt")
+            with open(log_file, "w", encoding="utf-8") as f:
+                for p in bad_paths:
+                    f.write(p + "\n")
+
+            # Ensure the file:// URL is well-formed
+            url = log_file.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            # Push a critical message with hyperlink
+            msg = (
+                f"{len(bad_paths)} paths exceed {max_length} characters. "
+                f"<a href='file://{url}'>Download list</a>"
+            )
+            self.iface.messageBar().pushMessage(
+                msg,
+                level=Qgis.Critical,
+                duration=0  # stays until dismissed
+            )
+            return False
+
+        return True
+
 
     #RUN
     def run(self):
@@ -2862,18 +2905,24 @@ class GEOL_QMAPS:
         old_proj = os.path.dirname(project.fileName()) + "/"
         new_proj = self.mynormpath(out_dir) + "/"
 
-        # Validate filename and folder name lengths (Windows max 256 chars)
-        bad_paths = []
-        for root, dirs, files in os.walk(old_proj):
-            for name in dirs + files:
-                if len(name) >= 256:
-                    bad_paths.append(os.path.join(root, name))
-        if bad_paths:
-            self.iface.messageBar().pushMessage(
-                "Some filenames or folder names exceed 256 characters. Please shorten them before clipping.",
-                level=Qgis.Critical, duration=15
-            )
-            return
+        # Validate filename and folder name lengths for output (preflight) (Windows max 256 chars)
+        targets = [
+            new_proj,
+            new_proj + self.dir_0,
+            new_proj + self.dir_1,
+            new_proj + self.dir_99
+        ]
+        for p in targets:
+            full = os.path.abspath(self.mynormpath(p))
+            if len(full) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Output path too long ({len(full)} chars): {full}. Select another repository with a shorter filepath to the current project.",
+                    level=Qgis.Critical,
+                    duration=15
+                )
+                # Clear directory field for next operation
+                self.dlg.lineEdit_8.clear()
+                return
 
         # Paths for the two GeoPackages to clip
         gpkg_paths = [
@@ -2912,11 +2961,25 @@ class GEOL_QMAPS:
                     shutil.rmtree(dst_path)
                 self.safe_copy_tree(src_path + '/', dst_path + '/')
 
-        # Copy project file
-        shutil.copyfile(
-            project.fileName(),
-            new_proj + os.path.basename(project.fileName()).replace('.qgz', '_clip.qgz')
+        # === Clip the project file ===
+        src = project.fileName()
+        dst = os.path.join(
+            new_proj,
+            os.path.basename(src).replace('.qgz', '_clip.qgz')
         )
+        # ——— Pre-flight: check this single file path ———
+        full_path = os.path.abspath(self.mynormpath(dst))
+        if len(full_path) > 256:
+            self.iface.messageBar().pushMessage(
+                f"ERROR: Output file path too long ({len(full_path)} chars): {full_path}. Select another repository with a shorter filepath to the current project.",
+                level=Qgis.Critical,
+                duration=15
+            )
+            # Clear directory field for next operation
+            self.dlg.lineEdit_8.clear()
+            return
+        # Now safe to copy
+        shutil.copyfile(src, full_path)
 
         # Clip each layer in both GeoPackages
         for src, dst in gpkg_paths:
@@ -3462,6 +3525,8 @@ class GEOL_QMAPS:
                 "ERROR: Selected folder is either not a valid GEOL-QMAPS project, or too old to be automatically updated to the latest version (version < 3.1.0).",
                 level=Qgis.Critical, duration=10
             )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
             return
 
         else:
@@ -3476,6 +3541,8 @@ class GEOL_QMAPS:
                 f"ERROR: Project version {raw} is older than 3.1.0; cannot be updated to the latest version automatically.",
                 level=Qgis.Critical, duration=10
             )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
             return
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
@@ -3491,6 +3558,8 @@ class GEOL_QMAPS:
                 "No internet connection detected. Please check your network and try again.",
                 level=Qgis.Critical, duration=10
             )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
             return
 
         # 3b) Attempt download with 60 s timeout
@@ -3509,6 +3578,8 @@ class GEOL_QMAPS:
                 "Download timed out after 60 seconds. Please try again later with a more stable connection.",
                 level=Qgis.Critical, duration=10
             )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
             return
 
         except Exception as e:
@@ -3516,6 +3587,8 @@ class GEOL_QMAPS:
                 f"An unexpected error occurred while downloading:\n{e}",
                 level=Qgis.Critical, duration=10
             )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
             return
 
         # 3c) Unzip the downloaded archive into the parent folder
@@ -3524,7 +3597,7 @@ class GEOL_QMAPS:
             zf.extractall(str(parent))
 
         # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
-        template_src = parent / "GEOL-QMAPS_v3.1.3" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+        template_src = parent / "GEOL-QMAPS_v3.1.4" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
 
 
         # 4b) Prepare the destination name and remove any stale copy
@@ -3532,8 +3605,45 @@ class GEOL_QMAPS:
         if rejigged.exists():
             shutil.rmtree(str(rejigged))
 
+        # PRE-FLIGHT: simulate all future dest paths and catch any >256 chars
+        max_len = 256
+        bad = []
+        for root, dirs, files in os.walk(str(template_src)):
+            for name in dirs + files:
+                # path in the template
+                src_path = os.path.join(root, name)
+                # corresponding dest path under `rejigged`
+                rel = os.path.relpath(src_path, str(template_src))
+                dest_full = os.path.abspath(os.path.join(str(rejigged), rel))
+                if len(dest_full) > max_len:
+                    bad.append(dest_full)
+
+        if bad:
+            # write the list to temp for download
+            log = os.path.join(tempfile.gettempdir(), "geol_qmaps_rejig_bad_paths.txt")
+            with open(log, "w", encoding="utf-8") as f:
+                for p in bad:
+                    f.write(p + "\n")
+
+            url = log.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            self.iface.messageBar().pushMessage(
+                f"{len(bad)} paths would exceed {max_len} chars. "
+                f"<a href='file://{url}'>Download list</a>. Shorten filepaths to proceed further.",
+                level=Qgis.Critical,
+                duration=0
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
         # 5. Copy the template into projects folder and rename in one go
         shutil.copytree(str(template_src), str(rejigged))
+        # ————— Validate all new paths —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
         self.iface.messageBar().pushMessage(
             f"Template unpacked and renamed → '{rejigged.name}'",
             level=Qgis.Success, duration=6
@@ -3547,6 +3657,9 @@ class GEOL_QMAPS:
         old_qgz = next(old.glob("*.qgz"), None)
         if old_qgz:
             shutil.copy2(str(old_qgz), str(rejigged))
+        # ————— Re-validate after .qgz copy —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
         print(f"Old .qgz project file copied in: {rejigged}")
 
         # 7. Copy array of subfolders except for 0_, 1_ and 99_
@@ -3557,6 +3670,10 @@ class GEOL_QMAPS:
 
             dst_path = rejigged / src_path.name
             shutil.copytree(str(src_path), str(dst_path), dirs_exist_ok=True)
+        # ————— Validate again after subfolder copies —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
+        print(f"Folders copied in: {rejigged}")
 
         # copy of DCIM sub-folders
         for branch in ["0_FIELD_DATA/DCIM", "1_EXISTING_FIELD_DATABASE/DCIM"]:
@@ -3566,7 +3683,9 @@ class GEOL_QMAPS:
                 shutil.rmtree(str(dst))
             if src.exists():
                 shutil.copytree(str(src), str(dst), dirs_exist_ok=True)
-
+        # ————— Final DCIM check —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
         print(f"Folders and DCIM copied in: {rejigged}")
 
         # 8. Copy features from the two GeoPackages using OGR
@@ -3794,6 +3913,10 @@ class GEOL_QMAPS:
         if os.path.exists(dest_folder):
             shutil.rmtree(dest_folder)
         shutil.copytree(qgis_folder, dest_folder)
+        # Validate full-path lengths in the synced project
+        if not self._check_max_filename_length(dest_folder):
+            # abort if any path >256 chars
+            return
 
         # Step 4: Overwrite CURRENT_MISSION.gpkg
         dest_pkg = os.path.join(dest_folder, self.dir_0, 'CURRENT_MISSION.gpkg')
@@ -3808,6 +3931,10 @@ class GEOL_QMAPS:
                 src_file = os.path.join(qfield_dcim, fname)
                 dst_file = os.path.join(dest_dcim, fname)
                 shutil.copy2(src_file, dst_file)
+                #Validate full-path lengths in the synced DCIM
+                if not self._check_max_filename_length(dest_dcim):
+                    # abort if any DCIM path >256 chars
+                    return
 
         # Clean up temporary directory
         if temp_dir:
@@ -4272,18 +4399,43 @@ class GEOL_QMAPS:
         sub_folder = os.path.dirname(sub_qgz) + os.sep
         merge_root = self.mynormpath(out_dir.rstrip('/\\')) + os.sep
 
-        # Pre-flight: check path lengths
+        # PRE-FLIGHT: simulate every file/dir that would end up under merge_root,
+        # and abort if any full path would exceed 256 characters.
+        # ─────────────────────────────────────────────────────────────────────────
         bad = []
+        max_len = 256
+
         for base in (main_folder, sub_folder):
             for root, dirs, files in os.walk(base):
                 for name in dirs + files:
-                    full = os.path.join(merge_root, os.path.relpath(os.path.join(root, name), base))
-                    if len(full) >= 256:
-                        bad.append(full)
+                    rel_path = os.path.relpath(os.path.join(root, name), base)
+                    dest_path = os.path.abspath(os.path.join(merge_root, rel_path))
+                    if len(dest_path) > max_len:
+                        bad.append(dest_path)
+
         if bad:
+            # Write offending paths to a temp report
+            report = os.path.join(tempfile.gettempdir(), "geol_qmaps_merge_bad_paths.txt")
+            with open(report, 'w', encoding='utf-8') as f:
+                for p in bad:
+                    f.write(p + "\n")
+
+            # Format hyperlink
+            url = report.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            # Critical message with download link
             self.iface.messageBar().pushMessage(
-                f"Paths too long: {bad}", level=Qgis.Critical, duration=15
+                f"{len(bad)} paths would exceed {max_len} chars. "
+                f"<a href='file://{url}'>Download full list</a>. Shorten folders and/or file paths before proceeding further.",
+                level=Qgis.Critical,
+                duration=0
             )
+            # Clear input fields for next operation
+            self.dlg.lineEdit_11.clear()
+            self.dlg.lineEdit_26.clear()
+            self.dlg.lineEdit_37.clear()
             return
 
         # Unload any existing layers from prior merges
@@ -4409,7 +4561,9 @@ class GEOL_QMAPS:
         shutil.copyfile(main_qgz, merged_path)
 
         # Rewrite QGZ internals to use relative paths
-        import zipfile, tempfile, xml.etree.ElementTree as ET
+        import zipfile
+        import xml.etree.ElementTree as ET
+        # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
         with zipfile.ZipFile(merged_path,'r') as zin: zin.extractall(tmp)
@@ -4424,6 +4578,10 @@ class GEOL_QMAPS:
                 level=Qgis.Critical, duration=10
             )
             shutil.rmtree(tmp)
+            # Clear input fields for next operation
+            self.dlg.lineEdit_11.clear()
+            self.dlg.lineEdit_26.clear()
+            self.dlg.lineEdit_37.clear()
             return
 
         qgs = qgs_files[0]
@@ -4459,13 +4617,10 @@ class GEOL_QMAPS:
     ### Export Data ###
     def exportData(self):
         # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
-
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
-
             proj = QgsProject.instance()
 
             for name in self.layers_names:
-
                 layer = proj.mapLayersByName(name)[0]
                 caps = layer.dataProvider().capabilities()
 
@@ -4494,24 +4649,34 @@ class GEOL_QMAPS:
 
             project = QgsProject.instance()
             proj_file_path = project.fileName()
-            # head_tail = os.path.split(proj_file_path)
+
+            # Build the export folder
+            export_folder = self.mynormpath(self.dlg.lineEdit_7.text())
+            os.makedirs(export_folder, exist_ok=True)
+
+            # ─── Pre-flight #1: check whole export folder ───
+            if not self._check_max_filename_length(export_folder):
+                self.dlg.lineEdit_7.clear()
+                return
+
+            # Define the GeoPackage path
+            newGeopackagePath = self.mynormpath(
+                os.path.join(self.dlg.lineEdit_7.text(), "export.gpkg")
+            )
+
+            # ─── Pre-flight #2: check the GeoPackage path itself ───
+            full_gpkg = os.path.abspath(newGeopackagePath)
+            if len(full_gpkg) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Export GeoPackage path too long ({len(full_gpkg)} chars): {full_gpkg}",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+                self.dlg.lineEdit_7.clear()
+                return
 
             file = []
-            # merge zone data
-            file.append(
-                self.geopackage_file_path
-                + "|layername=Compilation_Deformation zones_PG"
-            )
-            file.append(
-                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
-            )
-            file.append(
-                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
-            )
 
-            newGeopackagePath = self.mynormpath(
-                self.dlg.lineEdit_7.text() + "/export.gpkg"
-            )
 
             # first create temp layer and new geopackage
             temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
@@ -4524,6 +4689,19 @@ class GEOL_QMAPS:
             QgsVectorFileWriter.writeAsVectorFormatV3(
                 temp_layer, newGeopackagePath, transform_context, options
             )
+
+            # Zonal Data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Deformation zones_PG"
+            )
+            file2 = (
+                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
+            )
+            file3 = (
+                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
+            )
+
             newLayer = (
                 "ogr:dbname='"
                 + newGeopackagePath
@@ -4532,15 +4710,15 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
-                "LAYERS": [file[0], file[1], file[2]],
+                "LAYERS": [file1, file2, file3],
                 "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge lithology data
+
+            # Lithology Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Local lithologies_PT"
@@ -4578,7 +4756,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4, file5, file6, file7],
                 "OUTPUT": newLayer,
@@ -4586,7 +4763,7 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge structural data
+            # Structural Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Bedding-Lava flow-S0_PT"
@@ -4631,7 +4808,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [
                     file1,
@@ -4649,7 +4825,7 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge Geophysical data
+            # Geophysical Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Density_PT"
@@ -4667,7 +4843,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [file1, file2],
                 "OUTPUT": newLayer,
@@ -4675,7 +4850,7 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge Stops-Samples-Photographs-Comments data
+            # Stops-Samples-Photographs-Comments Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Stops_PT"
@@ -4701,7 +4876,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4],
                 "OUTPUT": newLayer,
@@ -4709,7 +4883,7 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge linear data
+            # Linear Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Observations_LN"
@@ -4735,7 +4909,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4],
                 "OUTPUT": newLayer,
@@ -4743,11 +4916,24 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
+            # ————— Validate the full export.gpkg path length —————
+            full_path = os.path.abspath(newGeopackagePath)
+            if len(full_path) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Export geopackage path too long ({len(full_path)} chars): {full_path}",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+                self.dlg.lineEdit_7.clear()
+                return
+
             self.iface.messageBar().pushMessage(
-                "Layers merged, saved in directory" + self.dlg.lineEdit_7.text(),
+                f"Data successfully exported to {newGeopackagePath}",
                 level=Qgis.Success,
-                duration=5,
+                duration=10
             )
+
+
         else:
             self.iface.messageBar().pushMessage(
                 "Directory not found: " + self.dlg.lineEdit_7.text(),
@@ -5451,20 +5637,27 @@ class GEOL_QMAPS:
                 print(f"Including layer: {layer.name()} with styles.")
 
         # Save the group with its hierarchy and styles
-        # Save the layers to a QLR file
-        qlr_file=QgsLayerDefinition.exportLayerDefinition(
-            self.mynormpath(
-                self.dlg.lineEdit_18.text() + "/FIELD_DATA.qlr"
-            ),
-            [target_group],
+        # Build and export to a QLR file
+        qlr_path = self.mynormpath(os.path.join(self.dlg.lineEdit_18.text(), "FIELD_DATA.qlr"))
+        QgsLayerDefinition.exportLayerDefinition(
+            qlr_path,
+            [target_group]
         )
+
+        self.dlg.lineEdit_18.clear()
+
+        # ————— Validate full‐path length of the new QLR —————
+        if not self._check_max_filename_length(os.path.dirname(qlr_path)):
+            # abort if any full path >256 chars
+            return
+
         self.iface.messageBar().pushMessage(
-            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + '/FIELD_DATA.qlr')}",
+            f"Layer Definition style file exported as {qlr_path}",
             level=Qgis.Success,
             duration=45,
         )
-        self.dlg.lineEdit_18.clear()
-        return qlr_file
+
+        return qlr_path
 
 
     # Builds the XML structure of the layer tree recursively
@@ -5620,7 +5813,6 @@ class GEOL_QMAPS:
 
     def select_clip_poly(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Clip Polygon")
-
         self.dlg.lineEdit_8.setText(filename)
 
     def unload(self):
