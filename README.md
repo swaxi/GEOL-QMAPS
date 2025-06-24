@@ -2,7 +2,7 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.4 - May 2025*
+*version 3.1.4 - June 2025*
 
 ## 1. Description
 GEOL-QMAPS, an open-source, QGIS-based solution promoting digital geological mapping in a harmonised, comprehensive and flexible way.<br>
@@ -256,6 +256,9 @@ You may delete it from your mobile device memory once collected field data are s
 > [!TIP]
 > *Before synchronising, it’s a good idea to create a backup of the original QGIS project to avoid any data loss in case of errors during synchronisation.*
 
+> [!TIP]
+> *There is now a* **Synchronise a QField Package to the QGIS Master Project** *tool in the **Database Management** tab of the custom plugin that automates this operation, following the Preferred Procedure described in 5.4.2.*.<br>
+
 * Open the original GEOL-QMAPS QGIS project
 
 * Click on the ***Synchronize from QField*** button of the **QFieldSync** plugin
@@ -382,41 +385,48 @@ A blank, unzipped copy of the latest `GEOL-QMAPS_vX.X.X` archive file downloaded
 > (iii) Press* `Apply changes` *.<br>
 > The layer will be correctly linked to the updated database but may remain empty if the original project’s data used the previous incorrect name. In that case, feature transfer is skipped during the updating process to maintain schema compatibility.*
 
-#### 6.4.2. Merge Projects
+#### 6.4.2. Synchronise a QField Package to the QGIS Master Project
+Merge field-collected data from QField (QField package folder or .zip file) back into a GEOL-QMAPS QGIS project in a safe, automated, non-destructive way. <br>
+In more details, the plugin will validate both sources, create a `GEOL-QMPAPSProjectFolder_Synced` copy of your project, overwrite its `CURRENT_MISSION.gpkg` and any DCIM imagery, and leave your originals untouched. <br>
+
+> [!TIP]
+> *Use this tool to ensure you always work with the latest field updates while preserving your master project for archival or versioning purposes.*
+
+#### 6.4.3. Merge Projects
 Select two existing GEOL-QMAPS projects by selecting two existing project directories and a new one to store newly merged projects. <br>
 In more details, both current and GEOL-QMAPS-standardised legacy field data (contained in the *FIELD DATA > CURRENT MISSION* and *FIELD DATA > EXISTING FIELD GEODATABASE* groups in the QGIS template) from both projects are merged. Duplicate rows in each layer will be deleted.
 
 > [!TIP]
 > *Use this tool on a regular basis to merge data collected by distributed field teams. This ensures a consolidated dataset before exporting an updated* `QField Project Folder` *for the next days of mapping.*
 
-#### 6.4.3. Archive Current Field Data
+#### 6.4.4. Archive Current Field Data
 Transfer of all field data from the **`CURRENT_MISSION.gpkg`** geopackage (stored under the *CURRENT MISSION* group in the GEOL-QMAPS QGIS project) to the **`COMPILATION.gpkg`** geopackage, loaded in the *EXISTING FIELD GEODATABASE* sub-group in the GEOL-QMAPS QGIS project.<br>
 This ensures that all field data from the current mission are archived in the compiled geodatabase for long-term management and future use.
 
-#### 6.4.4. Remove Duplicate UUIDs from Project
+#### 6.4.5. Remove Duplicate UUIDs from Project
 After using the **Merge Projects** or **Archive Current Field Data** tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical *UUIDs*. 
 
-#### 6.4.5. Export Compilation Layers to Common Themes
+#### 6.4.6. Export Compilation Layers to Common Themes
 Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<br>
 This ensures data is organised into commonly used categories, facilitating streamlined analysis and integration into other workflows or GIS systems.
 
 > [!CAUTION]
 > *As layers merged do not have the same attribute list, merging attribute tables from different layers results in very large tables that can be challenging to manage. This may lead to performance issues, difficulties in navigation, or complications during data analysis and processing.* <br>
 
-#### 6.4.6. Create Virtual Stops
+#### 6.4.7. Create Virtual Stops
 Define clustering distance to add a cluster code to all different types of points observations according to locality, using a DBSCAN algorithm.<br> 
 This will create a new layer called *Virtual_Stops_datestamp*.
 
 > [!TIP]
 > *This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.* <br>
 
-#### 6.4.7. Stereographic Projection Settings
+#### 6.4.8. Stereographic Projection Settings
 Control fork of [custom Stereonet plugin](https://github.com/swaxi/qgis-stereonet) display.
 
 > [!TIP]
 > *Click on the GitHub link above to download the plugin .zip file, and install it in QGIS* via *the QGIS Plugin Manager.* <br>
 
-#### 6.4.8. Picture Management
+#### 6.4.9. Picture Management
 Allows a new directory to be defined for the storage of field and sampling pictures.
 
 > [!TIP]
