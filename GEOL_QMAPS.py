@@ -3768,20 +3768,18 @@ class GEOL_QMAPS:
     # --------------------------------------------------------------------------
     def select_QFieldPackage(self):
         """
-        Slot to browse and select a QField package (folder or ZIP).
+        Slot to browse and select a QField package (ZIP or folder) with custom buttons.
         """
-        # Ask whether to select a ZIP or a folder
-        choice = QtWidgets.QMessageBox.question(
-            self.iface.mainWindow(),
-            "Select QField Package: zip file or folder?",
-            "Select QField package type (zip file = Yes or folder = No):",
-            QtWidgets.QMessageBox.StandardButtons(
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
-            ),
-            QtWidgets.QMessageBox.Yes
-        )
-        # Yes = ZIP, No = Folder
-        if choice == QtWidgets.QMessageBox.Yes:
+        # Build a message box with custom button labels
+        msg = QtWidgets.QMessageBox(self.iface.mainWindow())
+        msg.setWindowTitle("Select QField Package to synchronise to QGIS")
+        msg.setText("Choose QField package type:")
+        zip_btn = msg.addButton("ZIP archive", QtWidgets.QMessageBox.ActionRole)
+        folder_btn = msg.addButton("Folder", QtWidgets.QMessageBox.ActionRole)
+        msg.exec_()
+
+        # Determine which button was clicked
+        if msg.clickedButton() == zip_btn:
             path, _ = QFileDialog.getOpenFileName(
                 self.iface.mainWindow(),
                 "Select QField ZIP package",
@@ -3795,6 +3793,7 @@ class GEOL_QMAPS:
                 "",
                 QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
             )
+
         if path:
             self.dlg.lineEdit_QFieldPackage.setText(path)
 
