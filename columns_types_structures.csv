@@ -1,0 +1,21 @@
+﻿Lineations - Boudin,Lineations - Crenulation Lineation,Lineations - Intersection Lineation,Lineations - Mineral Lineation,Lineations - Stretching Lineation,Lineations - Slickenside,Lineations_PT - Paleoflow Direction,"Lineations - Striations, Groovings, Casts",Lineations_PT - UST,Lineations_PT - Bearing,Bedding-Lava flow-S0_PT - Unknown Polarity,Bedding-Lava flow-S0_PT - Normal Polarity,Bedding-Lava flow-S0_PT - Reverse Polarity,Foliation-cleavage_PT,Shear zones and faults_PT - Unclear Kinematics,Shear zones and faults_PT - Normal-Slip,Shear zones and faults_PT - Low-Angle Detachment,Shear zones and faults_PT - Reverse-Slip,Shear zones and faults_PT - Dextral-Slip,Shear zones and faults_PT - Sinistral-Slip,Shear zones and faults_PT - Flattening - pure shear,"Folds_PT - Unknown, Recumbent, Vertical",Folds_PT - Anticline-Antiform,Folds_PT - Syncline-Synform,Folds_PT - M-shaped,Folds_PT - S-shaped,Folds_PT - Z-shaped,Fractures_PT,Veins_PT,Dikes-Sills_PT,Lithological contacts_PT
+Lineation,Lineation,Lineation,Lineation,Lineation,Lineation,Lineation,Lineation,Lineation,Lineation,bedding,bedding,bedding,foliation,shear zone,shear zone,shear zone,shear zone,shear zone,shear zone,shear zone,fold axe,fold axe,fold axe,fold axe,fold axe,fold axe,fracture,veins,dike,contact
+L1,L1,L1,L1,L1,L1,L1,L1,L1,L1,S0,S0,S0,cleavage,fault,fault,fault,fault,fault,fault,fault,fold axis,fold axis,fold axis,fold axis,fold axis,fold axis,joint,vein,sills,unconformity
+L2,L2,L2,L2,L2,L2,L2,L2,L2,L2,lava flow,lava flow,lava flow,gneissosity,faille,faille,faille,faille,faille,faille,faille,axe de pli,axe de pli,axe de pli,axe de pli,axe de pli,axe de pli,crack,V1,dyke,margin
+L3,L3,L3,L3,L3,L3,L3,L3,L3,L3,So,So,So,gneissic foliation,,normal,LAD,inverse,dextral,sinistral,cisaillement pur,F1,F1,F1,F1,F1,F1,,V2,,discordance
+L4,L4,L4,L4,L4,L4,L4,L4,L4,L4,,normal,reverse,S1,,,low angle,reverse,dextre,senestre,applatissement,F2,F2,F2,F2,F2,F2,,V3,,marge
+L5,L5,L5,L5,L5,L5,L5,L5,L5,L5,,,chevauchement,S2,,,detachment,thrust,,,,F3,F3,F3,F3,F3,F3,,V4,,
+L6,L6,L6,L6,L6,L6,L6,L6,L6,L6,,,,S3,,,,chevauchement,,,,fold axial plane,F4,F4,F4,F4,F4,,V5,,
+L7,L7,L7,L7,L7,L7,L7,L7,L7,L7,,,,S4,,,,,,,,crenulation axial plane,F5,F5,F5,F5,F5,,V6,,
+L8,L8,L8,L8,L8,L8,L8,L8,L8,L8,,,,S5,,,,,,,,plan axial,F6,F6,F6,F6,F6,,V7,,
+L9,L9,L9,L9,L9,L9,L9,L9,L9,L9,,,,S6,,,,,,,,recumbent,F7,F7,F7,F7,F7,,V8,,
+L10,L10,L10,L10,L10,L10,L10,L10,L10,L10,,,,S7,,,,,,,,vertical,F8,F8,F8,F8,F8,,V9,,
+L11,L11,L11,L11,L11,L11,L11,L11,L11,L11,,,,S8,,,,,,,,couché,fold axial plane,fold axial plane,fold axial plane,fold axial plane,fold axial plane,,V10,,
+L12,L12,L12,L12,L12,L12,L12,L12,L12,L12,,,,S9,,,,,,,,,crenulation axial plane,crenulation axial plane,crenulation axial plane,crenulation axial plane,crenulation axial plane,,V11,,
+L13,L13,L13,L13,L13,L13,L13,L13,L13,L13,,,,S10,,,,,,,,,plan axial,plan axial,plan axial,plan axial,plan axial,,V12,,
+L14,L14,L14,L14,L14,L14,L14,L14,L14,L14,,,,S11,,,,,,,,,anticline,syncline,drag,drag,drag,,veine,,
+L15,L15,L15,L15,L15,L15,L15,L15,L15,L15,,,,S12,,,,,,,,,antiform,synform,M fold,S fold,Z fold,,filon,,
+Boudin,crenulation,intersection,mineral,stretching,slickenslide,paleoflow,Striations,UST,bearing,,,,Sx,,,,,,,,,anticlinal,synclinal,pli en M,pli en S,pli en Z,,lode,,
+,,,,,,,Striated,unidirectional solidificatin texture,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Groovings,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Casts,,,,,,,,,,,,,,,,,,,,,,,
