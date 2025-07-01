@@ -515,7 +515,7 @@ class GEOL_QMAPS:
             self.iface.messageBar().pushMessage(
                 f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
                 "Please consider reimplementing a GEOL-QMAPS project manually from the "
-                "latest template available on <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>",
                 level=Qgis.Warning,
                 duration=45,
             )
@@ -530,7 +530,7 @@ class GEOL_QMAPS:
             self.iface.messageBar().pushMessage(
                 f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
                 "Please consider either reimplementing a GEOL-QMAPS project manually from the "
-                "latest template available on <a href='https://doi.org/10.5281/zenodo.15099095'>here</a> "
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a> "
                 "or using the Update Template Version tool in the Database Management tab of the plugin "
                 "(Compilation_Deformation zones_PG layer not handled though).",
                 level=Qgis.Warning,
@@ -586,7 +586,7 @@ class GEOL_QMAPS:
         else:
             self.iface.messageBar().pushMessage(
                 "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, "
-                "you can get the template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
+                "you can get the template <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>",
                 level=Qgis.Critical,
                 duration=45,
             )
@@ -840,7 +840,7 @@ class GEOL_QMAPS:
                     #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://doi.org/10.5281/zenodo.15099095")
+                            QUrl("https://doi.org/10.5281/zenodo.7834717")
                         )
                     )
 
@@ -900,12 +900,12 @@ class GEOL_QMAPS:
                     self.dlg.show()
 
         else:
-
-            self.iface.messageBar().pushMessage(
-                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, you can get the template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
-                level=Qgis.Critical,
-                duration=45,
+            title = "GEOL-QMAPS Plugin Error"
+            text = ("A project based on a GEOL-QMAPS template must be loaded before using this plugin. "
+            "You can download the template <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>."
             )
+            # critical() will show a modal dialog with a red “stop” icon
+            QMessageBox.critical(self.iface.mainWindow(),title,text)
 
     ###############################################################################
     ####################         Page 1 : Import data            ##################
