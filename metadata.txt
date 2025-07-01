@@ -3,21 +3,23 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=GEOL-QMAPS
+name=geol_qmaps
 qgisMinimumVersion=3.34.0
-description=The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
+description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 version=3.1.4
 author=Mark Jessell, Julien Perret and Eliott Betend (University of Western Australia)
 email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
 
-about= The GEOL-QMAPS plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
+about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 
 tracker=https://github.com/swaxi/WAXI_QF/issues
 repository=https://github.com/swaxi/WAXI_QF
 # End of mandatory metadata
 
 # Recommended items:
+
 hasProcessingProvider=no
+# Uncomment the following line and add your changelog:
 changelog=3.1.4
 * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
 * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
