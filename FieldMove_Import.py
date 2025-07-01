@@ -40,6 +40,19 @@ class FM_Import:
     # Import specific files within the FieldMove project directory into current project
     def import_FM_data(self,basePath,projectDirectoryPath):
 
+        # Prepare the 'FIELD MOVE PROJECTS' group at top of the Tree
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+        fm_group = root.findGroup("FIELD MOVE PROJECTS")
+        if not fm_group:
+            fm_group = root.insertGroup(0, "FIELD MOVE PROJECTS")
+
+        # Prepare the 'projectDirectoryPath' subgroup within the "FIELD MOVE PROJECTS" group
+        proj_name = os.path.basename(os.path.normpath(projectDirectoryPath))
+        imported_fm_group = fm_group.findGroup(proj_name)
+        if not imported_fm_group:
+            imported_fm_group = fm_group.insertGroup(0, proj_name)
+
         # copy QGIS Project and FieldMove Project directories to local
         self.basePath=basePath
         self.projectDirectoryPath=projectDirectoryPath
@@ -63,19 +76,20 @@ class FM_Import:
 
             # Import different file types
             self.import_FM_rock_types(self.projectDirectoryPath,all_litho_df,litho_layer,local_df,local_layer,mainCompGpkgPath,dataType=dataType)
-            self.import_FM_map_images(self.projectDirectoryPath,geologyPath)
-            self.import_FM_polylines()
-            self.import_FM_lineations(dataType=dataType)
-            self.import_FM_localities()
-            self.import_FM_photos(imagesPath,DCIMPath)
-            self.import_FM_planar_structures(dataType=dataType)
+            self.import_FM_map_images(self.projectDirectoryPath,geologyPath,imported_fm_group=imported_fm_group)
+            self.import_FM_polylines(imported_fm_group=imported_fm_group)
+            self.import_FM_lineations(dataType=dataType,imported_fm_group=imported_fm_group)
+            self.import_FM_localities(imported_fm_group=imported_fm_group)
+            self.import_FM_photos(imagesPath,DCIMPath,imported_fm_group=imported_fm_group)
+            self.import_FM_planar_structures(dataType=dataType,imported_fm_group=imported_fm_group)
         else:
             print("FieldMove project directory does not exist or is empty.")
+        return
             
     def mynormpath(self, path):
         return r"" + os.path.normpath(path).replace("\\", "/")
     
-    # import lithology name file and store new rock names in QFIELD csv dicitonaries (Local lithologies)
+    # import lithology name file and store new rock names in QFIELD csv dictionaries (Local lithologies)
     def import_FM_rock_types(self,projectDirectoryPath,lithoQFIELD,litho_layer,localQField,local_layer,mainCompGpkgPath,dataType):
 
         if dataType=='FieldMove':
@@ -197,7 +211,7 @@ class FM_Import:
 
 
     # import polylines defined as points and convert to polyline layer in memory
-    def import_FM_polylines(self):
+    def import_FM_polylines(self, imported_fm_group):
         polyline=pd.read_csv(self.projectDirectoryPath+'/polyline.csv',index_col=None)
         polyline_attributes=pd.read_csv(self.projectDirectoryPath+'/polyline-attributes.csv',index_col=None)
         polyline_attributes=polyline_attributes.set_index(' dataId')
@@ -231,10 +245,12 @@ class FM_Import:
         layer.commitChanges()
 
         # Step 5: Add the layer to the project
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
+        imported_fm_group.insertLayer(0, layer)
+
 
     # import lineations and convert to points layer in memory
-    def import_FM_lineations(self,dataType):
+    def import_FM_lineations(self,dataType, imported_fm_group):
         lineation=pd.read_csv(self.projectDirectoryPath+'/line.csv',index_col=None)
 
         # Step 1: Create a new vector layer to store the polyline
@@ -242,7 +258,7 @@ class FM_Import:
 
         # Step 2: Start editing the layer
         if dataType=='FieldMove':
-            rockUnit='rockUInit'
+            rockUnit='rockUnit'
         else: # Clino import
             rockUnit='unitId'
 
@@ -283,10 +299,11 @@ class FM_Import:
         layer.commitChanges()
 
         # Step 5: Add the layer to the project
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
+        imported_fm_group.insertLayer(0, layer)
 
     # import planare structures and store as point layer
-    def import_FM_planar_structures(self,dataType):
+    def import_FM_planar_structures(self,dataType, imported_fm_group):
         planes=pd.read_csv(self.projectDirectoryPath+'/plane.csv',index_col=None)
 
         # Step 1: Create a new vector layer to store the polyline
@@ -294,7 +311,7 @@ class FM_Import:
 
         # Step 2: Start editing the layer
         if dataType=='FieldMove':
-            rockUnit='rockUInit'
+            rockUnit='rockUnit'
         else: # Clino import
             rockUnit='unitId'
         
@@ -337,7 +354,8 @@ class FM_Import:
         layer.commitChanges()
 
         # Step 5: Add the layer to the project
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
+        imported_fm_group.insertLayer(0, layer)
 
     # Function to search for files with specific extensions
     def find_files_with_extensions(self,directory, extensions):
@@ -353,7 +371,7 @@ class FM_Import:
         return matching_files
 
     # import photos metadata and copy over files to new location
-    def import_FM_photos(self,directory_to_search,images_directory):
+    def import_FM_photos(self,directory_to_search,images_directory, imported_fm_group):
 
         images=pd.read_csv(self.projectDirectoryPath+'/image.csv',index_col=None)
 
@@ -409,7 +427,8 @@ class FM_Import:
         layer.commitChanges()
 
         # Step 5: Add the layer to the project
-        QgsProject.instance().addMapLayer(layer)
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
+        imported_fm_group.insertLayer(0, layer)
 
         extensions = ['.jpg']
         # Get the list of matching files
@@ -418,7 +437,7 @@ class FM_Import:
             shutil.copy2(fileName, os.path.join(images_directory, os.path.basename(fileName)))
 
     # import basemaps and store in new location
-    def import_FM_map_images(self,directory_to_search,map_directory):
+    def import_FM_map_images(self,directory_to_search,map_directory, imported_fm_group):
         extensions = ['.tif','.tiff','.TIF','.TIFF','.mbtiles','.MBTILES']
         # Get the list of matching files
         file_list = self.find_files_with_extensions(directory_to_search, extensions)
@@ -435,10 +454,11 @@ class FM_Import:
                 print("Failed to load the raster layer.")
             else:
                 # Add the raster layer to the QGIS project
-                QgsProject.instance().addMapLayer(raster_layer)
+                QgsProject.instance().addMapLayer(raster_layer, addToLegend=False)
+                imported_fm_group.insertLayer(0, raster_layer)
 
     # import localities file and load as points layer
-    def import_FM_localities(self):
+    def import_FM_localities(self, imported_fm_group):
         localities=pd.read_csv(self.projectDirectoryPath+'/localities.csv',index_col=None)
 
         # Step 1: Create a new vector layer to store the polyline
@@ -472,7 +492,8 @@ class FM_Import:
         layer.commitChanges()
 
         # Step 5: Add the layer to the project
-        QgsProject.instance().addMapLayer(layer)   
+        QgsProject.instance().addMapLayer(layer, addToLegend=False)
+        imported_fm_group.insertLayer(0, layer)
 
     # convert point info into layer point object
     def points_to_points(self,df,layer,attributes):

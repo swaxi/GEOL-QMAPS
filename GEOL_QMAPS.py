@@ -99,6 +99,10 @@ from qgis.PyQt.QtCore import Qt
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="\\*")
+
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+
 from osgeo import ogr
 import os
 import subprocess
@@ -108,7 +112,7 @@ import shutil
 import json
 from xml.etree import ElementTree as ET  # ADD
 from datetime import datetime
-import exifread
+import re
 
 # Initialize Qt resources from file resources.py
 from .resources import *
@@ -129,12 +133,22 @@ from qgis.core import (
     QgsFeature,
     QgsVectorDataProvider,
     QgsField,
+    QgsFeature
 )
+
+import urllib.request
+import tempfile
+import zipfile
+import shutil
+from pathlib import Path
+from qgis.PyQt.QtWidgets import QFileDialog
 
 from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
 import hashlib
 
+import tempfile, zipfile, shutil, os
+from qgis.PyQt.QtWidgets import QFileDialog, QMessageBox
 
 # Libraries for manipulating Excel files
 import pandas as pd
@@ -224,22 +238,6 @@ class GEOL_QMAPS:
             except subprocess.CalledProcessError as e:
                 print(f"Error installing {library_name}: {e}")
 
-        # Library Xlswriter
-        """ 
-        try:
-            import xlsxwriter
-
-        except:
-            install_library("xlsxwriter")
-
-        # Library Openpyxl
-        try:
-            import openpyxl
-
-        except:
-            install_library("openpyxl")
-        """
-
         # Library fiona
         try:
             import fiona
@@ -254,12 +252,6 @@ class GEOL_QMAPS:
         except:
             install_library("fuzzywuzzy")
 
-        """# Library Geopandas
-        try:
-            import geopandas
-
-        except:
-            install_library("geopandas")"""
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -276,7 +268,8 @@ class GEOL_QMAPS:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("GEOL_QMAPS", message)
 
-   # Lipari colorscale
+        # Lipari colorscale
+
     def lipari_color(self, score):
         """
         Returns a QColor based on the given normalized score (0 to 100)
@@ -476,6 +469,8 @@ class GEOL_QMAPS:
         template_version_file = open(template_version_file_path, "r")
         version = template_version_file.readline()
         template_version = version[1:].split(".")
+        template_version = [int(x) for x in version.lstrip("v").strip().split(".")]
+        print(f"Template version {template_version}")
 
         metadata_path = self.mynormpath(
             os.path.dirname(os.path.realpath(__file__)) + "/metadata.txt"
@@ -486,39 +481,89 @@ class GEOL_QMAPS:
             parts = line.split("=")
             if len(parts) == 2 and parts[0] == "version":
                 pversion = parts[1]
-                plugin_version = parts[1].split(".")
-        plugin_version[2] = plugin_version[2].strip()
+                plugin_version = [int(x) for x in parts[1].strip().split(".")]
 
         version_text = "Plugin v" + pversion.rstrip() + "  Template " + version
         self.dlg.versions_label.setText(version_text)
 
-        pv = ".".join(plugin_version)
-        tv = ".".join(template_version)
-        if template_version[0] > plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] > plugin_version[1]
+        pv = ".".join(str(x) for x in plugin_version)
+        tv = ".".join(str(x) for x in template_version)
+
+        # 1. Template is newer than plugin
+        if (
+                (template_version[0] > plugin_version[0])
+                or (
+                template_version[0] == plugin_version[0]
+                and template_version[1] > plugin_version[1]
+        )
         ):
             self.iface.messageBar().pushMessage(
-                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(
-                    pv, tv
-                ),
+                "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(pv, tv),
                 level=Qgis.Critical,
                 duration=45,
             )
-        elif template_version[0] < plugin_version[0] or (
-            (template_version[0] == plugin_version[0])
-            and template_version[1] < plugin_version[1]
+
+        # 2. Template version < 3.1.0
+        elif (
+                template_version[0] < 3
+                or (
+                        template_version[0] == 3
+                        and template_version[1] == 0
+                )
         ):
+            print("Template version < 3.1.0")
             self.iface.messageBar().pushMessage(
-                "Plugin {} newer than Template {}, uncertain behaviour! You can get the latest template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>".format(
-                    pv, tv
-                ),
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider reimplementing a GEOL-QMAPS project manually from the "
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>",
                 level=Qgis.Warning,
                 duration=45,
             )
-        else:
+
+        # 3. Template version = 3.1.0
+        elif (
+                template_version[0] == 3
+                and template_version[1] == 1
+                and template_version[2] == 0
+        ):
+            print("Template version = 3.1.0")
             self.iface.messageBar().pushMessage(
-                "SUCCESS: Plugin {} and Template {} are compatible!!".format(pv, tv),
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider either reimplementing a GEOL-QMAPS project manually from the "
+                "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a> "
+                "or using the Update Template Version tool in the Database Management tab of the plugin "
+                "(Compilation_Deformation zones_PG layer not handled though).",
+                level=Qgis.Warning,
+                duration=45,
+            )
+
+        # 3. Plugin is newer than template (any patch/minor difference)
+        elif (
+                (template_version[0] < plugin_version[0])
+                or (
+                        template_version[0] == plugin_version[0]
+                        and template_version[1] < plugin_version[1]
+                )
+                or (
+                        template_version[0] == plugin_version[0]
+                        and template_version[1] == plugin_version[1]
+                        and template_version[2] < plugin_version[2]
+                )
+        ):
+            print ("Plugin is newer than template (any patch/minor difference)")
+            self.iface.messageBar().pushMessage(
+                f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
+                "Please consider using the Update Template Version tool in the Database Management "
+                "tab of the plugin.",
+                level=Qgis.Warning,
+                duration=45,
+            )
+
+        # 4. All good
+        else:
+            print("Plugin and Template - same version")
+            self.iface.messageBar().pushMessage(
+                "SUCCESS: Plugin {} and Template {} are compatible.".format(pv, tv),
                 level=Qgis.Success,
                 duration=15,
             )
@@ -526,6 +571,66 @@ class GEOL_QMAPS:
         template_version_file.close()
         plugin_version_file.close()
 
+
+    # GEOL-QMAPS Project Validation
+    def is_valid_geol_qmaps_project(self, qgis_folder):
+        """
+        Validate that the selected folder is a GEOL-QMAPS project by checking
+        for the presence of COMPILATION.gpkg in the 1_EXISTING_FIELD_DATABASE subfolder.
+        """
+        expected_0 = os.path.join(qgis_folder, "0_FIELD_DATA", "CURRENT_MISSION.gpkg")
+        expected_1 = os.path.join(qgis_folder, "1_EXISTING_FIELD_DATABASE", "COMPILATION.gpkg")
+        expected_99 = os.path.join(qgis_folder, "99_COMMAND_FILES_PLUGIN")
+        if os.path.exists(expected_0) and os.path.exists(expected_1) and os.path.exists(expected_99):
+            return True
+        else:
+            return False
+
+    # Filename Length Check Helper
+    import tempfile
+    import os
+
+    def _check_max_filename_length(self, directory, max_length=256):
+        """
+        Walk through 'directory' and gather any full file‐paths longer than max_length.
+        If any are found, write them to a text file and show a clickable link in a
+        QGIS Critical message. Returns True if all paths are OK, False otherwise.
+        """
+        bad_paths = []
+        for root, dirs, files in os.walk(directory):
+            for name in files + dirs:
+                full_path = os.path.abspath(os.path.join(root, name))
+                if len(full_path) > max_length:
+                    bad_paths.append(full_path)
+
+        if bad_paths:
+            # Write the list to a temp file
+            log_file = os.path.join(tempfile.gettempdir(), "geol_qmaps_bad_paths.txt")
+            with open(log_file, "w", encoding="utf-8") as f:
+                for p in bad_paths:
+                    f.write(p + "\n")
+
+            # Ensure the file:// URL is well-formed
+            url = log_file.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            # Push a critical message with hyperlink
+            msg = (
+                f"{len(bad_paths)} paths exceed {max_length} characters. "
+                f"<a href='file://{url}'>Download list</a>"
+            )
+            self.iface.messageBar().pushMessage(
+                msg,
+                level=Qgis.Critical,
+                duration=0  # stays until dismissed
+            )
+            return False
+
+        return True
+
+
+    #RUN
     def run(self):
         """Run method that loads and starts the plugin"""
 
@@ -572,7 +677,7 @@ class GEOL_QMAPS:
 
         self.FM_Import = FM_Import(None)
 
-        if os.path.exists(self.geopackage_file_path):
+        if self.is_valid_geol_qmaps_project(self.basePath) is True:
             if not self.pluginIsActive:
                 self.pluginIsActive = True
 
@@ -624,49 +729,42 @@ class GEOL_QMAPS:
                     # self.dlg.setFixedSize(1131, 600)
 
                     ### Connection of PushButtons ###
+                    # QField to QGIS Sync
+                    self.dlg.pushButton_QFieldPackage.clicked.connect(self.select_QFieldPackage)
+                    self.dlg.pushButton_QGISFolder.clicked.connect(self.select_QGISFolder)
+                    self.dlg.pushButton_SyncQFieldToQGIS.clicked.connect(self.SyncQFieldToQGIS)
+
+                    # Rejig Project
+                    self.dlg.pushButton_37.clicked.connect(self.select_old_project_folder)
+                    self.dlg.rejig_pushButton_4.clicked.connect(self.rejig_project)
 
                     # Project_parameters
-                    self.dlg.projName_pushButton.clicked.connect(
-                        self.updateProjectTitle
-                    )
+                    self.dlg.projName_pushButton.clicked.connect(self.updateProjectTitle)
                     self.dlg.merge_pushButton.clicked.connect(self.mergeProjects)
                     self.dlg.merge_pushButton_2.clicked.connect(self.removeDuplicates)
-                    self.dlg.merge_layers_pushButton_2.clicked.connect(
-                        self.merge_2_layers
-                    )
+                    self.dlg.merge_layers_pushButton_2.clicked.connect(self.merge_2_layers)
 
                     self.dlg.clip_pushButton.clicked.connect(self.clipToCanvas)
-                    self.dlg.pushButton_19.clicked.connect(
-                        self.resetWindow_fieldwork_preparation
-                    )
+                    self.dlg.pushButton_19.clicked.connect(self.resetWindow_fieldwork_preparation)
 
                     # Import_data (the first button connects all the other buttons with the correct input parameters as the program runs)
-
                     self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
                     self.dlg.pushButton_11.clicked.connect(self.Go_Back_table1)
                     self.dlg.pushButton_12.clicked.connect(self.Go_Back_table2)
                     self.dlg.pushButton_25.clicked.connect(self.Go_Back_table3)
+                    self.dlg.pushButton_14.clicked.connect(self.Generate_Output_QGIS_Layers)
                     self.dlg.pushButton_13.clicked.connect(self.click_Reset_This_Window)
 
-                    self.dlg.pushButton_user_default.clicked.connect(
-                        self.set_user_by_default
-                    )  # ADD
-                    self.fill_ComboBox_layers_user()  # ADD
-
-                    self.dlg.pushButton_update_source_photo.clicked.connect(
-                        self.update_source_photo
-                    )  # ADD
+                    #User by default
+                    self.dlg.pushButton_user_default.clicked.connect(self.set_user_by_default)
+                    self.fill_ComboBox_layers_user()
 
                     # Save a new CURRENT_MISSION+DICTIONARIES.qlr file
-                    self.dlg.pushButton_save__project_template_style_2.clicked.connect(
-                        self.save_template_style
-                    )  # ADD
+                    self.dlg.pushButton_save__project_template_style_2.clicked.connect(self.save_template_style)  # ADD
 
                     # Export_data
                     self.dlg.export_pushButton.clicked.connect(self.exportData)
-                    self.dlg.pushButton_22.clicked.connect(
-                        self.resetWindow_data_management
-                    )
+                    self.dlg.pushButton_22.clicked.connect(self.resetWindow_data_management)
 
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
@@ -679,15 +777,14 @@ class GEOL_QMAPS:
                         )
                     )
 
-                    # auto inc
-                    """self.set_qmapsConfig()"""
-
-                    # CSV
+                    # Dictinaries
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
-                    # HELP
+                    #Picture Management
+                    self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo)
 
+                    # HELP
                     # Send email to Mark Jessell and Julien Perret
                     self.dlg.pushButton_24.clicked.connect(
                         lambda: QDesktopServices.openUrl(
@@ -703,8 +800,6 @@ class GEOL_QMAPS:
                             )
                         )
                     )
-
-                    # Help
 
                     # Connection to the Github issues page site  : https://github.com/swaxi/WAXI_QF/issues/
                     self.dlg.pushButton_23.clicked.connect(
@@ -725,40 +820,26 @@ class GEOL_QMAPS:
                         )
                     )
 
+                    self.dlg.pushButton_30.clicked.connect(
+                        lambda: QDesktopServices.openUrl(
+                            QUrl("https://github.com/swaxi/GEOL-QMAPS/blob/Julien_2505/README.md#65-help---roadmap-tab")
+                        )
+                    )
+
                     #  Connection to the AMIRA site : https://amira.global/
                     self.dlg.pushButton_40.clicked.connect(
                         lambda: QDesktopServices.openUrl(QUrl("https://amira.global/"))
                     )
 
-                    #  Connection to the CET site : https://www.cet.edu.au/
-                    # self.dlg.pushButton_37.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(QUrl("https://www.cet.edu.au/"))
-                    # )
-
                     #  Connection to the Zenodo repository for the corresponding template release:
                     self.dlg.pushButton_34.clicked.connect(
                         lambda: QDesktopServices.openUrl(
-                            QUrl("https://doi.org/10.5281/zenodo.15099095")
+                            QUrl("https://doi.org/10.5281/zenodo.7834717")
                         )
                     )
 
-                    #  Connection to the WAXI articles :
-                    # self.dlg.pushButton_38.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(
-                    #        QUrl("https://waxi4.org/publications/journal-articles/")
-                    #    )
-                    # )
-                    # self.dlg.pushButton_39.clicked.connect(
-                    #    lambda: QDesktopServices.openUrl(
-                    #        QUrl("https://waxi4.org/publications/theses/")
-                    #    )
-                    # )
-
                     # PushButtons to search for files on the computer
-
-                    self.dlg.pushButton_FM_project_select.clicked.connect(
-                        self.import_FM_Project
-                    )
+                    self.dlg.pushButton_FM_project_select.clicked.connect(self.import_FM_Project)
                     self.dlg.pushButton_7.clicked.connect(self.select_file_to_import)
                     self.dlg.pushButton_6.clicked.connect(self.select_clip_poly)
                     self.dlg.pushButton.clicked.connect(self.select_dst_directory)
@@ -766,36 +847,22 @@ class GEOL_QMAPS:
                     self.dlg.pushButton_20.clicked.connect(self.select_sub_project)
                     self.dlg.pushButton_27.clicked.connect(self.select_merged_directory)
                     self.dlg.pushButton_5.clicked.connect(self.select_export_directory)
-                    self.dlg.pushButton_15.clicked.connect(
-                        self.select_file_source_path_photo
-                    )  # ADD
-                    self.dlg.pushButton_17.clicked.connect(
-                        self.select_file_export_template_style
-                    )  # ADD
+                    self.dlg.pushButton_15.clicked.connect(self.select_file_source_path_photo)  # ADD
+                    self.dlg.pushButton_17.clicked.connect(self.select_file_export_template_style)  # ADD
 
-                    self.dlg.comboBox.currentIndexChanged.connect(
-                        self.update_combobox_delete
-                    )
-                    self.dlg.structure_style_on_pushButton.clicked.connect(
-                        self.set_orientation_style
-                    )
-                    self.dlg.structure_style_off_pushButton.clicked.connect(
-                        self.set_orientation_style
-                    )
+                    self.dlg.comboBox.currentIndexChanged.connect(self.update_combobox_delete)
 
-                    self.dlg.merge_current_existing_pushButton_3.clicked.connect(
-                        self.merge_current_to_existing
-                    )
+                    #Set Orientation Measurement Style
+                    self.dlg.structure_style_on_pushButton.clicked.connect(self.set_orientation_style)
+                    self.dlg.structure_style_off_pushButton.clicked.connect(self.set_orientation_style)
 
-                    self.dlg.pushButton_use_exif_azimuth.clicked.connect(
-                        self.use_exif_azimuth
-                    )
+                    self.dlg.merge_current_existing_pushButton_3.clicked.connect(self.merge_current_to_existing)
+
+                    self.dlg.pushButton_use_exif_azimuth.clicked.connect(self.use_exif_azimuth)
 
                     head_tail = os.path.split(proj_file_path)
                     main_project_path = head_tail[0] + "/"
-                    self.dictionaries_path = (
-                        main_project_path + self.dir_99 + "/Dictionaries.gpkg"
-                    )
+                    self.dictionaries_path = (main_project_path + self.dir_99 + "/Dictionaries.gpkg")
                     self.csvs = self.get_csv_list(self.dictionaries_path)
                     self.csvs = self.csvs[1:]
 
@@ -808,9 +875,7 @@ class GEOL_QMAPS:
                     field_index = layer.fields().indexFromName("Measure")
 
                     # Update default field value
-                    default_value = layer.defaultValueDefinition(
-                        field_index
-                    ).expression()
+                    default_value = layer.defaultValueDefinition(field_index).expression()
 
                     if default_value == "'Dip - dip direction'":
                         self.dlg.structure_style_on_pushButton.setChecked(True)
@@ -828,26 +893,17 @@ class GEOL_QMAPS:
                     ### Show the dialog
                     self.dlg.show()
 
-                # result = self.dlg.exec_()
-
         else:
-
-            self.iface.messageBar().pushMessage(
-                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, you can get the template <a href='https://doi.org/10.5281/zenodo.15099095'>here</a>",
-                level=Qgis.Critical,
-                duration=45,
+            title = "GEOL-QMAPS Plugin Error"
+            text = ("A project based on a GEOL-QMAPS template must be loaded before using this plugin. "
+            "You can download the template <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>."
             )
+            # critical() will show a modal dialog with a red “stop” icon
+            QMessageBox.critical(self.iface.mainWindow(),title,text)
 
     ###############################################################################
     ####################         Page 1 : Import data            ##################
     ###############################################################################
-
-    """
-    Author: Eliott Betend
-    For : WAXI Project (Stage 4) - CET 
-    Condition : version de QGIS > 3.22
-    """
-
     ###############################################################################
     ################# Step 0 : Check the input file nature ########################
     ###############################################################################
@@ -1347,8 +1403,11 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def DataFrame_columns_check(self, input_file, list_columns_check, name_input_file):
-        # list_columns_check might look like: [[old_legacy_field, alias], ... ]
+        # Guard against None (so an empty mapping still yields the default cols)
+        if list_columns_check is None:
+            list_columns_check = []
 
+        # list_columns_check might look like: [[old_legacy_field, alias], ... ]
         fichier_output = pd.DataFrame()
         list_columns_check3 = []
 
@@ -1962,7 +2021,7 @@ class GEOL_QMAPS:
             )
             return
 
-        # List of input structures
+        '''# List of input structures
         list_structure_input = fichier_output["Structures - Structure Type"].tolist()
 
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
@@ -1971,10 +2030,19 @@ class GEOL_QMAPS:
             self.dir_99 + "/columns_types_structures_WAXI4.csv",
         )
 
-        Dataframe = pd.read_csv(emplacement_files_WAXI_columns)
+        Dataframe = pd.read_csv(emplacement_files_WAXI_columns)'''
+
+        # Load the structure‐types lookup from the plugin folder
+        columns_csv = os.path.join(self.plugin_dir, "columns_types_structures.csv")
+        if not os.path.isfile(columns_csv):
+            self.iface.messageBar().pushMessage(
+                f"ERROR: Cannot find {columns_csv}", level=Qgis.Critical, duration=10
+            )
+            return
+        Dataframe = pd.read_csv(columns_csv)
 
         # Empty list of structure name pairs (input value, reference value)
-
+        list_structure_input = fichier_output["Structures - Structure Type"].tolist()
         list_trio_struct = []
         for k in range(0, len(list_structure_input)):
             list_trio_struct.append([list_structure_input[k], "NULL", 0])
@@ -2223,124 +2291,132 @@ class GEOL_QMAPS:
         Returns a list of sublists, each of the form:
           [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
         """
+        print("Enter recup_contenu_3")
         structure_map = []
         # List of standard mappings: each sublist is
-        # [legacy value, standard "Structures - Structure Type", standard layer, Type, Kinematics]
+        # [legacy value, standard "Structures - Structure Type", standard layer, Type]
         AssignedStructures = [
-            ['Lineations - Unknown Kinematics', 'Lineations_PT', 'Unknown', 'Unknown'],
-            ['Lineations - Normal-Slip', 'Lineations_PT', 'Unknown', 'Normal-slip'],
-            ['Lineations - Reverse-Slip', 'Lineations_PT', 'Unknown', 'Reverse-slip'],
-            ['Lineations - Dextral-Slip', 'Lineations_PT', 'Unknown', 'Dextral-slip'],
-            ['Lineations - Sinistral-Slip', 'Lineations_PT', 'Unknown', 'Sinistral-slip'],
-            ['Lineations_PT - Paleoflow Direction', 'Lineations_PT', 'Paleoflow direction', 'Unknown'],
-            ['Lineations_PT - UST', 'Lineations_PT', 'UST', 'Unknown'],
-            ['Lineations_PT - Bearing', 'Lineations_PT', 'Bearing lineation', 'Unknown'],
-            ['Bedding-Lava flow-S0_PT - Unknown Polarity', 'Bedding-Lava flow-S0_PT', 'Unknown', ''],
-            ['Bedding-Lava flow-S0_PT - Normal Polarity', 'Bedding-Lava flow-S0_PT', 'Normal', ''],
-            ['Bedding-Lava flow-S0_PT - Reverse Polarity', 'Bedding-Lava flow-S0_PT', 'Inverted', ''],
-            ['Foliation-cleavage_PT', 'Foliation-cleavage_PT', '', ''],
-            ['Shear zones and faults_PT - Unknown Kinematics', 'Shear zones and faults_PT', 'Unknown', ''],
-            ['Shear zones and faults_PT - Normal-Slip', 'Shear zones and faults_PT', 'Normal-slip', ''],
-            ['Shear zones and faults_PT - Low-Angle Detachment', 'Shear zones and faults_PT', 'Low-angle detachment',
-             ''],
-            ['Shear zones and faults_PT - Reverse-Slip', 'Shear zones and faults_PT', 'Reverse-slip', ''],
-            ['Shear zones and faults_PT - Dextral-Slip', 'Shear zones and faults_PT', 'Dextral-slip', ''],
-            ['Shear zones and faults_PT - Sinistral-Slip', 'Shear zones and faults_PT', 'Sinistral-slip', ''],
-            ['Folds_PT - Unknown, Recumbent, Vertical', 'Folds_PT', 'Unknown', ''],
-            ['Folds_PT - Anticline-Antiform', 'Folds_PT', 'Antiform', ''],
-            ['Folds_PT - Syncline-Synform', 'Folds_PT', 'Synform', ''],
-            ['Folds_PT - M-shaped', 'Folds_PT', 'M fold', ''],
-            ['Folds_PT - S-shaped', 'Folds_PT', 'S fold', ''],
-            ['Folds_PT - Z-shaped', 'Folds_PT', 'Z fold', ''],
-            ['Fractures_PT', 'Fractures_PT', '', ''],
-            ['Veins_PT', 'Veins_PT', '', ''],
-            ['Dikes - Sills_PT', 'Dikes - Sills_PT', '', ''],
-            ['Lithological contacts_PT', 'Lithological contacts_PT', '', ''],
+            ['','Lineations - Boudin', 'Lineations_PT', 'Boudin'],
+            ['','Lineations - Crenulation Lineation', 'Lineations_PT', 'Lc'],
+            ['','Lineations - Intersection Lineation', 'Lineations_PT', 'Li'],
+            ['','Lineations - Mineral Lineation', 'Lineations_PT', 'Lm'],
+            ['','Lineations - Stretching Lineation', 'Lineations_PT', 'Ls'],
+            ['','Lineations - Slickenside', 'Lineations_PT', 'Slickenside'],
+            ['','Lineations_PT - Paleoflow Direction', 'Lineations_PT', 'Paleoflow direction'],
+            ['','Lineations - Striations, Groovings, Casts', 'Lineations_PT', 'Striations, groovings, casts'],
+            ['','Lineations_PT - UST', 'Lineations_PT', 'UST'],
+            ['','Lineations_PT - Bearing', 'Lineations_PT', 'Bearing lineation'],
+            ['','Bedding-Lava flow-S0_PT - Unknown Polarity', 'Bedding-Lava flow-S0_PT', 'Unknown'],
+            ['','Bedding-Lava flow-S0_PT - Normal Polarity', 'Bedding-Lava flow-S0_PT', 'Normal'],
+            ['','Bedding-Lava flow-S0_PT - Reverse Polarity', 'Bedding-Lava flow-S0_PT', 'Inverted'],
+            ['','Foliation-cleavage_PT', 'Foliation-cleavage_PT', ''],
+            ['','Shear zones and faults_PT - Unclear Kinematics', 'Shear zones and faults_PT', 'Unclear'],
+            ['','Shear zones and faults_PT - Flattening - pure shear', 'Shear zones and faults_PT', 'Flattening - pure shear'],
+            ['','Shear zones and faults_PT - Normal-Slip', 'Shear zones and faults_PT', 'Normal-slip'],
+            ['','Shear zones and faults_PT - Low-Angle Detachment', 'Shear zones and faults_PT', 'Low-angle detachment'],
+            ['','Shear zones and faults_PT - Reverse-Slip', 'Shear zones and faults_PT', 'Reverse-slip'],
+            ['','Shear zones and faults_PT - Dextral-Slip', 'Shear zones and faults_PT', 'Dextral-slip'],
+            ['','Shear zones and faults_PT - Sinistral-Slip', 'Shear zones and faults_PT', 'Sinistral-slip'],
+            ['','Folds_PT - Unknown, Recumbent, Vertical', 'Folds_PT', 'Unknown'],
+            ['','Folds_PT - Anticline-Antiform', 'Folds_PT', 'Antiform'],
+            ['','Folds_PT - Syncline-Synform', 'Folds_PT', 'Synform'],
+            ['','Folds_PT - M-shaped', 'Folds_PT', 'M fold'],
+            ['','Folds_PT - S-shaped', 'Folds_PT', 'S fold'],
+            ['','Folds_PT - Z-shaped', 'Folds_PT', 'Z fold'],
+            ['','Fractures_PT', 'Fractures_PT', ''],
+            ['','Veins_PT', 'Veins_PT', ''],
+            ['','Dikes-Sills_PT', 'Dikes-Sills_PT', ''],
+            ['','Lithological contacts_PT', 'Lithological contacts_PT', ''],
         ]
-        # Loop through tableWidget3 rows
+
         for row in range(self.dlg.tableWidget3.rowCount()):
-            if self.dlg.tableWidget3.item(row, 0) is None:
+            item0 = self.dlg.tableWidget3.item(row, 0)
+            if not item0:
                 continue
-            old_value = self.dlg.tableWidget3.item(row, 0).text().strip()
-            if old_value == "-":
+            old_value = item0.text().strip()
+            if not old_value or old_value == "-":
                 continue
 
-            # Retrieve assigned value from column 1
-            if isinstance(self.dlg.tableWidget3.cellWidget(row, 1), QComboBox):
-                assigned_value = self.dlg.tableWidget3.cellWidget(row, 1).currentText().strip()
+            widget1 = self.dlg.tableWidget3.cellWidget(row, 1)
+            if isinstance(widget1, QComboBox):
+                assigned_value = widget1.currentText().strip()
             else:
-                assigned_item = self.dlg.tableWidget3.item(row, 1)
-                assigned_value = assigned_item.text().strip() if assigned_item else "NULL"
+                itm = self.dlg.tableWidget3.item(row, 1)
+                assigned_value = itm.text().strip() if itm else "NULL"
 
-            # Find a matching mapping from AssignedStructures based on the assigned_value
-            matching = None
-            for mapping in AssignedStructures:
-                if mapping[0] == assigned_value:
-                    matching = mapping
+            # find matching by alias (mapping[1]):
+            matched = False
+            for std in AssignedStructures:
+                if std[1] == assigned_value:
+                    print(f"Standard value selected in AssignedStructures: {assigned_value}")
+                    structure_map.append([
+                        old_value,  # original text
+                        assigned_value,  # alias chosen
+                        std[2],  # standard layer name
+                        std[3],  # Type
+                    ])
+                    print(f"Updated structure_map: {structure_map}")
+                    matched = True
                     break
-            if matching:
-                # Create a sublist with five elements:
-                # [old_value, assigned_value, standard_layer, Type, Kinematics]
-                structure_map.append([old_value, assigned_value, matching[1], matching[2], matching[3]])
-            else:
-                # No mapping found: use defaults ("Unknown" for layer, empty strings for Type/Kinematics)
-                structure_map.append([old_value, assigned_value, "Unknown", "", ""])
+
+            if not matched:
+                print(f"Standard value selected not in AssignedStructures: {assigned_value}")
+                structure_map.append([
+                    old_value,
+                    assigned_value,
+                    "Unknown",
+                    "",  # no Type
+                ])
+                print(f"Updated structure_map: {structure_map}")
+
+        print(f"[DEBUG] Built structure_map with {len(structure_map)} entries:")
+        for entry in structure_map:
+            print("  ", entry)
+
         return structure_map
 
     ###############################################################################
     ######         Step 9 : Structure sorting in differents Excel sheets     ######
     ###############################################################################
 
-    def structure_sorting(self,
-                          fichier_output: pd.DataFrame,
-                          structure_map: list,
-                          list_columns_check3: list,
-                          name_input_file: str) -> dict:
+    def structure_sorting(self, fichier_output, structure_map, list_columns_check3, name_input_file):
         """
         Sorts the rows in fichier_output into multiple structure-type DataFrames
         based on the user-confirmed mapping.
         Each mapping in structure_map is a list with:
           [old_legacy_value, assigned_structure, standard_layer, Type, Kinematics]
         """
-        # 1) Build the mapping dictionary.
+        print("Enter structure_sorting")
+        # 1) Build lookup dict
         map_dict = {}
-        for entry in structure_map:
-            if len(entry) < 2:
-                continue
-            old_val = entry[0].strip() if isinstance(entry[0], str) else str(entry[0]).strip()
-            assigned = entry[1].strip() if len(entry) > 1 and isinstance(entry[1], str) else str(entry[1]).strip()
-            layer = entry[2].strip() if len(entry) > 2 and isinstance(entry[2], str) else "Unknown"
-            type_val = entry[3].strip() if len(entry) > 3 and isinstance(entry[3], str) and entry[
-                3].strip() != "" else None
-            kinematics_val = entry[4].strip() if len(entry) > 4 and isinstance(entry[4], str) and entry[
-                4].strip() != "" else None
-            map_dict[old_val] = {
+        for old_val, assigned, layer, type_val in structure_map:
+            key = old_val.strip()
+            # normalize empty → None
+            t = type_val.strip() or None
+            map_dict[key] = {
                 "assigned": assigned,
                 "layer": layer,
-                "Type": type_val,
-                "Kinematics": kinematics_val
+                "Type": t,
             }
+            print(f"[DEBUG] mapping for '{key}': layer='{layer}', Type='{t}'")
 
-        # 2) Update fichier_output with new structure values and auto-fill additional fields.
-        if "Structures - Structure Type" in fichier_output.columns:
-            if "Type" not in fichier_output.columns:
-                fichier_output["Type"] = ""
-            if "Kinematics" not in fichier_output.columns:
-                fichier_output["Kinematics"] = ""
-            if "Standard_Layer" not in fichier_output.columns:
-                fichier_output["Standard_Layer"] = ""
-            for i in range(len(fichier_output)):
-                old_val = fichier_output.loc[i, "Structures - Structure Type"].strip()
-                if old_val in map_dict:
-                    mapping = map_dict[old_val]
-                    fichier_output.loc[i, "Structures - Structure Type"] = mapping["assigned"]
-                    fichier_output.loc[i, "Standard_Layer"] = mapping["layer"]
-                    if mapping["Type"]:
-                        fichier_output.loc[i, "Type"] = mapping["Type"]
-                    if mapping["Kinematics"]:
-                        fichier_output.loc[i, "Kinematics"] = mapping["Kinematics"]
-                else:
-                    fichier_output.loc[i, "Structures - Structure Type"] = "Unknown"
+        # 2) Ensure DataFrame has the columns we need
+        for col in ("Type", "Standard_Layer"):
+            if col not in fichier_output.columns:
+                fichier_output[col] = ""
+
+        # 3) Apply to each row
+        for idx, row in fichier_output.iterrows():
+            legacy = str(row.get("Structures - Structure Type", "")).strip()
+            if legacy in map_dict:
+                info = map_dict[legacy]
+                fichier_output.at[idx, "Structures - Structure Type"] = info["assigned"]
+                fichier_output.at[idx, "Standard_Layer"] = info["layer"]
+                if info["Type"] is not None:
+                    fichier_output.at[idx, "Type"] = info["Type"]
+                    print(f"[DEBUG] Row {idx}: set Type='{info['Type']}'")
+            else:
+                print(f"[DEBUG] Row {idx}: no mapping for '{legacy}', skipping")
 
         # 3) Create empty DataFrames for each known structure layer.
         project = QgsProject.instance()
@@ -2370,33 +2446,39 @@ class GEOL_QMAPS:
             df_key = f"{struct_layer_name}_{base_filename}"
             # Create a new DataFrame with this header.
             fichier_output_structures[df_key] = pd.DataFrame(columns=header)
+        print(f"Fichier_output_structures with headers, before filling:{fichier_output_structures}")
 
         # 4) Append each row of fichier_output to the appropriate structure-type DataFrame.
         for i in range(len(fichier_output)):
             standard_layer = (fichier_output.loc[i, "Standard_Layer"]
-                              if "Standard_Layer" in fichier_output.columns
-                              else fichier_output.loc[i, "Structures - Structure Type"])
+            if "Standard_Layer" in fichier_output.columns
+            else fichier_output.loc[i, "Structures - Structure Type"])
             if standard_layer in structure_layer_names:
                 df_key = f"{standard_layer}_{base_filename}"
                 if df_key not in fichier_output_structures:
                     continue
                 target_df = fichier_output_structures[df_key]
+                print(f"Targeted dataframe before append:\n{target_df}")  # debug
                 row_to_append = []
                 for col_reference in target_df.columns:
-                    # For the "Kinematics" field, copy directly from fichier_output.
-                    if col_reference.lower() == "kinematics":
-                        row_to_append.append(fichier_output.at[i, "Kinematics"])
+                    lc = col_reference.lower()
+                    if lc == "type":
+                        # copy the Type field
+                        value = fichier_output.at[i, "Type"]
                     else:
+                        # fall back via alias mapping
                         alias_for_col = self.alias_mapping.get(col_reference, col_reference)
                         if alias_for_col in fichier_output.columns:
-                            row_to_append.append(fichier_output.at[i, alias_for_col])
+                            value = fichier_output.at[i, alias_for_col]
                         else:
-                            row_to_append.append("")
+                            value = ""
+                    row_to_append.append(value)
                 # If "Reference" exists and was not assigned in Table1, fill it.
                 if "Reference" in target_df.columns and "Reference" not in list_columns_check3:
                     ref_index = target_df.columns.get_loc("Reference")
                     row_to_append[ref_index] = base_filename
                 target_df.loc[len(target_df)] = row_to_append
+                print(f"Row to append to the targeted dataframe: {row_to_append}")
 
         return fichier_output_structures
 
@@ -2405,7 +2487,26 @@ class GEOL_QMAPS:
     ##   Step 9 : Import the 2 fichier_output (lithology + structure) into QGIS  ##
     ###############################################################################
 
-    def import_Excel_create_QGISfile(self, file_lithology, file_structure):
+    def import_Excel_create_QGISfile(self, file_lithology, file_structure, name_input_file):
+
+        print(f"file_structure: {file_structure}")
+        # --- ensure root group exists
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+
+        harm_group = root.findGroup("HARMONISED LEGACY SCRATCH DATA")
+        # Prepare the "HARMONISED LEGACY SCRATCH DATA" group at top of the Tree
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+        harm_group = root.findGroup("HARMONISED LEGACY SCRATCH DATA")
+        if not harm_group:
+            harm_group = root.insertGroup(0, "HARMONISED LEGACY SCRATCH DATA")
+
+        # Prepare the 'name_input_file' subgroup within the "HARMONISED LEGACY SCRATCH DATA" group
+        base_name = os.path.splitext(name_input_file)[0]
+        sub_harm_group = harm_group.findGroup(base_name)
+        if not sub_harm_group:
+            sub_harm_group = harm_group.insertGroup(0, base_name)
 
         # from openpyxl import Workbook, load_workbook
 
@@ -2430,10 +2531,23 @@ class GEOL_QMAPS:
             # loop through all the sheets in the Excel workbook
             for sheet in workbook:
 
-                # sheet = workbook[sheet_name]
+                # Get the sheet’s DataFrame
+                df = workbook[sheet]
 
                 # Retrieve column names
-                headers = list(workbook[sheet].columns)
+                headers = list(df.columns)
+
+                # Retrieve some key indices
+                dipdir_idx = headers.index("Dip_Dir") if "Dip_Dir" in headers else None
+                # print(f"dip dir index in {layer_name} is:{dipdir_idx}")
+                strike_idx = headers.index("Strike_RHR") if "Strike_RHR" in headers else None
+                # print(f"strike index in {layer_name} is:{strike_idx}")
+                measure_idx = headers.index("Measure") if "Measure" in headers else None
+                # print(f"Type of structural measurement index in {layer_name} is:{measure_idx}")
+                trend_idx = headers.index("Trend") if "Trend" in headers else None
+                # print(f"Younging trend index in {layer_name} is:{trend_idx}")
+                younging_idx = headers.index("Younging") if "Younging" in headers else None
+                # print(f"Younging indication index in {layer_name} is:{younging_idx}")
 
                 # Retrieve geometry column index
                 geometry_column_index = headers.index("Geometry")
@@ -2486,11 +2600,63 @@ class GEOL_QMAPS:
                 # Add fields content by looping through sheet rows
                 for index, row in workbook[sheet].iterrows():
 
-                    # Geometry
+                    # Convert row to mutable list
+                    row_vals = list(row)
+
+                    #Measure field --> structural measurement
+                    if measure_idx is not None:
+                        dipdir_val = row_vals[dipdir_idx] if dipdir_idx   is not None else None
+                        strike_val = row_vals[strike_idx] if strike_idx   is not None else None
+                        try:
+                            dipdir_num = float(dipdir_val)
+                        except (TypeError, ValueError):
+                            dipdir_num = None
+                        try:
+                            strike_num = float(strike_val)
+                        except (TypeError, ValueError):
+                            strike_num = None
+                        #print(f"Structural measurement confirmed: fixing DipDir ({dipdir_num}) or Strike value({strike_num}) for entity {index} in {layer_name} ongoing...")
+
+                        # 1) If Dip_Dir is non-null & Strike_RHR is null ⇒ compute Strike_RHR & Measure
+                        if dipdir_idx is not None and strike_idx is not None and dipdir_num is not None and (
+                                strike_num is None or pd.isna(strike_val) or strike_val == ""):
+                            # Now dipdir_num is guaranteed not None, so comparison is safe
+                            computed = dipdir_num - 90 if dipdir_num > 90 else dipdir_num + 270
+                            row_vals[strike_idx] = str(computed)
+                            row_vals[measure_idx] = "Dip - dip direction"
+
+                        # 2) Else if Strike_RHR is non-null & Dip_Dir is null ⇒ compute Dip_Dir & Measure
+                        elif dipdir_idx is not None and strike_idx is not None and strike_num is not None and (
+                                dipdir_num is None or pd.isna(dipdir_val) or dipdir_val == ""):
+                            # Now strike_num is guaranteed not None
+                            computed = strike_num + 90 if strike_num < 270 else strike_num - 270
+                            row_vals[dipdir_idx] = str(computed)
+                            row_vals[measure_idx] = "Strike (right-hand rule) - dip"
+
+                        #print(f"field values for entity {index} in {layer_name} are {row_vals} ")
+
+                    # 3) If Trend is non-null ⇒ set Younging = 'Yes'
+                    if trend_idx is not None and younging_idx is not None:
+                        trend_val = row_vals[trend_idx]
+                        try:
+                            trend_num = float(trend_val)
+                        except (TypeError, ValueError):
+                            trend_num = None
+                        #print(f"Lithology point with Younging indication confirmed: fixing Younging indication for entity {index} in {layer_name} ongoing...")
+                        if pd.notna(trend_val) and trend_val != "":
+                            row_vals[younging_idx] = "Yes"
+                        #print(f"Younging indicator now set to {row_vals[younging_idx]}")
+
+                    #print(f"field values for entity {index} in {layer_name} are {row_vals} ")
+
+                    # rebuild row from the updated row_vals list so geometry + attributes use the new values
+                    row = pd.Series(row_vals, index=row.index)
+
+                    # Geometry updated with row_vals
                     feature = QgsFeature(layer.fields())
                     geometry_wkt = row[geometry_column_index]
                     feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
-
+                    
                     # Other fields of the attribute table by looping through sheet columns
                     for i, value in enumerate(row):
 
@@ -2505,9 +2671,9 @@ class GEOL_QMAPS:
                                 )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
                                 self.sheetHashUUID[str(hash)] = [new_text]
                             elif (
-                                field_names[i] == "Measure" and "Lineations_PT" in sheet
+                                field_names[i] == "Measure" and ("Lineations_PT" or "Folds_PT") in sheet
                             ):
-                                feature.setAttribute(i, "Vertical plane")
+                                feature.setAttribute(i, "Trend - Plunge")
                             elif field_names[i] == "Existing databases - raw data":
                                 new_text = {}
                                 for pair in value[:-1].split(";"):
@@ -2530,16 +2696,16 @@ class GEOL_QMAPS:
 
                 # Add the layer to the QGIS project
                 if layer.featureCount() > 0:
-                    QgsProject.instance().addMapLayer(layer)
+                    QgsProject.instance().addMapLayer(layer,addToLegend=False)
+                    sub_harm_group.insertLayer(0, layer)
                 iface.mapCanvas().refresh()
 
     ###############################################################################
-    ######             5 METHODES globales de la page Import_data          ########
+    ######                   Import Legacy Field Data (.shp)               ########
     ###############################################################################
 
     def method_import_data(self):
-
-        # Retrieve the path of the file to be processed from the computer (input by the user)
+        '''Retrieve the path of the file to be processed from the computer (input by the user)'''
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_13.text())):
 
             path_layer_to_import = self.dlg.lineEdit_13.text()
@@ -2553,11 +2719,8 @@ class GEOL_QMAPS:
 
             if layer.isValid():
                 pass
-
             else:
-                self.iface.messageBar().pushMessage(
-                    "Erreur", "Unable to load selected layer !", level=Qgis.Critical
-                )
+                self.iface.messageBar().pushMessage("Erreur", "Unable to load selected layer !", level=Qgis.Critical)
 
             # Step 1 : Check layer coordinates + Create the Geometry column
             self.convert_coordinates_WGS84(layer)
@@ -2566,7 +2729,7 @@ class GEOL_QMAPS:
             fichier_input = self.export_layer_fill_Table1(layer)
 
             self.iface.messageBar().pushMessage(
-                "Selected File loaded ", "OK", level=Qgis.Success, duration=45
+                "Selected File loaded: Please proceed further with Step 2 (Database Fields table)", level=Qgis.Success, duration=45
             )
 
             return fichier_input, name_layer_to_import
@@ -2579,48 +2742,56 @@ class GEOL_QMAPS:
             )
 
     def method_columns_check_OK(self, fichier_input, name_layer_to_import):
-
-        # Step 3 : Retrieving data from QTableWidget1
+        '''Check database fields and populate Lithology and Structure Tables'''
+        # Step 1 : Retrieving data from QTableWidget1
         list_columns_check = self.recup_contenu_1()
 
-        # Step 4 : Dataframe creation with sorted and verified columns
-        fichier_output, list_columns_check3 = self.DataFrame_columns_check(
-            fichier_input, list_columns_check, name_layer_to_import
-        )
+        # Step 2 : Dataframe creation with sorted and verified columns
+        fichier_output, list_columns_check3 = self.DataFrame_columns_check(fichier_input, list_columns_check, name_layer_to_import)
 
         if "Lithology - Outcrop Lithology" in list_columns_check3:
-            # Step 5 LITHO : Fill Table2 with Lithologies pairs
+            # Step 3 LITHO : Fill Table2 with Lithologies pairs
             self.fill_Table2(fichier_output)
 
         if "Structures - Structure Type" in list_columns_check3:
-            # Step 6 STRUCTURE : Fill Table3 with Structure pairs
+            # Step 3bis STRUCTURE : Fill Table3 with Structure pairs
             self.fill_Table3(fichier_output)
 
         self.iface.messageBar().pushMessage(
-            "Names of columns checked ", "OK", level=Qgis.Success, duration=45
+            "Names of columns checked: Please proceed further with Step 2 (Lithology Names and/or Structure Types tables)", level=Qgis.Success, duration=45
         )
 
         # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.
         if "Structures - Structure Type" in list_columns_check3:
-            self.iface.messageBar().pushMessage(
-                "Warning",
-                "If your data source includes both linear and planar measurements, but dip direction and trend/plunge direction (or dip and plunge, respectively) share the same data fields, please ensure that you import them separately. For planar measurements, assign legacy fields to standard values as follows: select \"Structures – Planar Measurements / Dip Direction\" and \"Structures – Planar Measurements / Dip\". For linear measurements, assign them using \"Structures – Linear Measurements / Trend – Plunge Direction\" and \"Structures – Linear Measurements / Trend – Plunge\".",
-                level=Qgis.Warning,
-                duration=45
+            msg = QMessageBox(self.dlg)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Warning")
+            msg.setText(
+                "If your data source includes both linear and planar measurements, and that dip direction and "
+                "trend/plunge direction (and/or dip and plunge, respectively) share the same data fields, "
+                "please ensure that you import them separately.\n\n"
+                "• For planar measurements, assign legacy fields to standard values as follows:\n"
+                "  – Structures – Planar Measurements / Dip Direction\n"
+                "  – Structures – Planar Measurements / Dip\n\n"
+                "• For linear measurements, assign them using:\n"
+                "  – Structures – Linear Measurements / Trend – Plunge Direction\n"
+                "  – Structures – Linear Measurements / Trend – Plunge\n\n"
+                "If you want to add kinematics information to legacy lineations, please make sure to have a "
+                "“Kinematics” column in the legacy database, with values limited to:\n"
+                "Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment. \n"
+                "This field should be assigned to “Structures - Kinematics“."
             )
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
 
         return fichier_output, list_columns_check3
 
-    #Check lithologies and get the files ready for export to scratch standard layers
-    def method_lithologies_check_OK(
-        self, name_layer_to_import, fichier_output, list_columns_check3
-    ):
-
-        # Step 7 : Retrieving data from QTableWidget2
+    def method_lithologies_check_OK(self, name_layer_to_import, fichier_output, list_columns_check3):
+        '''Check lithologies and get the files ready for export to scratch standard layers'''
+        # Step 1 : Retrieving data from QTableWidget2
         list_lithologies_unique_check_OK = self.recup_contenu_2()
 
-
-        # Step 8 : Organizing lithologies in different sheets of an Excel file
+        # Step 2 : Organizing lithologies in different sheets of an Excel file
         fichier_output_lithology = self.lithologies_sorting(
             fichier_output,
             list_columns_check3,
@@ -2629,44 +2800,34 @@ class GEOL_QMAPS:
         )
         return fichier_output_lithology
 
-    #Check Structures and get the files ready for export to scratch standard layers
     def method_structures_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
-        # Step 1: gather user inputs, fill table, etc.
-
-        # Step 2: call self.structure_sorting or any function that builds a dictionary
+        '''Check Structures and get the files ready for export to scratch standard layers'''
+        print("Enter method_structures_check_OK")
+        # Step 1: call self.structure_sorting or any function that builds a dictionary
         structure_map=self.recup_contenu_3()
-        fichier_output_structures = self.structure_sorting(
-            fichier_output, structure_map, list_columns_check3, name_layer_to_import
-        )
+        fichier_output_structures = self.structure_sorting(fichier_output, structure_map, list_columns_check3, name_layer_to_import)
 
-        # Step 3: actually return that dictionary
+        # Step 2: actually return that dictionary
         return fichier_output_structures
 
     def method_import_data_as_layers(self, fichier_output_lithology, fichier_output_structures):
-
-        # Step 7 : Import the Excel file into QGIS and create different QGIS files
-        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures)
+        '''Import the Excel file into QGIS and create different QGIS files'''
+        self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures, self.name_layer_to_import)
         self.iface.messageBar().pushMessage(
-            "Data imported in the QGIS project ", "OK", level=Qgis.Success, duration=45
+            "Data imported in the QGIS project as scratch layers: please proceed further with Step 4.", level=Qgis.Success, duration=45
         )
 
     ###############################################################################
-    ######                 5 CLICKS de la page Import_data                 ########
+    ######             Import Legacy Field Data (.shp) - Buttons           ########
     ###############################################################################
-
     def click_import_data(self):
-
-        fichier_input = 0
-        name_layer_to_import = 0
-        fichier_input, name_layer_to_import = self.method_import_data()
-
-        # Connect Columns check OK button correctly
+        '''Connect Columns check OK button correctly'''
         self.fichier_input, self.name_layer_to_import = self.method_import_data()
         self.dlg.pushButton_9.setEnabled(True)
         self.dlg.pushButton_9.clicked.connect(self.handlePushButton9)
 
     def handlePushButton9(self):
-        # Check that the necessary data has been imported
+        '''Check that the necessary data has been imported'''
         if hasattr(self, 'fichier_input') and hasattr(self, 'name_layer_to_import'):
             self.click_columns_check_OK(self.fichier_input, self.name_layer_to_import)
         else:
@@ -2674,13 +2835,14 @@ class GEOL_QMAPS:
 
 
     def click_columns_check_OK(self, fichier_input, name_layer_to_import):
-
+        """
+        Called when handlePushButton9 is clicked.
+        Uses the helper method_columns_check_OK to generate the lithologies and/or structures tables.
+        """
         fichier_output = pd.DataFrame()
         list_columns_check3 = []
 
-        fichier_output, list_columns_check3 = self.method_columns_check_OK(
-            fichier_input, name_layer_to_import
-        )
+        fichier_output, list_columns_check3 = self.method_columns_check_OK(fichier_input, name_layer_to_import)
 
         # Connect Lithologies check OK button correctly
         if "Lithology - Outcrop Lithology" in list_columns_check3:
@@ -2701,47 +2863,83 @@ class GEOL_QMAPS:
         """
         self.fichier_output_lithology = self.method_lithologies_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
         self.create_lithologies = True
-        self.iface.messageBar().pushMessage("Names of lithologies checked ", "OK", level=Qgis.Success, duration=45)
+        self.iface.messageBar().pushMessage("Names of lithologies checked: Please proceed further with Step 2 (if you need to check the Structure Types table) or 3", level=Qgis.Success, duration=45)
 
     def click_structure_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
         """
         Called when pushbutton26 is clicked.
         Uses the helper method_structures_check_OK to generate the structures DataFrame.
         """
+        print("Enter click_structure_check_OK")
         self.fichier_output_structures = self.method_structures_check_OK(fichier_output, list_columns_check3, name_layer_to_import)
         self.create_structures = True
-        self.iface.messageBar().pushMessage("Types of structures checked ", "OK", level=Qgis.Success, duration=45)
+        self.iface.messageBar().pushMessage("Types of structures checked: Please proceed further with Step 2 (if you need to check the Lithology Names table) or 3", level=Qgis.Success, duration=45)
 
     def Generate_Output_QGIS_Layers(self):
         """
-        Generates scratch QGIS layers based on the DataFrames produced by the check_OK methods.
-        If only lithologies or only structures were checked, only that set of layers is created.
-        If both were checked, layers for both are generated.
+        Generates scratch QGIS layers based on the DataFrames produced by
+        the check_OK methods. Handles three cases:
+          • both lithologies & structures
+          • only lithologies
+          • only structures
         """
-        # Generate lithologies layers if the flag is set
-        if self.create_lithologies is not None and self.fichier_output_lithology is not None and self.create_structures is not None and self.fichier_output_structures is not None:
-            self.iface.messageBar().pushMessage("Generating lithologies and structures layers...", level=Qgis.Info, duration=10)
-            self.method_import_data_as_layers(self.fichier_output_lithology, self.fichier_output_structures)
+        # Do we have valid lithology and/or structure outputs?
+        has_lith = hasattr(self, 'fichier_output_lithology') \
+                   and self.fichier_output_lithology is not None
+        has_struc = hasattr(self, 'fichier_output_structures') \
+                    and self.fichier_output_structures is not None
 
-        # Generate structures layers if the flag is set
-        elif self.create_lithologies is not None and self.fichier_output_lithology is not None:
-            self.iface.messageBar().pushMessage("Generating lithologies layers...", level=Qgis.Info, duration=10)
-            self.method_import_data_as_layers(self.fichier_output_lithology, None)
+        if has_lith and has_struc:
+            # Both lithology and structure DataFrames exist
+            self.iface.messageBar().pushMessage(
+                "Generating lithologies and structures layers...",
+                level=Qgis.Info, duration=10
+            )
+            self.method_import_data_as_layers(
+                self.fichier_output_lithology,
+                self.fichier_output_structures
+            )
 
-        # Generate structures layers if the flag is set
-        elif self.create_structures is None and self.fichier_output_structures is None:
-            self.iface.messageBar().pushMessage("Generating structures layers...", level=Qgis.Info, duration=10)
-            self.method_import_data_as_layers(None, self.fichier_output_structures)
+        elif has_lith:
+            # Only lithology DataFrame exists
+            self.iface.messageBar().pushMessage(
+                "Generating lithologies layers...",
+                level=Qgis.Info, duration=10
+            )
+            self.method_import_data_as_layers(
+                self.fichier_output_lithology,
+                None
+            )
 
-        # Reset the flags after generation
+        elif has_struc:
+            # Only structure DataFrame exists
+            self.iface.messageBar().pushMessage(
+                "Generating structures layers...",
+                level=Qgis.Info, duration=10
+            )
+            self.method_import_data_as_layers(
+                None,
+                self.fichier_output_structures
+            )
+
+        else:
+            # Neither was validated
+            self.iface.messageBar().pushMessage(
+                "Please validate lithologies and/or structures before creating layers.",
+                level=Qgis.Warning, duration=45
+            )
+
+        # Reset flags and clear input
         self.create_lithologies = False
         self.create_structures = False
+        self.dlg.lineEdit_13.clear()
 
     def click_Reset_This_Window(self):
+        '''Reset the Window button'''
         self.resetWindow_import_data()
 
     ###############################################################################
-    ################       Page 2 : Fieldwork preparation           ###############
+    ################            Fieldwork Preparation               ###############
     ###############################################################################
 
     def safe_copy_file(self, src_path, dst_path):
@@ -2759,195 +2957,124 @@ class GEOL_QMAPS:
     ### Clip to Canvas ###
 
     def clipToCanvas(self):
-        # Clips all WAXI QFIELD vector layers to current canvas and
-        # saves out layers in a new directory
-
-        if self.dlg.lineEdit_3.text():
-
-            # set up paths
-            project = QgsProject.instance()
-            proj_file_path = project.fileName()
-            head_tail = os.path.split(proj_file_path)
-
-            oldProjPath = head_tail[0] + "/"
-            oldGpkgPath = (
-                oldProjPath + "/1_EXISTING_FIELD_DATABASE/" + "COMPILATION.gpkg"
-            )
-            newProjPath = self.mynormpath(self.dlg.lineEdit_3.text()).strip() + "/"
-            newGpkgPath = (
-                newProjPath + "/1_EXISTING_FIELD_DATABASE/" + "COMPILATION.gpkg"
-            )
-            shp_list = self.mynormpath(
-                os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
-            )
-
-            clip_poly_shp = self.mynormpath(self.dlg.lineEdit_8.text())
-
-            shps = pd.read_csv(shp_list, names=["name", "dir_code"])
-            shps = shps.set_index("name")
-
-            # clipping rectangle from shapefile polygon
-            if self.dlg.lineEdit_8.text():
-
-                clip_layer = QgsVectorLayer(
-                    os.path.split(clip_poly_shp)[0],
-                    os.path.split(clip_poly_shp)[1],
-                    "ogr",
-                )
-            # clipping rectangle from Canvas
-            else:
-                e = self.iface.mapCanvas().extent()
-
-                extent = QgsRectangle(
-                    e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum()
-                )  # Replace with the desired extents
-                geom = QgsGeometry().fromRect(extent)
-                ftr = QgsFeature()
-                ftr.setGeometry(geom)
-                project = QgsProject.instance()
-                crs = project.crs()
-                clip_layer = QgsVectorLayer(
-                    "Polygon?{}".format(crs), "Test_polygon", "memory"
-                )
-                with edit(clip_layer):
-                    clip_layer.addFeature(ftr)
-
-            # create directory structure
-
-            dirs = [
-                newProjPath,
-                newProjPath + self.dir_0,
-                newProjPath + self.dir_99,
-                newProjPath + "/1_EXISTING_FIELD_DATABASE/",
-            ]
-
-            for dirpath in dirs:
-                if not os.path.exists(self.mynormpath(dirpath)):
-                    os.mkdir(self.mynormpath(dirpath))
-
-            # copy over files that are not clipped
-            cp_dirs = [
-                # "1_EXISTING_FIELD_DATABASE",
-                "2_GPS-LOCALITIES_OF_INTEREST",
-                "3_GEOCHEMISTRY",
-                "4_GEOCHRONOLOGY",
-                "5_MINING_AND_EXPLORATION",
-                "6_GEOLOGY",
-                "7_GEOPHYSICS",
-                "8_LAND_USE",
-                "9_GEOGRAPHY",
-                "10_TOPOGRAPHY",
-                # "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY",
-                # self.dir_0 + "/DCIM/",
-            ]
-
-            for cp_dir in cp_dirs:
-                src_path = oldProjPath + cp_dir
-                dst_path = self.mynormpath(newProjPath + cp_dir)
-                self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_99 + "Dictionaries.gpkg"
-            dst_path = newProjPath + self.dir_99 + "Dictionaries.gpkg"
-
-            self.safe_copy_file(src_path, dst_path)
-
-            shutil.copyfile(
-                proj_file_path,
-                newProjPath + "/" + head_tail[1].replace(".qgz", "_clip.qgz"),
-            )
-
-            shutil.copyfile(oldGpkgPath, newGpkgPath)
-
-            shutil.copyfile(
-                oldProjPath + "/0_FIELD_DATA/" + "CURRENT_MISSION.gpkg",
-                newProjPath + "/0_FIELD_DATA/" + "CURRENT_MISSION.gpkg",
-            )
-
-            src_path = oldProjPath + self.dir_0 + "/DCIM/"
-            dst_path = self.mynormpath(newProjPath + self.dir_0 + "/DCIM/")
-            self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_11
-            dst_path = self.mynormpath(newProjPath + self.dir_11)
-            self.safe_copy_tree(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
-            dst_path = newProjPath + self.dir_0 + "/CURRENT_MISSION+DICTIONARIES.qlr"
-            self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + "/1_EXISTING_FIELD_DATABASE/" + "/COMPILATION.qlr"
-            dst_path = newProjPath + "/1_EXISTING_FIELD_DATABASE/" + "/COMPILATION.qlr"
-            if os.path.exists(src_path):
-                self.safe_copy_file(src_path, dst_path)
-
-            src_path = oldProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
-            dst_path = newProjPath + self.dir_11 + "/GoogleSatellite_5km_compressed.tif"
-            if os.path.exists(src_path):
-                self.safe_copy_file(src_path, dst_path)
-
-            in_pref = oldProjPath + self.dir_99
-            out_pref = newProjPath + self.dir_99
-
-            copies = [
-                [oldGpkgPath, newGpkgPath],
-                [in_pref + "columns_reference_WAXI4.csv", out_pref + "columns_reference_WAXI4.csv"],
-                [in_pref + "columns_types_structures_WAXI4.csv", out_pref + "columns_types_structures_WAXI4.csv"],
-                [in_pref + "stereonet.json", out_pref + "stereonet.json"],
-                [in_pref + "Version.txt", out_pref + "Version.txt"],
-                [in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv", out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv"],
-                [in_pref + "Dictionaries.gpkg", out_pref + "Dictionaries.gpkg"],
-                [in_pref + "qmap.json", out_pref + "qmap.json"],
-            ]
-
-            for pairs in copies:
-                shutil.copyfile(self.mynormpath(pairs[0]), self.mynormpath(pairs[1]))
-
-            # Prepare the output shapefile parameters for clipping
-
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-
-                """
-                if layer.name() in shps.index.tolist():
-                if (
-                    ("_PG" in layer.name()
-                    or "_PT" in layer.name()
-                    or "_LN" in layer.name()) and "Compilation_" in layer.name()
-                ):"""
-                # Get the file path of the layer
-                if layer.name().startswith("Compilation_"):
-                    input_path = self.mynormpath(layer.dataProvider().dataSourceUri())
-
-                    output_path_gpkg = self.mynormpath(newGpkgPath)
-
-                    processing.run(
-                        "native:clip",
-                        {
-                            "INPUT": input_path,
-                            "OVERLAY": clip_layer,
-                            "OUTPUT": "ogr:dbname='"
-                            + output_path_gpkg
-                            + "' table=\""
-                            + layer.name()
-                            + '" (geom)',
-                        },
-                    )
-
-                else:
-                    pass
-
+        """Clips all layers in the CURRENT_MISSION and COMPILATION GeoPackages to the current canvas extent or an optional polygon."""
+        # Get output directory
+        out_dir = self.dlg.lineEdit_3.text().strip()
+        if not out_dir:
             self.iface.messageBar().pushMessage(
-                "Files clipped to current extent, saved in directory" + newProjPath,
-                level=Qgis.Success,
-                duration=15,
+                "Please provide an output directory for clipping.", level=Qgis.Warning, duration=10
             )
+            return
 
+        project = QgsProject.instance()
+        old_proj = os.path.dirname(project.fileName()) + "/"
+        new_proj = self.mynormpath(out_dir) + "/"
+
+        # Validate filename and folder name lengths for output (preflight) (Windows max 256 chars)
+        targets = [
+            new_proj,
+            new_proj + self.dir_0,
+            new_proj + self.dir_1,
+            new_proj + self.dir_99
+        ]
+        for p in targets:
+            full = os.path.abspath(self.mynormpath(p))
+            if len(full) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Output path too long ({len(full)} chars): {full}. Select another repository with a shorter filepath to the current project.",
+                    level=Qgis.Critical,
+                    duration=15
+                )
+                # Clear directory field for next operation
+                self.dlg.lineEdit_8.clear()
+                return
+
+        # Paths for the two GeoPackages to clip
+        gpkg_paths = [
+            (old_proj + self.dir_1 + "COMPILATION.gpkg", new_proj + self.dir_1 + "COMPILATION.gpkg"),
+            (old_proj + self.dir_0 + "CURRENT_MISSION.gpkg", new_proj + self.dir_0 + "CURRENT_MISSION.gpkg")
+        ]
+
+        # Determine clipping layer: polygon shapefile or canvas extent
+        clip_shp = self.dlg.lineEdit_8.text().strip()
+        if clip_shp:
+            clip_layer = QgsVectorLayer(clip_shp, os.path.basename(clip_shp), "ogr")
         else:
-            self.iface.messageBar().pushMessage(
-                "Directory not found: " + self.dlg.lineEdit_3.text(),
-                level=Qgis.Warning,
-                duration=45,
+            e = self.iface.mapCanvas().extent()
+            geom = QgsGeometry().fromRect(
+                QgsRectangle(e.xMinimum(), e.yMinimum(), e.xMaximum(), e.yMaximum())
             )
+            clip_layer = QgsVectorLayer(f"Polygon?crs={project.crs().authid()}", "canvas_extent", "memory")
+            with edit(clip_layer):
+                feat = QgsFeature()
+                feat.setGeometry(geom)
+                clip_layer.addFeature(feat)
+
+        # Create required directories
+        for path in [new_proj, new_proj + self.dir_0, new_proj + self.dir_1, new_proj + self.dir_99]:
+            os.makedirs(self.mynormpath(path), exist_ok=True)
+
+        # Automatically copy other project folders without clipping
+        all_dirs = [d for d in os.listdir(old_proj) if os.path.isdir(os.path.join(old_proj, d))]
+        exclude = {self.dir_0.strip('/'), self.dir_1.strip('/')}
+        for d in all_dirs:
+            if d not in exclude:
+                src_path = os.path.join(old_proj, d)
+                dst_path = os.path.join(new_proj, d)
+                # Remove existing destination to avoid FileExistsError
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                self.safe_copy_tree(src_path + '/', dst_path + '/')
+
+        # === Clip the project file ===
+        src = project.fileName()
+        dst = os.path.join(
+            new_proj,
+            os.path.basename(src).replace('.qgz', '_clip.qgz')
+        )
+        # ——— Pre-flight: check this single file path ———
+        full_path = os.path.abspath(self.mynormpath(dst))
+        if len(full_path) > 256:
+            self.iface.messageBar().pushMessage(
+                f"ERROR: Output file path too long ({len(full_path)} chars): {full_path}. Select another repository with a shorter filepath to the current project.",
+                level=Qgis.Critical,
+                duration=15
+            )
+            # Clear directory field for next operation
+            self.dlg.lineEdit_8.clear()
+            return
+        # Now safe to copy
+        shutil.copyfile(src, full_path)
+
+        # Clip each layer in both GeoPackages
+        for src, dst in gpkg_paths:
+            # Copy original GeoPackage
+            self.safe_copy_file(src, dst)
+            ds = ogr.Open(src)
+            if not ds:
+                continue
+            # Ensure tables are empty before writing
+            for i in range(ds.GetLayerCount()):
+                lyr = ds.GetLayer(i)
+                self.drop_layer_contents(dst, lyr.GetName())
+            # Perform clipping
+            for i in range(ds.GetLayerCount()):
+                lyr = ds.GetLayer(i)
+                name = lyr.GetName()
+                input_uri = f"{src}|layername={name}"
+                output_uri = f"ogr:dbname='{dst}' table=\"{name}\" (geom)"
+                processing.run(
+                    "native:clip",
+                    {"INPUT": input_uri, "OVERLAY": clip_layer, "OUTPUT": output_uri}
+                )
+
+        # Clear input fields for next operation
+        self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_8.clear()
+
+        self.iface.messageBar().pushMessage(
+            f"Project with field data clipped to selected extent saved in {new_proj}", level=Qgis.Success, duration=15
+        )
 
     ### CSV TOOLS ###
     def get_csv_items(self, layer_name):
@@ -3441,8 +3568,454 @@ class GEOL_QMAPS:
     ################       Page 3 : Field Data Management           ###############
     ###############################################################################
 
-    ### Merge Projects ### to modifie with the new architecture of the plugin
+    ### Update Project to the Latest Version ###
+    def select_old_project_folder(self):
+        """Let the user pick an existing GEOL-QMAPS project folder."""
+        folder = QFileDialog.getExistingDirectory(
+            self.dlg, "Select old GEOL-QMAPS project folder", ""
+        )
+        if folder:
+            self.dlg.lineEdit_15.setText(folder)
 
+    def rejig_project(self):
+        """Main entry – validate old project, fetch template, assemble updated copy."""
+        old = Path(self.dlg.lineEdit_15.text().strip())
+        parent = old.parent
+
+        # 1. Validate it’s a GEOL-QMAPS project
+        gpkg = old / "1_EXISTING_FIELD_DATABASE" / "COMPILATION.gpkg"
+        ver_txt = old / "99_COMMAND_FILES_PLUGIN" / "Version.txt"
+        if not gpkg.exists() or not ver_txt.exists():
+            self.iface.messageBar().pushMessage(
+                "ERROR: Selected folder is either not a valid GEOL-QMAPS project, or too old to be automatically updated to the latest version (version < 3.1.0).",
+                level=Qgis.Critical, duration=10
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
+        else:
+            print (f"{old} is a GEOL-QMAPS project")
+
+        # 2. Check version > 3.1.0
+        with open(ver_txt, 'r') as f:
+            raw = f.readline().lstrip('v').strip()
+        parts = [int(x) for x in raw.split('.')]
+        if parts < [3, 1, 0]:
+            self.iface.messageBar().pushMessage(
+                f"ERROR: Project version {raw} is older than 3.1.0; cannot be updated to the latest version automatically.",
+                level=Qgis.Critical, duration=10
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+        else:
+            print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
+
+        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.4 at the moment
+        # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
+        import socket
+        try:
+            socket.create_connection(("8.8.8.8", 53), timeout=5)
+        except OSError:
+            #No internet connection
+            self.iface.messageBar().pushMessage(
+                "No internet connection detected. Please check your network and try again.",
+                level=Qgis.Critical, duration=10
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
+        # 3b) Attempt download with 60 s timeout
+        tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
+        url = "https://zenodo.org/records/15460411/files/GEOL-QMAPS_v3.1.4.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        from urllib.request import urlopen
+        try:
+            with urlopen(url, timeout=60) as resp:
+                data = resp.read()
+            local_path = str(tmpzip)
+            with open(local_path, 'wb') as f:
+                f.write(data)
+
+        except socket.timeout:
+            self.iface.messageBar().pushMessage(
+                "Download timed out after 60 seconds. Please try again later with a more stable connection.",
+                level=Qgis.Critical, duration=10
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                f"An unexpected error occurred while downloading:\n{e}",
+                level=Qgis.Critical, duration=10
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
+        # 3c) Unzip the downloaded archive into the parent folder
+        import zipfile
+        with zipfile.ZipFile(local_path, 'r') as zf:
+            zf.extractall(str(parent))
+
+        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
+        template_src = parent / "GEOL-QMAPS_v3.1.4" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+
+
+        # 4b) Prepare the destination name and remove any stale copy
+        rejigged = parent / f"{old.name}_updatedversion"
+        if rejigged.exists():
+            shutil.rmtree(str(rejigged))
+
+        # PRE-FLIGHT: simulate all future dest paths and catch any >256 chars
+        max_len = 256
+        bad = []
+        for root, dirs, files in os.walk(str(template_src)):
+            for name in dirs + files:
+                # path in the template
+                src_path = os.path.join(root, name)
+                # corresponding dest path under `rejigged`
+                rel = os.path.relpath(src_path, str(template_src))
+                dest_full = os.path.abspath(os.path.join(str(rejigged), rel))
+                if len(dest_full) > max_len:
+                    bad.append(dest_full)
+
+        if bad:
+            # write the list to temp for download
+            log = os.path.join(tempfile.gettempdir(), "geol_qmaps_rejig_bad_paths.txt")
+            with open(log, "w", encoding="utf-8") as f:
+                for p in bad:
+                    f.write(p + "\n")
+
+            url = log.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            self.iface.messageBar().pushMessage(
+                f"{len(bad)} paths would exceed {max_len} chars. "
+                f"<a href='file://{url}'>Download list</a>. Shorten filepaths to proceed further.",
+                level=Qgis.Critical,
+                duration=0
+            )
+            # Clear the input field once done
+            self.dlg.lineEdit_15.clear()
+            return
+
+        # 5. Copy the template into projects folder and rename in one go
+        shutil.copytree(str(template_src), str(rejigged))
+        # ————— Validate all new paths —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
+        self.iface.messageBar().pushMessage(
+            f"Template unpacked and renamed → '{rejigged.name}'",
+            level=Qgis.Success, duration=6
+        )
+        print(f"QGIS_TEMPLATE renamed and copied at {rejigged}")
+
+
+        # 6. Copy the old .qgz into the new folder (deleting any existing .qgz)
+        for f in rejigged.glob("*.qgz"):
+            f.unlink()
+        old_qgz = next(old.glob("*.qgz"), None)
+        if old_qgz:
+            shutil.copy2(str(old_qgz), str(rejigged))
+        # ————— Re-validate after .qgz copy —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
+        print(f"Old .qgz project file copied in: {rejigged}")
+
+        # 7. Copy array of subfolders except for 0_, 1_ and 99_
+        exclude = {"0_FIELD_DATA", "1_EXISTING_FIELD_DATABASE", "99_COMMAND_FILES_PLUGIN"}
+        for src_path in old.iterdir():
+            if not src_path.is_dir() or src_path.name in exclude:
+                continue
+
+            dst_path = rejigged / src_path.name
+            shutil.copytree(str(src_path), str(dst_path), dirs_exist_ok=True)
+        # ————— Validate again after subfolder copies —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
+        print(f"Folders copied in: {rejigged}")
+
+        # copy of DCIM sub-folders
+        for branch in ["0_FIELD_DATA/DCIM", "1_EXISTING_FIELD_DATABASE/DCIM"]:
+            src = old / Path(branch)
+            dst = rejigged / Path(branch)
+            if dst.exists():
+                shutil.rmtree(str(dst))
+            if src.exists():
+                shutil.copytree(str(src), str(dst), dirs_exist_ok=True)
+        # ————— Final DCIM check —————
+        if not self._check_max_filename_length(str(rejigged)):
+            return
+        print(f"Folders and DCIM copied in: {rejigged}")
+
+        # 8. Copy features from the two GeoPackages using OGR
+        from osgeo import ogr
+
+        driver = ogr.GetDriverByName("GPKG")
+        raw_version = raw  # the version string you read earlier, e.g. "3.1.0"
+
+        for pkg_rel in ["0_FIELD_DATA/CURRENT_MISSION.gpkg",
+                        "1_EXISTING_FIELD_DATABASE/COMPILATION.gpkg"]:
+            old_pkg = str(old / pkg_rel)
+            new_pkg = str(rejigged / pkg_rel)
+
+            # open source (read) and destination (update) datasets
+            src_ds = ogr.Open(old_pkg, 0)
+            dst_ds = ogr.Open(new_pkg, 1)
+            if src_ds is None or dst_ds is None:
+                self.iface.messageBar().pushMessage(
+                    f"WARNING: Could not open {pkg_rel} for copying.", level=Qgis.Warning, duration=5
+                )
+                continue
+
+            # loop through each layer in the source
+            for i in range(src_ds.GetLayerCount()):
+                src_layer = src_ds.GetLayerByIndex(i)
+                # skip non-spatial tables
+                if src_layer.GetGeomType() in (ogr.wkbNone, ogr.wkbUnknown):
+                    continue
+
+                # special rename for old v3.1.0
+                old_name = src_layer.GetName()
+                new_name = old_name
+                if raw_version == "3.1.0" and old_name == "Compilation_Deformation_zones_PG":
+                    new_name = "Compilation_Deformation zones_PG"
+
+                dst_layer = dst_ds.GetLayerByName(new_name)
+                if dst_layer is None:
+                    # skip layers that aren't in the new template
+                    continue
+
+                dst_def = dst_layer.GetLayerDefn()
+                # start transaction for speed
+                dst_layer.StartTransaction()
+                src_layer.ResetReading()
+                feat = src_layer.GetNextFeature()
+                while feat:
+                    # build a new feature matching the dst schema
+                    out_feat = ogr.Feature(dst_def)
+                    # copy only fields that exist in dst
+                    for fi in range(dst_def.GetFieldCount()):
+                        fld_def = dst_def.GetFieldDefn(fi)
+                        fld_name = fld_def.GetName()
+                        if feat.GetFieldIndex(fld_name) != -1:
+                            out_feat.SetField(fld_name, feat.GetField(fld_name))
+                    # copy geometry
+                    geom = feat.GetGeometryRef()
+                    if geom:
+                        out_feat.SetGeometry(geom.Clone())
+                    # insert into dst
+                    dst_layer.CreateFeature(out_feat)
+                    # cleanup
+                    out_feat = None
+                    feat = src_layer.GetNextFeature()
+                dst_layer.CommitTransaction()
+
+            # explicitly close datasets to release file locks
+            src_ds = None
+            dst_ds = None
+
+        self.iface.messageBar().pushMessage(
+            f"Version update complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
+        )
+
+        # Clear the input field once done
+        self.dlg.lineEdit_15.clear()
+
+
+    # --------------------------------------------------------------------------
+    # QField ↔ QGIS Sync Tool
+    # --------------------------------------------------------------------------
+    def select_QFieldPackage(self):
+        """
+        Slot to browse and select a QField package (ZIP or folder) with custom buttons.
+        """
+        # Build a message box with custom button labels
+        msg = QtWidgets.QMessageBox(self.iface.mainWindow())
+        msg.setWindowTitle("Select QField Package to synchronise to QGIS")
+        msg.setText("Choose QField package type:")
+        zip_btn = msg.addButton("ZIP archive", QtWidgets.QMessageBox.ActionRole)
+        folder_btn = msg.addButton("Folder", QtWidgets.QMessageBox.ActionRole)
+        msg.exec_()
+
+        # Determine which button was clicked
+        if msg.clickedButton() == zip_btn:
+            path, _ = QFileDialog.getOpenFileName(
+                self.iface.mainWindow(),
+                "Select QField ZIP package",
+                "",
+                "ZIP archives (*.zip)"
+            )
+        else:
+            path = QFileDialog.getExistingDirectory(
+                self.iface.mainWindow(),
+                "Select QField package folder",
+                "",
+                QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+            )
+
+        if path:
+            self.dlg.lineEdit_QFieldPackage.setText(path)
+
+    def select_QGISFolder(self):
+        """
+        Slot to browse and select a GEOL‑QMAPS QGIS project folder.
+        """
+        folder = QFileDialog.getExistingDirectory(
+            self.iface.mainWindow(),
+            "Select the master GEOL‑QMAPS project folder to update with new data collected in the field",
+            "",
+            QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+        )
+        if folder:
+            self.dlg.lineEdit_QGISFolder.setText(folder)
+
+    def SyncQFieldToQGIS(self):
+        """
+        Sync data from a QField package into a copy of the QGIS project,
+        overwriting existing field data with the QField version.
+        """
+        # Retrieve paths
+        qfield_path = self.dlg.lineEdit_QFieldPackage.text().strip()
+        qgis_folder = self.dlg.lineEdit_QGISFolder.text().strip()
+
+        # Basic validation
+        if not qfield_path or not qgis_folder:
+            self.iface.messageBar().pushMessage(
+                "Please select both a QField package and a GEOL-QMAPS QGIS project folder.",
+                level=Qgis.Warning,
+                duration=10
+            )
+            return
+
+        # Confirm overwrite
+        reply = QtWidgets.QMessageBox.warning(
+            self.iface.mainWindow(),
+            "Confirm Sync",
+            ("This operation will create a copy of the QGIS project folder and "
+             "overwrite its current field data with that from the QField package. "
+             "Ensure both sources are the latest versions. Continue?"),
+            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
+            QtWidgets.QMessageBox.Cancel
+        )
+        if reply != QtWidgets.QMessageBox.Ok:
+            return
+
+        # Drive check (C: or other non-removable)
+        drive = os.path.splitdrive(qfield_path)[0]
+        if drive.upper().startswith('\\') or not drive:
+            self.iface.messageBar().pushMessage(
+                "Please place the QField package on a local or fixed external drive.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+
+        # Step 1: Handle QField package (ZIP or folder)
+        temp_dir = None
+        if qfield_path.lower().endswith('.zip'):
+            temp_dir = tempfile.TemporaryDirectory()
+            with zipfile.ZipFile(qfield_path, 'r') as zf:
+                zf.extractall(temp_dir.name)
+            package_root = temp_dir.name
+        else:
+            package_root = qfield_path
+
+        # Step 1b: Locate .qgs file and set root for CURRENT_MISSION.gpkg
+        qgs_files = []
+        for root, dirs, files in os.walk(package_root):
+            for f in files:
+                if f.lower().endswith('.qgs'):
+                    qgs_files.append(os.path.join(root, f))
+        if not qgs_files:
+            self.iface.messageBar().pushMessage(
+                "No .qgs project file found in the QField package: may be corrupted.",
+                level=Qgis.Critical,
+                duration=5
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+        qgs_path = qgs_files[0]
+        pkg_root = os.path.dirname(qgs_path)
+
+        # Check for CURRENT_MISSION.gpkg in QField root
+        qfield_pkg = os.path.join(pkg_root, 'CURRENT_MISSION.gpkg')
+        if not os.path.isfile(qfield_pkg):
+            self.iface.messageBar().pushMessage(
+                "No CURRENT_MISSION.gpkg found in the QField package: corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+
+        # Step 2: Validate QGIS project via existing function
+        if not self.is_valid_geol_qmaps_project(qgis_folder):
+            self.iface.messageBar().pushMessage(
+                "Selected QGIS folder is not a valid GEOL‑QMAPS project.",
+                level=Qgis.Critical,
+                duration=10
+            )
+            if temp_dir:
+                temp_dir.cleanup()
+            return
+            return
+
+        # Step 3: Copy QGIS folder
+        base_dir, name = os.path.split(qgis_folder.rstrip(os.sep))
+        synced_name = f"{name}_Synced"
+        dest_folder = os.path.join(base_dir, synced_name)
+        if os.path.exists(dest_folder):
+            shutil.rmtree(dest_folder)
+        shutil.copytree(qgis_folder, dest_folder)
+        # Validate full-path lengths in the synced project
+        if not self._check_max_filename_length(dest_folder):
+            # abort if any path >256 chars
+            return
+
+        # Step 4: Overwrite CURRENT_MISSION.gpkg
+        dest_pkg = os.path.join(dest_folder, self.dir_0, 'CURRENT_MISSION.gpkg')
+        shutil.copy2(qfield_pkg, dest_pkg)
+
+        # Step 5: Copy DCIM (if present)
+        qfield_dcim = os.path.join(pkg_root, 'DCIM')
+        dest_dcim = os.path.join(dest_folder, self.dir_0, 'DCIM')
+        if os.path.isdir(qfield_dcim):
+            os.makedirs(dest_dcim, exist_ok=True)
+            for fname in os.listdir(qfield_dcim):
+                src_file = os.path.join(qfield_dcim, fname)
+                dst_file = os.path.join(dest_dcim, fname)
+                shutil.copy2(src_file, dst_file)
+                #Validate full-path lengths in the synced DCIM
+                if not self._check_max_filename_length(dest_dcim):
+                    # abort if any DCIM path >256 chars
+                    return
+
+        # Clean up temporary directory
+        if temp_dir:
+            temp_dir.cleanup()
+
+        self.iface.messageBar().pushMessage(
+            f"Synchronisation complete: '{dest_folder}' created.",
+            level=Qgis.Success,
+            duration=5
+        )
+
+        # Clear the input field once done
+        self.dlg.lineEdit_QFieldPackage.clear()
+        self.dlg.lineEdit_QGISFolder.clear()
+
+
+    ### Merge Projects ###
     def list_csv_files(directory):
         files = []
         for filename in os.listdir(directory):
@@ -3871,271 +4444,247 @@ class GEOL_QMAPS:
         else:
             print("Layer not found.")
 
+    #Merge Projects
     def mergeProjects(self):
-        # Takes two WAXI QFIELD Projects and combines them,
-        # removing duplicates and saves out the full structure to a new directory
-
-        if (
-            self.dlg.lineEdit_11.text()
-            and self.dlg.lineEdit_26.text()
-            and self.dlg.lineEdit_37.text()
-        ):
-
-            project = (
-                QgsProject.instance()
-            )  # assumes one of the projects is actually open!  Could use copy stored in plugin?
-
-            # set up directory structure and load filename lists
-
-            shp_list = self.mynormpath(
-                os.path.dirname(os.path.realpath(__file__)) + "/shp.csv"
-            )
-
-            project = QgsProject.instance()
-            proj_file_path = project.fileName()
-
-            head_tail = os.path.split(proj_file_path)
-            main_project_path = head_tail[0] + "/"
-
-            # self.csvs = self.get_csv_list(main_project_path + self.dir_99 + "/Dictionaries.gpkg")
-
-            shps = pd.read_csv(shp_list, names=["name", "dir_code"])
-            shps = shps.set_index("name")
-            # csvs = pd.read_csv(csv_list, names=["name"])
-
-            merge_project_path = self.dlg.lineEdit_37.text() + "/"
-
-            head_tail_main = os.path.split(self.dlg.lineEdit_11.text())
-            head_tail_sub = os.path.split(self.dlg.lineEdit_26.text())
-
-            main_project_path = head_tail_main[0] + "/"
-            sub_project_path = head_tail_sub[0] + "/"
-
-            mainGpkgPath = self.mynormpath(
-                main_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-            subGpkgPath = self.mynormpath(
-                sub_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-            mergeGpkgPath = self.mynormpath(
-                merge_project_path + self.dir_0 + "CURRENT_MISSION.gpkg"
-            )
-
-            mainCompGpkgPath = self.mynormpath(
-                main_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-            subCompGpkgPath = self.mynormpath(
-                sub_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-            mergeCompGpkgPath = self.mynormpath(
-                merge_project_path + self.dir_1 + "COMPILATION.gpkg"
-            )
-
-            # create new directory structures
-            dirs = [
-                merge_project_path,
-                merge_project_path + self.dir_0,
-                merge_project_path + self.dir_99,
-            ]
-
-            for dirpath in dirs:
-                if not os.path.exists(self.mynormpath(dirpath)):
-                    os.mkdir(self.mynormpath(dirpath))
-
-            main_path = self.mynormpath(
-                main_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            sub_path = self.mynormpath(
-                sub_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            merge_path = self.mynormpath(
-                merge_project_path + self.dir_99 + "/Dictionaries.gpkg"
-            )
-            csvs = self.get_csv_list(main_path)
-            csvs = csvs[1:]
-            # merge and de-duplicate csv files
-            for file in csvs:
-
-                self.merge_text_tables_remove_duplicates(
-                    main_path, file, sub_path, file, merge_path, file
-                )
-
-            cp_dirs = [
-                "1_EXISTING_FIELD_DATABASE",
-                "2_GPS-LOCALITIES_OF_INTEREST",
-                "3_GEOCHEMISTRY",
-                "4_GEOCHRONOLOGY",
-                "5_MINING_AND_EXPLORATION",
-                "6_GEOLOGY",
-                "7_GEOPHYSICS",
-                "8_LAND_USE",
-                "9_GEOGRAPHY",
-                "10_TOPOGRAPHY",
-                "11_ORTHOPHOTOGRAPHY-SATELLITE_IMAGERY",
-                self.dir_0 + "/DCIM/",
-            ]
-            for cp_dir in cp_dirs:
-                src_path = main_project_path + cp_dir
-                dst_path = self.mynormpath(merge_project_path + cp_dir)
-                self.safe_copy_tree(src_path, dst_path)
-            main_path = main_project_path + self.dir_0 + "/DCIM/"
-            src_path = sub_project_path + self.dir_0 + "/DCIM/"
-            dst_path = self.mynormpath(merge_project_path + self.dir_0 + "/DCIM/")
-
-            self.recursive_overwrite(main_path, dst_path, ignore=None)
-            self.recursive_overwrite(src_path, dst_path, ignore=None)
-
-            src_file = (
-                main_project_path + self.dir_99 + "/FIELD_DATA.qlr"
-            )
-            dst_file = (
-                merge_project_path + self.dir_99 + "/FIELD_DATA.qlr"
-            )
-            shutil.copyfile(src_file, dst_file)
-
-            proj_name = "MergedProject.qgs"
-            shutil.copyfile(self.dlg.lineEdit_11.text(), os.path.join(merge_project_path, proj_name))
-
-
-            import xml.etree.ElementTree as ET
-
-            merged_qgs = os.path.join(merge_project_path, "MergedProject.qgs")
-
-
-            in_pref = main_project_path + self.dir_99
-            out_pref = merge_project_path + self.dir_99
-            copies = [
-                [mainGpkgPath, mergeGpkgPath],
-                [
-                    in_pref + "columns_reference_WAXI4.csv",
-                    out_pref + "columns_reference_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_types_structures_WAXI4.csv",
-                    out_pref + "columns_types_structures_WAXI4.csv",
-                ],
-                [
-                    in_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
-                    out_pref + "columns_reference_fieldnames_aliases_WAXI4.csv",
-                ],
-                [
-                    in_pref + "stereonet.json",
-                    out_pref + "stereonet.json"
-                ],
-                [
-                    in_pref + "Version.txt",
-                    out_pref + "Version.txt"
-                ],
-                [
-                    in_pref + "Dictionaries.gpkg",
-                    out_pref + "Dictionaries.gpkg"
-                ]
-            ]
-
-            for pairs in copies:
-                shutil.copyfile(pairs[0], pairs[1])
-
-            # merging CURRENT MISSION layers
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-                if layer.name() in shps.index.tolist():
-
-                    main_layer_path = mainGpkgPath + "|layername=" + layer.name()
-                    sub_layer_path = subGpkgPath + "|layername=" + layer.name()
-                    params = {
-                        "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": (
-                                "ogr:dbname='"
-                                + self.mynormpath(mergeGpkgPath)
-                                + "' table=\""
-                                + layer.name()
-                                + '"'
-                        ),
-                    }
-                    merged_layers = processing.run("native:mergevectorlayers", params)
-
-            # merging COMPILATION layers
-            for layer in project.mapLayers().values():
-                # Check if the layer name matches the target name
-                if layer.name().replace(
-                    "Compilation_", ""
-                ) in shps.index.tolist() and layer.name().startswith("Compilation_"):
-
-                    main_layer_path = mainCompGpkgPath + "|layername=" + layer.name()
-                    sub_layer_path = subCompGpkgPath + "|layername=" + layer.name()
-                    params = {
-                        "LAYERS": [main_layer_path, sub_layer_path],
-                        "OUTPUT": (
-                                "ogr:dbname='"
-                                + self.mynormpath(mergeCompGpkgPath)
-                                + "' table=\""
-                                + layer.name()
-                                + '"'
-                        ),
-                    }
-                    merged_layers = processing.run("native:mergevectorlayers", params)
-
-            # Write the active project to that path
-            merged_qgs_path = os.path.join(merge_project_path, "MergedProject.qgs")
-            QgsProject.instance().write(merged_qgs_path)
-
-            # Repoint every vector layer to the merged folder
-            import xml.etree.ElementTree as ET
-
-            merged_folder_all = os.path.dirname(merged_qgs_path)
-            merged_folder = os.path.basename(merged_folder_all)
-            print('merged folder:', merged_folder)
-            main_folder_all = os.path.dirname(main_project_path)
-            main_folder = os.path.basename(main_folder_all)
-            print('main folder:',main_folder)
-
-            # 1. Parse the freshly written .qgs (valid XML now)
-            tree = ET.parse(merged_qgs_path)
-            root = tree.getroot()
-
-            # 2. Repoint every <datasource> into the merged folder
-            for ds in root.iter("datasource"):
-                txt = ds.text or ""
-                if "|" in txt:
-                    path, params = txt.split("|", 1)
-                    params = "|" + params
-                else:
-                    path, params = txt, ""
-                print('Layer path:', path)
-
-                if main_folder in path:
-                    print('main_folder in', path)
-                    new_path = path.replace(main_folder, merged_folder)
-                    ds.text=new_path + params
-                else:
-                    print('main_folder not in', path)
-
-            # 3. Overwrite the QGS with corrected paths
-            tree.write(merged_qgs_path, encoding="UTF-8", xml_declaration=True)
-
-            #MessageBar
+        """Merge a main and a sub QGIS project into a single output project folder."""
+        # Retrieve inputs
+        main_qgz = self.dlg.lineEdit_11.text().strip()
+        sub_qgz = self.dlg.lineEdit_26.text().strip()
+        out_dir = self.dlg.lineEdit_37.text().strip()
+        if not all([main_qgz, sub_qgz, out_dir]):
             self.iface.messageBar().pushMessage(
-                "Projects merged, saved in directory" + merge_project_path,
-                level=Qgis.Success,
-                duration=5,
+                "Please specify main project, sub project, and output directory.",
+                level=Qgis.Warning, duration=10
             )
+            return
 
+        # Define folders
+        main_folder = os.path.dirname(main_qgz) + os.sep
+        sub_folder = os.path.dirname(sub_qgz) + os.sep
+        merge_root = self.mynormpath(out_dir.rstrip('/\\')) + os.sep
+
+        # PRE-FLIGHT: simulate every file/dir that would end up under merge_root,
+        # and abort if any full path would exceed 256 characters.
+        # ─────────────────────────────────────────────────────────────────────────
+        bad = []
+        max_len = 256
+
+        for base in (main_folder, sub_folder):
+            for root, dirs, files in os.walk(base):
+                for name in dirs + files:
+                    rel_path = os.path.relpath(os.path.join(root, name), base)
+                    dest_path = os.path.abspath(os.path.join(merge_root, rel_path))
+                    if len(dest_path) > max_len:
+                        bad.append(dest_path)
+
+        if bad:
+            # Write offending paths to a temp report
+            report = os.path.join(tempfile.gettempdir(), "geol_qmaps_merge_bad_paths.txt")
+            with open(report, 'w', encoding='utf-8') as f:
+                for p in bad:
+                    f.write(p + "\n")
+
+            # Format hyperlink
+            url = report.replace("\\", "/")
+            if not url.startswith("/"):
+                url = "/" + url
+
+            # Critical message with download link
+            self.iface.messageBar().pushMessage(
+                f"{len(bad)} paths would exceed {max_len} chars. "
+                f"<a href='file://{url}'>Download full list</a>. Shorten folders and/or file paths before proceeding further.",
+                level=Qgis.Critical,
+                duration=0
+            )
+            # Clear input fields for next operation
+            self.dlg.lineEdit_11.clear()
+            self.dlg.lineEdit_26.clear()
+            self.dlg.lineEdit_37.clear()
+            return
+
+        # Unload any existing layers from prior merges
+        proj = QgsProject.instance()
+        for lyr in list(proj.mapLayers().values()):
+            if lyr.source().startswith(merge_root):
+                proj.removeMapLayer(lyr.id())
+
+        # Flush caches and GC
+        try:
+            from osgeo import gdal
+            if hasattr(gdal, 'GDALFlushCache'): gdal.GDALFlushCache()
+        except:
+            pass
+        import gc; gc.collect()
+
+        # Remove old output directory
+        def _rm_readonly(func, path, exc):
+            import stat
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        if os.path.isdir(merge_root):
+            shutil.rmtree(merge_root, onerror=_rm_readonly)
+
+        # Copy main project tree, ignoring project files
+        shutil.copytree(
+            main_folder, merge_root,
+            ignore=shutil.ignore_patterns('*.qgs','*.qgz','*.bak')
+        )
+
+        # Helpers
+        def merge_folder(src, dst):
+            if not os.path.isdir(src): return
+            os.makedirs(dst, exist_ok=True)
+            for root, dirs, files in os.walk(src):
+                rel = os.path.relpath(root, src)
+                odir = os.path.join(dst, rel)
+                os.makedirs(odir, exist_ok=True)
+                for f in files:
+                    sf = os.path.join(root, f)
+                    df = os.path.join(odir, f)
+                    if not os.path.exists(df): shutil.copy2(sf, df)
+
+        def append_gpkg(src_gpkg, dst_gpkg):
+            # Append features from src_gpkg into dst_gpkg without editing layer state
+            ds_src = ogr.Open(src_gpkg)
+            ds_dst = ogr.Open(dst_gpkg, 1)  # open for update
+            if not ds_src or not ds_dst:
+                return
+            for i in range(ds_src.GetLayerCount()):
+                layer = ds_src.GetLayer(i)
+                name = layer.GetName()
+                # Prepare URIs
+                dst_uri = f"{dst_gpkg}|layername={name}"
+                src_uri = f"{src_gpkg}|layername={name}"
+                dst_vl = QgsVectorLayer(dst_uri, name, 'ogr')
+                src_vl = QgsVectorLayer(src_uri, name, 'ogr')
+                # Identify PK fields to null out
+                pk_indices = dst_vl.dataProvider().pkAttributeIndexes()
+                to_add = []
+                for feat in src_vl.getFeatures():
+                    new_feat = QgsFeature(dst_vl.fields())
+                    new_feat.setGeometry(feat.geometry())
+                    attrs = feat.attributes()
+                    for idx in pk_indices:
+                        if 0 <= idx < len(attrs):
+                            attrs[idx] = None
+                    new_feat.setAttributes(attrs)
+                    new_feat.setId(-1)
+                    to_add.append(new_feat)
+                if to_add:
+                    dst_vl.dataProvider().addFeatures(to_add)
+            ds_src = None
+            ds_dst = None
+
+        # Merge GPKGs and DCIM
+        for repo in (self.dir_0, self.dir_1):
+            merge_rep = os.path.join(merge_root, repo)
+            sub_rep = os.path.join(sub_folder, repo)
+            #main_rep = os.path.join(main_folder, repo)
+            for gpkg in ('CURRENT_MISSION.gpkg','COMPILATION.gpkg'):
+                if (repo == self.dir_0 and gpkg == 'CURRENT_MISSION.gpkg') or (repo == self.dir_1 and gpkg == 'COMPILATION.gpkg'):
+                    sub_g = os.path.join(sub_rep,gpkg)
+                    #main_g = os.path.join(main_rep,gpkg)
+                    merge_g = os.path.join(merge_rep,gpkg)
+                    #append_gpkg(main_g, merge_g)
+                    append_gpkg(sub_g,merge_g)
+            #merge_folder(os.path.join(main_rep, 'DCIM'), os.path.join(merge_rep, 'DCIM'))
+            merge_folder(os.path.join(sub_rep,'DCIM'), os.path.join(merge_rep,'DCIM'))
+
+        # Merge other directories
+        excl = {self.dir_0.strip('/\\'),self.dir_1.strip('/\\'),'DCIM'}
+        for d in os.listdir(sub_folder):
+            if d in excl: continue
+            sp = os.path.join(sub_folder,d)
+            if os.path.isdir(sp): merge_folder(sp, os.path.join(merge_root,d))
+
+        # Determine merged project name based on longest common substring of input names
+        def longest_common_substring(s1, s2):
+            """Return the longest common substring between s1 and s2 (case-insensitive)."""
+            s1_low, s2_low = s1.lower(), s2.lower()
+            m = [[0] * (len(s2_low) + 1) for _ in range(len(s1_low) + 1)]
+            longest, x_longest = 0, 0
+            for i in range(1, len(s1_low) + 1):
+                for j in range(1, len(s2_low) + 1):
+                    if s1_low[i-1] == s2_low[j-1]:
+                        m[i][j] = m[i-1][j-1] + 1
+                        if m[i][j] > longest:
+                            longest = m[i][j]
+                            x_longest = i
+            # extract substring from original-cased s1
+            return s1[x_longest-longest: x_longest]
+
+        main_base = os.path.splitext(os.path.basename(main_qgz))[0]
+        sub_base = os.path.splitext(os.path.basename(sub_qgz))[0]
+        common = longest_common_substring(main_base, sub_base)
+        if len(common) >= 5:
+            prefix = common
+            merged_filename = f"{prefix}_merged.qgz"
         else:
+            merged_filename = "Merged.qgz"
+        merged_path = os.path.join(merge_root, merged_filename)
+        shutil.copyfile(main_qgz, merged_path)
+
+        # Rewrite QGZ internals to use relative paths
+        import zipfile
+        import xml.etree.ElementTree as ET
+        # use the module‐level tempfile
+        tmp = tempfile.mkdtemp()
+
+        with zipfile.ZipFile(merged_path,'r') as zin: zin.extractall(tmp)
+        qgs = os.path.join(tmp,os.path.splitext(os.path.basename(main_qgz))[0]+'.qgs')
+
+        # find the first .qgs we laid down
+        import glob
+        qgs_files = glob.glob(os.path.join(tmp, '*.qgs'))
+        if not qgs_files:
             self.iface.messageBar().pushMessage(
-                "Directory not found", level=Qgis.Warning, duration=45
+                "Could not find the embedded .qgs inside the merged QGZ.",
+                level=Qgis.Critical, duration=10
             )
+            shutil.rmtree(tmp)
+            # Clear input fields for next operation
+            self.dlg.lineEdit_11.clear()
+            self.dlg.lineEdit_26.clear()
+            self.dlg.lineEdit_37.clear()
+            return
+
+        qgs = qgs_files[0]
+        # now parse & rewrite relative paths
+        tree = ET.parse(qgs); root = tree.getroot()
+        for ds in root.findall('.//datasource'):
+            p = ds.text
+            if p and os.path.isabs(p):
+                ds.text = os.path.relpath(p, merge_root)
+        tree.write(qgs,encoding='UTF-8')
+
+        # repack and clean up
+        with zipfile.ZipFile(merged_path,'w',zipfile.ZIP_DEFLATED) as zout:
+            for fn in os.listdir(tmp): zout.write(os.path.join(tmp,fn),arcname=fn)
+        shutil.rmtree(tmp)
+
+        # Final GC
+        try:
+            from osgeo import gdal
+            if hasattr(gdal,'GDALFlushCache'): gdal.GDALFlushCache()
+        except: pass
+        import gc; gc.collect()
+
+        # Clear input fields for next operation
+        self.dlg.lineEdit_11.clear()
+        self.dlg.lineEdit_26.clear()
+        self.dlg.lineEdit_37.clear()
+
+        self.iface.messageBar().pushMessage(
+            f"Projects merged into {merged_path}", level=Qgis.Success, duration=15
+        )
 
     ### Export Data ###
-
     def exportData(self):
         # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
-
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
-
             proj = QgsProject.instance()
 
             for name in self.layers_names:
-
                 layer = proj.mapLayersByName(name)[0]
                 caps = layer.dataProvider().capabilities()
 
@@ -4164,30 +4713,34 @@ class GEOL_QMAPS:
 
             project = QgsProject.instance()
             proj_file_path = project.fileName()
-            # head_tail = os.path.split(proj_file_path)
+
+            # Build the export folder
+            export_folder = self.mynormpath(self.dlg.lineEdit_7.text())
+            os.makedirs(export_folder, exist_ok=True)
+
+            # ─── Pre-flight #1: check whole export folder ───
+            if not self._check_max_filename_length(export_folder):
+                self.dlg.lineEdit_7.clear()
+                return
+
+            # Define the GeoPackage path
+            newGeopackagePath = self.mynormpath(
+                os.path.join(self.dlg.lineEdit_7.text(), "export.gpkg")
+            )
+
+            # ─── Pre-flight #2: check the GeoPackage path itself ───
+            full_gpkg = os.path.abspath(newGeopackagePath)
+            if len(full_gpkg) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Export GeoPackage path too long ({len(full_gpkg)} chars): {full_gpkg}",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+                self.dlg.lineEdit_7.clear()
+                return
 
             file = []
-            # merge zone data
-            """file.append(
-                self.geopackage_file_path + "|layername=Compilation_Fractured zones_PG"
-            )"""
-            file.append(
-                self.geopackage_file_path
-                + "|layername=Compilation_Deformation zones_PG"
-            )
-            """file.append(
-                self.geopackage_file_path
-                + "|layername=Compilation_Cataclastic zones_PG"
-            )"""
-            file.append(
-                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
-            )
-            file.append(
-                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
-            )
-            newGeopackagePath = self.mynormpath(
-                self.dlg.lineEdit_7.text() + "/export.gpkg"
-            )
+
 
             # first create temp layer and new geopackage
             temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
@@ -4200,6 +4753,19 @@ class GEOL_QMAPS:
             QgsVectorFileWriter.writeAsVectorFormatV3(
                 temp_layer, newGeopackagePath, transform_context, options
             )
+
+            # Zonal Data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Deformation zones_PG"
+            )
+            file2 = (
+                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
+            )
+            file3 = (
+                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
+            )
+
             newLayer = (
                 "ogr:dbname='"
                 + newGeopackagePath
@@ -4208,15 +4774,15 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
-                "LAYERS": [file[0], file[1], file[2]],
+                "LAYERS": [file1, file2, file3],
                 "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge lithology data
+
+            # Lithology Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Local lithologies_PT"
@@ -4254,7 +4820,6 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [file1, file2, file3, file4, file5, file6, file7],
                 "OUTPUT": newLayer,
@@ -4262,28 +4827,42 @@ class GEOL_QMAPS:
 
             processing.run("native:mergevectorlayers", params)
 
-            # merge structural data
+            # Structural Data
             file1 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
-            file2 = self.geopackage_file_path + "|layername=Compilation_Dikes-Sills_PT"
-            """file3 = (
-                self.geopackage_file_path
-                + "|layername=Compilation_Fold and crenulation axial planes_PT"
-            )"""
-            file4 = self.geopackage_file_path + "|layername=Compilation_Folds_PT"
-            file5 = (
+            file2 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Foliation-cleavage_PT"
             )
-            file6 = self.geopackage_file_path + "|layername=Compilation_Fractures_PT"
-            file7 = self.geopackage_file_path + "|layername=Compilation_Lineations_PT"
-            file8 = (
+            file3 = (
                 self.geopackage_file_path
                 + "|layername=Compilation_Shear zones and faults_PT"
             )
-            file9 = self.geopackage_file_path + "|layername=Compilation_Veins_PT"
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Folds_PT"
+            )
+            file5 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Fractures_PT"
+            )
+            file6 = (self.geopackage_file_path
+                     + "|layername=Compilation_Veins_PT"
+            )
+            file7 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Dikes-Sills_PT"
+                    )
+            file8 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Lithological contacts_PT"
+            )
+            file9 = (
+                    self.geopackage_file_path
+                    + "|layername=Compilation_Lineations_PT"
+            )
 
             newLayer = (
                 "ogr:dbname='"
@@ -4293,28 +4872,131 @@ class GEOL_QMAPS:
                 + '" (geom)'
             )
 
-            # merge shapefiles
             params = {
                 "LAYERS": [
                     file1,
                     file2,
-                    # file3,
+                    file3,
                     file4,
                     file5,
                     file6,
                     file7,
                     file8,
-                    file9,
+                    file9
                 ],
                 "OUTPUT": newLayer,
             }
 
             processing.run("native:mergevectorlayers", params)
-            self.iface.messageBar().pushMessage(
-                "Layers merged, saved in directory" + self.dlg.lineEdit_7.text(),
-                level=Qgis.Success,
-                duration=5,
+
+            # Geophysical Data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Density_PT"
             )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Magnetic susceptibility_PT"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "geophy_data"
+                + '" (geom)'
+            )
+
+            params = {
+                "LAYERS": [file1, file2],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
+            # Stops-Samples-Photographs-Comments Data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Stops_PT"
+            )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Sampling_PT"
+            )
+            file3 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Photographs_PT"
+            )
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Observations_PT"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "stops-sampling-photographs-commentsPT_data"
+                + '" (geom)'
+            )
+
+            params = {
+                "LAYERS": [file1, file2, file3, file4],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
+            # Linear Data
+            file1 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Observations_LN"
+            )
+            file2 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_GPS Tracks_LN"
+            )
+            file3 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Lithological contacts_LN"
+            )
+            file4 = (
+                self.geopackage_file_path
+                + "|layername=Compilation_Planar structures_LN"
+            )
+
+            newLayer = (
+                "ogr:dbname='"
+                + newGeopackagePath
+                + "' table=\""
+                + "linear_data"
+                + '" (geom)'
+            )
+
+            params = {
+                "LAYERS": [file1, file2, file3, file4],
+                "OUTPUT": newLayer,
+            }
+
+            processing.run("native:mergevectorlayers", params)
+
+            # ————— Validate the full export.gpkg path length —————
+            full_path = os.path.abspath(newGeopackagePath)
+            if len(full_path) > 256:
+                self.iface.messageBar().pushMessage(
+                    f"ERROR: Export geopackage path too long ({len(full_path)} chars): {full_path}",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+                self.dlg.lineEdit_7.clear()
+                return
+
+            self.iface.messageBar().pushMessage(
+                f"Data successfully exported to {newGeopackagePath}",
+                level=Qgis.Success,
+                duration=10
+            )
+
 
         else:
             self.iface.messageBar().pushMessage(
@@ -4758,125 +5440,79 @@ class GEOL_QMAPS:
         with open(stereoConfigPath, "w") as outfile:
             json.dump(stereoConfig, outfile, indent=4)
 
-    """def set_qmapsConfig(self):
-        project = QgsProject.instance()
-        proj_file_path = project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        qmapConfigPath = head_tail[0] + "/" + self.dir_99 + "/qmap.json"
-        layer = project.mapLayersByName("Sampling_PT")[0]
-
-        if os.path.exists(qmapConfigPath):
-            with open(qmapConfigPath, "r") as json_file:
-                qmapConfig = json.load(json_file)
-        else:
-            qmapConfig = {
-                "autoInc": True,
-            }
-
-        with open(qmapConfigPath, "w") as outfile:
-            json.dump(qmapConfig, outfile, indent=4)"""
-
-    ### Merge 2 layers old version###
-
-    def merge_2_layers_(self):
-
-        project = QgsProject.instance()
-        proj_file_path = project.fileName()
-        head_tail = os.path.split(proj_file_path)
-
-        layer1 = QgsProject.instance().mapLayersByName(
-            str(self.dlg.comboBox_merge1_2.currentText())
-        )[0]
-        layer2 = QgsProject.instance().mapLayersByName(
-            str(self.dlg.comboBox_merge2_2.currentText())
-        )[0]
-
-        field_name = "fid"
-        field_index = layer1.fields().indexOf(field_name)
-        if field_index != -1:
-            # Delete the field using the field index
-            if layer1.dataProvider().deleteAttributes([field_index]):
-                # print(f"Field '{field_name}' removed successfully.")
-                pass
-            else:
-                print(f"Failed to remove field '{field_name}'.")
-
-        # Run the merge algorithm
-        merged = processing.run(
-            "qgis:mergevectorlayers",
-            {
-                "LAYERS": [layer1, layer2],
-                "CRS": layer2.crs(),  # Change the CRS as needed
-                "OUTPUT": "ogr:dbname='"
-                + self.geopackage_file_path
-                + "' table=\""
-                + layer2.name()
-                + '" (geom)',  # Output to geopackage
-            },
-        )
-
-        # remove duplicate rows
-        params = {
-            "FIELDS": ["Date", "User", "xcoord", "ycoord"],
-            "INPUT": merged,
-            "OUTPUT": "ogr:dbname='"
-            + self.geopackage_file_path
-            + "' table=\""
-            + layer2.name()
-            + '" (geom)',
-        }
-
-        # processing.run("native:removeduplicatesbyattribute", params)['OUTPUT']
-
     def merge_2_layers(self):
-        layer1 = QgsProject.instance().mapLayersByName(
-            str(self.dlg.comboBox_merge1_2.currentText())
-        )[0]
-        layer2 = QgsProject.instance().mapLayersByName(
-            str(self.dlg.comboBox_merge2_2.currentText())
-        )[0]
+        name1 = self.dlg.comboBox_merge1_2.currentText()
+        name2 = self.dlg.comboBox_merge2_2.currentText()
+        list1 = QgsProject.instance().mapLayersByName(name1)
+        list2 = QgsProject.instance().mapLayersByName(name2)
+        if not list1 or not list2:
+            self.iface.messageBar().pushMessage(
+                "ERROR: Could not find one of the selected layers.",
+                level=Qgis.Critical, duration=10
+            )
+            return
 
-        if layer1 != layer2:
+        src = list1[0]  # scratch layer
+        dst = list2[0]  # compilation layer
 
-            # Create a dictionary of attributes for each feature in layer1, keyed by field name.
-            for feature1 in layer1.getFeatures():
-                new_feature = QgsFeature(layer2.fields())
-                new_feature.setGeometry(feature1.geometry())
+        if src == dst:
+            self.iface.messageBar().pushMessage(
+                "Please select two different layers.",
+                level=Qgis.Warning, duration=10
+            )
+            return
 
-                # Build a dictionary for layer1 attributes
-                feat1_attr = {f.name(): feature1[f.name()] for f in layer1.fields()}
-                new_attrs = []
-                for field in layer2.fields():
-                    # First, try to find an exact match by field name.
-                    if field.name() in feat1_attr:
-                        new_attrs.append(feat1_attr[field.name()])
-                    else:
-                        new_attrs.append(None)
-                        print('field name correspondance WRONG: ', field.name())
-                        
-                new_feature.setAttributes(new_attrs)
-                layer2.dataProvider().addFeatures([new_feature])
+        # Start an edit session on the destination
+        if not dst.isEditable():
+            dst.startEditing()
 
-            # extra code to handle storage of original data as dict in json field
-            if not layer2.isEditable():
-                layer2.startEditing()
+        # Figure out which field index holds your JSON back-reference
+        idx_json = dst.fields().indexFromName("Existing databases - raw data")
 
-            for feature in layer2.getFeatures():
-                if feature["UUID"] in self.sheetHashUUID:
-                    new_text = self.sheetHashUUID[feature["UUID"]][0]
-                    feature["Existing databases - raw data"] = new_text
+        new_feats = []
+        for f in src.getFeatures():
+            nf = QgsFeature(dst.fields())
+            nf.setGeometry(f.geometry())
+            # copy every attribute (including UUID, Azimuth, Plunge, etc.)
+            nf.setAttributes(f.attributes())
 
-                # Update the feature in the layer
-                layer2.updateFeature(feature)
+            # now inject your JSON text up‐front, if it exists
+            try:
+                uuid = f["UUID"]
+                if uuid in self.sheetHashUUID:
+                    nf.setAttribute(idx_json, self.sheetHashUUID[uuid][0])
+            except (KeyError, IndexError):
+                # source had no UUID or you didn’t map it—ignore
+                pass
 
-            layer2.updateFields()
-            layer2.commitChanges()
-            layer2.triggerRepaint()
+            new_feats.append(nf)
 
-            # Removing the first layer
-            QgsProject.instance().removeMapLayer(layer1.id())
+        # Add them all in one go
+        ok = dst.addFeatures(new_feats)
+        if not ok:
+            dst.rollBack()
+            self.iface.messageBar().pushMessage(
+                "ERROR: Failed to merge features.",
+                level=Qgis.Critical, duration=10
+            )
+            return
 
+        # Commit and clean up
+        if not dst.commitChanges():
+            dst.rollBack()
+            self.iface.messageBar().pushMessage(
+                f"ERROR committing merge: {dst.commitErrors()}",
+                level=Qgis.Critical, duration=15
+            )
+            return
+
+        dst.triggerRepaint()
+        # remove the scratch layer
+        QgsProject.instance().removeMapLayer(src.id())
+        self.iface.messageBar().pushMessage(
+            f"Merged {len(new_feats)} features into '{dst.name()}'",
+            level=Qgis.Success, duration=5
+        )
 
     # Delete contents of a geopackage layer
     def drop_layer_contents(self, gpkg_path, layer_name):
@@ -5037,20 +5673,27 @@ class GEOL_QMAPS:
                 print(f"Including layer: {layer.name()} with styles.")
 
         # Save the group with its hierarchy and styles
-        # Save the layers to a QLR file
-        qlr_file=QgsLayerDefinition.exportLayerDefinition(
-            self.mynormpath(
-                self.dlg.lineEdit_18.text() + "/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr"
-            ),
-            [target_group],
+        # Build and export to a QLR file
+        qlr_path = self.mynormpath(os.path.join(self.dlg.lineEdit_18.text(), "FIELD_DATA.qlr"))
+        QgsLayerDefinition.exportLayerDefinition(
+            qlr_path,
+            [target_group]
         )
+
+        self.dlg.lineEdit_18.clear()
+
+        # ————— Validate full‐path length of the new QLR —————
+        if not self._check_max_filename_length(os.path.dirname(qlr_path)):
+            # abort if any full path >256 chars
+            return
+
         self.iface.messageBar().pushMessage(
-            f"Layer Definition style file exported as {self.mynormpath(self.dlg.lineEdit_18.text() + '/CURRENT_MISSION-EXISTING_FIELD_DATABASE-DICTIONARIES.qlr')}",
+            f"Layer Definition style file exported as {qlr_path}",
             level=Qgis.Success,
             duration=45,
         )
-        self.dlg.lineEdit_18.clear()
-        return qlr_file
+
+        return qlr_path
 
 
     # Builds the XML structure of the layer tree recursively
@@ -5088,22 +5731,31 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def resetWindow_import_data(self):
-
         self.dlg.lineEdit_13.clear()
+        self.dlg.lineEdit_FM_project_path.clear()
         self.dlg.tableWidget1.setRowCount(0)
         self.dlg.tableWidget2.setRowCount(0)
         self.dlg.tableWidget3.setRowCount(0)
+        self.dlg.comboBox_merge1_2.setCurrentIndex(-1)
+        self.dlg.comboBox_merge2_2.setCurrentIndex(-1)
 
     def resetWindow_fieldwork_preparation(self):
         self.dlg.lineEdit_8.clear()
         self.dlg.lineEdit_3.clear()
+        self.dlg.lineEdit_39.clear()
         self.dlg.lineEdit_38.clear()
+        self.dlg.lineEdit_18.clear()
         self.dlg.lineEdit_9.clear()
         self.dlg.lineEdit_10.clear()
         self.dlg.lineEdit_39.clear()
+        self.dlg.comboBox_layers_user.setCurrentIndex(-1)
+        self.dlg.comboBox.setCurrentIndex(-1)
+        self.dlg.comboBox_delete.setCurrentIndex(-1)
 
     def resetWindow_data_management(self):
         self.dlg.lineEdit_11.clear()
+        self.dlg.lineEdit_15.clear()
+        self.dlg.lineEdit_14.clear()
         self.dlg.lineEdit_26.clear()
         self.dlg.lineEdit_37.clear()
         self.dlg.lineEdit_7.clear()
@@ -5197,7 +5849,6 @@ class GEOL_QMAPS:
 
     def select_clip_poly(self):
         filename, _filter = QFileDialog.getOpenFileName(None, "Select Clip Polygon")
-
         self.dlg.lineEdit_8.setText(filename)
 
     def unload(self):
@@ -5230,30 +5881,31 @@ class GEOL_QMAPS:
         self.dlg.comboBox.addItems(self.csv_layer_list)
 
     def fill_ComboBox(self):
+        # clear old entries
         self.dlg.comboBox_merge1_2.clear()
         self.dlg.comboBox_merge2_2.clear()
 
-        # List of the QGIS layers
-        layers = QgsProject.instance().mapLayers()
+        # populate both dropdowns
+        for layer in QgsProject.instance().mapLayers().values():
+            if not isinstance(layer, QgsVectorLayer):
+                continue
+            uri = layer.dataProvider().dataSourceUri().lower()
+            if uri.endswith(".csv") or layer.name() == "African borders_PG":
+                continue
 
-        for layerId, layer in layers.items():
-            if (
-                isinstance(layer, QgsVectorLayer)
-                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and layer.name() != "African borders_PG"
-                and "_PT" in layer.name()
-                and not "Compilation_" in layer.name()
-                and not layer.name() in self.layers_names_all
-            ):
-                self.dlg.comboBox_merge1_2.addItem(layer.name(), layerId)
-            elif (
-                isinstance(layer, QgsVectorLayer)
-                and not layer.dataProvider().dataSourceUri().lower().endswith(".csv")
-                and layer.name() != "African borders_PG"
-                and "_PT" in layer.name()
-                and "Compilation_" in layer.name()
-            ):
-                self.dlg.comboBox_merge2_2.addItem(layer.name(), layerId)
+            name = layer.name()
+            if "_PT" in name and name not in self.layers_names_all:
+                if name.startswith("Compilation_"):
+                    self.dlg.comboBox_merge2_2.addItem(name, layer.id())
+                else:
+                    self.dlg.comboBox_merge1_2.addItem(name, layer.id())
+
+        # reconnect so we only ever listen to the *source* combobox
+        try:
+            self.dlg.comboBox_merge1_2.currentIndexChanged.disconnect(self.on_merge2_source_changed)
+        except (TypeError, RuntimeError):
+            pass
+        self.dlg.comboBox_merge1_2.currentIndexChanged.connect(self.on_merge2_source_changed)
 
     def fill_ComboBox_layers_user(self):  # ADD
         self.dlg.comboBox_layers_user.clear()
@@ -5271,150 +5923,340 @@ class GEOL_QMAPS:
         self.fill_ComboBox()
         self.fill_ComboBox_layers_user()  # ADD
 
+    def on_merge2_source_changed(self, index):
+        """
+        When you pick "<LayerName>_PT_<ImportBase>" (or "_PG_<ImportBase>") in comboBox_merge1_2,
+        automatically populate comboBox_merge2_2 with "Compilation_<LayerName>_PT" (or "_PG").
+        """
+        src = self.dlg.comboBox_merge1_2.currentText()
+        print(f"source file name is: {src}")
+        # look for the part ending in _PT
+        m = re.match(r"(.+_(?:PT))_", src)
+        print(f"matching part of the source filename is: {m}")
+        if not m:
+            # nothing to do if it doesn’t match
+            self.dlg.comboBox_merge2_2.clear()
+            self.dlg.comboBox_merge2_2.addItem("(no matching compilation layer)")
+            return
+
+        layer_name = m.group(1)  # e.g. "Shear zones and faults_PT"
+        print(f"layer name should be: {layer_name}")
+        target = f"Compilation_{layer_name}"  # e.g. "Compilation_Shear zones and faults_PT"
+        print(f"target layer should be: {target}")
+
+        # rebuild comboBox_merge2_2 to contain only that entry
+        self.dlg.comboBox_merge2_2.blockSignals(True)
+        self.dlg.comboBox_merge2_2.clear()
+        if QgsProject.instance().mapLayersByName(target):
+            print(f"target layer found in the project: {target}")
+            self.dlg.comboBox_merge2_2.addItem(target)
+            self.dlg.comboBox_merge2_2.setCurrentIndex(0)
+        else:
+            print(f"target layer not found in the project: {target}")
+            self.dlg.comboBox_merge2_2.addItem("(no matching compilation layer)")
+        self.dlg.comboBox_merge2_2.blockSignals(False)
+
     ###############################################################################
     ########                 Tooltips (just for information)           ############
     ###############################################################################
 
     def define_tips(self):
-        Value_tooltip = "<p>Value of Item to be stored in csv File selected from List Name dropdown menu.</p>"
-        Description_tooltip = "<p>Additional info for Item to be stored in csv File selected from List Name dropdown menu.</p>"
-        Clip_Polygon_tooltip = "<p>Path to clipping polygon shapefile- Leave blank if you want to use the current QGIS Canvas rectangle.</p>"
-        Clip_path_tooltip = "<p>Path to new clipped QGIS project directory.</p>"
-        Export_path_tooltip = "<p>Path to directory to store combined layers.</p>"
-        Proj_name_tooltip = "<p>Name of Project, e.g. Username & date.</p>"
-        Proj_region_tooltip = "<p>Region project applies to e.g. Sefwi Belt.</p>"
-        Merge_main_tooltip = "<p>Path to directory of global QGIS Project.</p>"
-        Merge_sub_tooltip = "<p>Path to directory of local QGIS Project.</p>"
-        Merge_output_tooltip = "<p>Path to directory of newly merged QGIS Project.</p>"
-        Csv_list_tooltip = "Select CSV file to add item to"
-        Epsilon_tooltip = "The radius of the circle to be created around each data point to check the density (in metres)"
-        Clip_tooltip = "Provide an output path (and optional clipping polygon) \nto clip the all WAXI QFIELD layers of current project, retaining directory structure. \nIf no polygon is defined, it will clip to the current Canvas (field of view) of the open project"
-        Add_item_tooltip = "Chose the CSV file you want to add to, and define the \nValue & Description for a new field that will appear in the dropdown menus in QFIELD"
-        Export_tooltip = "Provide an output path to combine similar layers into \none of three shapefiles (structure polygons, structure points and lithologies)"
-        Update_tooltip = "Provide new Name and Region info for project"
-        Merge_tooltip = "Provide paths to the global QGIS project, \nthe local one you have been working on and the output directory that\n will store the merged projects, with duplicates removed."
-        Virtualstop_tooltip = "Combine all point layers to get virtual Stop IDS"
-        gtCircles_tooltip = (
-            "Select Checkbox to switch to Great Circle Display for Stereonet Plugin"
-        )
-        contours_tooltip = "Select Checkbox to add Contour Display for Stereonet Plugin"
-        kinematics_tooltip = "Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin"
-        linPlanes_tooltip = "Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin"
-        rose_tooltip = "Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin"
-        stereonet_tooltip = (
-            "Select Checkbox to control Display behaviour for Stereonet Plugin"
-        )
-        FieldMove_Import_tooltip = "Select a directory with a FieldMove project and the csv files will be converted to shapefiles, \nthe photos imported to the project, the maps loaded as temporary files and the lithologies added to Local Lithologies"
+        #Reset the Window
+        ResetWindow_tooltip = "Reset this window..."
+        self.dlg.pushButton_13.setToolTip(ResetWindow_tooltip)
+        self.dlg.pushButton_19.setToolTip(ResetWindow_tooltip)
+        self.dlg.pushButton_22.setToolTip(ResetWindow_tooltip)
 
-        # Titles
-        self.dlg.groupBox_4.setToolTip(Clip_tooltip)
-        self.dlg.label_37.setToolTip(Add_item_tooltip)
-        self.dlg.groupBox_10.setToolTip(Export_tooltip)
+        #Browse
+        Browse_tooltip = "Browse..."
+        self.dlg.pushButton_7.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_FM_project_select.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_17.setToolTip(Browse_tooltip)
+        self.dlg.pushButton.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_6.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_37.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_QFieldPackage.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_QGISFolder.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_29.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_20.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_27.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_5.setToolTip(Browse_tooltip)
+        self.dlg.pushButton_15.setToolTip(Browse_tooltip)
+
+        #IMPORT FIELD DATA
+        # Import Legacy SHP
+        ImportShp_tooltip = "<p>Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.<p>"
+        self.dlg.label_19.setToolTip(ImportShp_tooltip)
+
+        ImportShpStep1_tooltip = "<p>Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).<p>"
+        self.dlg.groupBox.setToolTip(ImportShpStep1_tooltip)
+
+        ImportShpStep2_tooltip = "<p>Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.<p>"
+        self.dlg.label_35.setToolTip(ImportShpStep2_tooltip)
+        ImportShpStep2Fields_tooltip = "<p>Validate standard field names assigned to legacy database fields.<p>"
+        self.dlg.pushButton_9.setToolTip(ImportShpStep2Fields_tooltip)
+        ImportShpStep2Litho_tooltip = "<p>Validate standard lithology names assigned to legacy lithologies.<p>"
+        self.dlg.pushButton_10.setToolTip(ImportShpStep2Litho_tooltip)
+        ImportShpStep2Struct_tooltip = "<p>Validate standard structure types assigned to legacy structures.<p>"
+        self.dlg.pushButton_26.setToolTip(ImportShpStep2Struct_tooltip)
+        ImportShpStep2Undo_tooltip = "<p>Undo the last edit.<p>"
+        self.dlg.pushButton_11.setToolTip(ImportShpStep2Undo_tooltip)
+        self.dlg.pushButton_12.setToolTip(ImportShpStep2Undo_tooltip)
+        self.dlg.pushButton_25.setToolTip(ImportShpStep2Undo_tooltip)
+
+        ImportShpStep3_tooltip = "<p>Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!<p>"
+        self.dlg.groupBox_3.setToolTip(ImportShpStep3_tooltip)
+
+        ImportShpStep4_tooltip = "<p>Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.<p>"
+        self.dlg.groupBox_15.setToolTip(ImportShpStep4_tooltip)
+
+        #Import FieldMove Project
+        ImportFM_tooltip = "<p>Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.<p>"
+        self.dlg.groupBox_19.setToolTip(ImportFM_tooltip)
+
+
+        #FIELDWORK PREPARATION
+        # Update Project ID and Location
+        Update_tooltip = "<p>Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.<p>"
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
-        self.dlg.groupBox_11.setToolTip(Virtualstop_tooltip)
-
-        # Project Parameters
-        self.dlg.projName_pushButton.setToolTip("Update project name")
-        self.dlg.merge_pushButton.setToolTip("Merge projects")
-        self.dlg.merge_pushButton_2.setToolTip("Remove Duplicate UUIDs")
-        self.dlg.merge_layers_pushButton_2.setToolTip("Merge two QGIS layers")
-        self.dlg.clip_pushButton.setToolTip("Clip to current canvas")
+        Proj_name_tooltip = "<p>Type the updated name of the project, e.g. Mission ID/Year.</p>"
         self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
+        Proj_region_tooltip = "<p>Type the name of the region the project applies to e.g. Sefwi Belt.</p>"
         self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
+        self.dlg.projName_pushButton.setToolTip("<p>Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.<p>")
 
-        # CSV
-        self.dlg.csv_pushButton.setToolTip("Add new item to CSV file")
-        self.dlg.csv_pushButton_2.setToolTip("Delete an item from CSV file")
+        # Set User by Default
+        DefaultUser_tooltip = "<p>Assign an existing or new user to be the default for one layer or all field data layers going forward.<p>"
+        self.dlg.groupBox_18.setToolTip(DefaultUser_tooltip)
+        DefaultUserOneLayer_tooltip = "<p>If toggled on, select the field data layer to update with a new default value for the User field.<p>"
+        self.dlg.radioButton_Some.setToolTip(DefaultUserOneLayer_tooltip)
+        DefaultUserOneLayerSelect_tooltip = "<p>Select in the dropdown list the field data layer to update with a new default value for the User field.<p>"
+        self.dlg.comboBox_layers_user.setToolTip(DefaultUserOneLayerSelect_tooltip)
+        DefaultUserAllLayers_tooltip = "<p>If toggled on, all field data layers will be updated with a new default value for the User field.<p>"
+        self.dlg.radioButton_All.setToolTip(DefaultUserAllLayers_tooltip)
+        self.dlg.pushButton_user_default.setToolTip("<p>Update the User metadata value for one or all field data layers.<p>")
 
-        # Stop
-        self.dlg.virtual_pushButton.setToolTip("Create virtual stops")
+        #Edit Dictionaries
+        EditDico_tooltip = "<p>Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.<p>"
+        self.dlg.groupBox_5.setToolTip(EditDico_tooltip)
+        Dico_tooltip = "<p>Select which dictionary to add or delete item to from the dropdown list.</p>"
+        self.dlg.comboBox.setToolTip(Dico_tooltip)
+        AddValue_tooltip = "<p>Type a new value to add to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.</p>"
+        self.dlg.lineEdit_38.setToolTip(AddValue_tooltip)
+        self.dlg.csv_pushButton.setToolTip("<p>Add new item to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.<p>")
+        DeleteValue_tooltip = "<p>Select what item to delete from the selected dictionary.</p>"
+        self.dlg.comboBox_delete.setToolTip(DeleteValue_tooltip)
+        self.dlg.csv_pushButton_2.setToolTip("<p>Delete the selected item from the related dictionary. Update the layer's symbology accordingly to remove those referring to deleted items.<p>")
 
-        # Import Data
-        self.dlg.lineEdit_13.setToolTip("Select the file you want to load")
+        #Define Default Structural Measurement for Planar Structures
+        StructConv_tooltip = "<p>Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.<p>"
+        self.dlg.groupBox_20.setToolTip(StructConv_tooltip)
+        DipDir_tooltip = "<p>If toggled on, planar measurements should be then entered as dip/dip direction by default.<p>"
+        self.dlg.structure_style_on_pushButton.setToolTip(DipDir_tooltip)
+        RHR_tooltip = "<p>If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.<p>"
+        self.dlg.structure_style_off_pushButton.setToolTip(RHR_tooltip)
 
-        self.dlg.pushButton_11.setToolTip("Undo previous edits")
-        self.dlg.pushButton_9.setToolTip("All columns name are suitable for you")
+        #Save Changes Made to the Field Data Forms
+        SaveQLR_tooltip = "<p>Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.<p>"
+        self.dlg.groupBox_17.setToolTip(SaveQLR_tooltip)
+        SaveButton_tooltip = "<p>Save the updated GEOL-QMAPS layer definition file to the specified folder.<p>"
+        self.dlg.pushButton_save__project_template_style_2.setToolTip(SaveButton_tooltip)
 
-        self.dlg.pushButton_12.setToolTip("Undo previous edits")
-        self.dlg.pushButton_10.setToolTip("All lithologies are suitable for you")
+        #Clip Field Data to Current Canvas
+        ClipTool_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.<p>"
+        self.dlg.groupBox_4.setToolTip(ClipTool_tooltip)
+        Clip_path_tooltip = "<p>Path to new clipped GEOL-QMAPS project directory.</p>"
+        self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
+        ClipPolygon_tooltip = "<p>Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.</p>"
+        self.dlg.lineEdit_8.setToolTip(ClipPolygon_tooltip)
+        ClippingButton_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers.<p>"
+        self.dlg.clip_pushButton.setToolTip(ClippingButton_tooltip)
 
-        self.dlg.pushButton_14.setToolTip("Import processed data into QGIS")
-        self.dlg.pushButton_14.clicked.connect(
-            lambda: self.Generate_Output_QGIS_Layers()
-        )
 
-        self.dlg.pushButton_13.setToolTip("Reset this window")
-        self.dlg.pushButton_19.setToolTip("Reset this window")
-        self.dlg.pushButton_22.setToolTip("Reset this window")
+        #DATA MANAGEMENT
+        #Rejig to the Latest GEOL-QMAPS Version
+        RejigTool_tooltip = "<p>Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.<p>"
+        self.dlg.groupBox_22.setToolTip(RejigTool_tooltip)
+        RejigValidate_tooltip = "<p>Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.<p>"
+        self.dlg.rejig_pushButton_4.setToolTip(RejigValidate_tooltip)
 
-        self.dlg.pushButton_FM_project_select.setToolTip(FieldMove_Import_tooltip)
+        #Synchronise a QField Package to the QGIS Master Project
+        SyncTool_tooltip = "<p>Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.<p>"
+        self.dlg.groupBox_23.setToolTip(SyncTool_tooltip)
+        SyncValidate_tooltip = "<p>Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.<p>"
+        self.dlg.pushButton_SyncQFieldToQGIS.setToolTip(SyncValidate_tooltip)
 
-        # Export Data
+        #Merge Projects
+        MergeTool_tooltip = "<p>Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.<p>"
+        self.dlg.groupBox_8.setToolTip(MergeTool_tooltip)
+        Merge_main_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.</p>"
+        self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
+        Merge_sub_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.</p>"
+        self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
+        Merge_output_tooltip = "<p>Path to directory of newly merged GEOL-QMAPS QGIS project.</p>"
+        self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
+        MergeValidate_tooltip = "<p>Merge selected GEOL-QMAPS QGIS projects.<p>"
+        self.dlg.merge_pushButton.setToolTip(MergeValidate_tooltip)
+
+        #Archive Current Field Data
+        ArchiveTool_tooltip = "<p>Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.<p>"
+        self.dlg.groupBox_21.setToolTip(ArchiveTool_tooltip)
+        self.dlg.merge_current_existing_pushButton_3.setToolTip(ArchiveTool_tooltip)
+
+        #Remove Duplicate UUIDs from Project
+        RemoveDuplicateTool_tooltip = "<p>After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.<p>"
+        self.dlg.groupBox_9.setToolTip(RemoveDuplicateTool_tooltip)
+        self.dlg.merge_pushButton_2.setToolTip("<p>Remove duplicates in current and compilation field data layers.<p>")
+
+        #Export Compilation Layers to Common Themes
+        ExportTool_tooltip = "<p>Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<p>"
+        self.dlg.groupBox_10.setToolTip(ExportTool_tooltip)
+        ExportPath_tooltip = "<p>Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.<p>"
+        self.dlg.lineEdit_7.setToolTip(ExportPath_tooltip)
+        ExportValidate_tooltip = "<p>Export compilation layers to common themes.<p>"
+        self.dlg.pushButton_5.setToolTip(ExportValidate_tooltip)
         self.dlg.export_pushButton.setToolTip("Export layers")
 
-        # Stereo
-        self.dlg.stereonet_pushButton.setToolTip("Update setting of stereonet display")
-
-        # Help
-        # self.dlg.pushButton_33.setToolTip("Click here to access to WAXI website")
-        # self.dlg.pushButton_30.setToolTip("Click here to access to AMIRA website")
-        # self.dlg.pushButton_32.setToolTip("Click here to access to CET website")
-        # self.dlg.pushButton_31.setToolTip("Click here to access to the WAXI Zenodo page")
-
-        # self.dlg.pushButton_35.setToolTip("Click here to access to the WAXI publications")
-        # self.dlg.pushButton_36.setToolTip("Click here to access to the WAXI theses")
-
-        # LineEdit
-        self.dlg.lineEdit_38.setToolTip(Value_tooltip)
-
-        self.dlg.lineEdit_8.setToolTip(Clip_Polygon_tooltip)
-        self.dlg.pushButton_6.setToolTip(Clip_Polygon_tooltip)
-
-        self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
-        self.dlg.pushButton.setToolTip(Clip_path_tooltip)
-
-        self.dlg.lineEdit_7.setToolTip(Export_path_tooltip)
-        self.dlg.pushButton_5.setToolTip(Export_path_tooltip)
-
-        self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
-        self.dlg.pushButton_29.setToolTip(Merge_main_tooltip)
-
-        self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
-        self.dlg.pushButton_20.setToolTip(Merge_sub_tooltip)
-
-        self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
-        self.dlg.pushButton_27.setToolTip(Merge_output_tooltip)
-
+        #Create Virtual Stops
+        VirtualStops_tooltip = "<p>Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.<p>"
+        self.dlg.groupBox_11.setToolTip(VirtualStops_tooltip)
+        Epsilon_tooltip = "<p> Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.<p>"
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
+        self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
 
+        # Stereographic Projection
+        self.dlg.stereonet_pushButton.setToolTip("<p>Control fork of custom Stereonet plugin display.<p>")
+        gtCircles_tooltip = "<p>Select Checkbox to switch to Great Circle Display for Stereonet Plugin<p>"
+        contours_tooltip = "<p>Select Checkbox to add Contour Display for Stereonet Plugin<p>"
+        kinematics_tooltip = "<p>Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin<p>"
+        linPlanes_tooltip = "<p>Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin<p>"
+        rose_tooltip = "<p>Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin<p>"
+        stereonet_tooltip = "<p>Select Checkbox to control Display behaviour for Stereonet Plugin<p>"
         self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
         self.dlg.contours_checkBox.setToolTip(contours_tooltip)
         self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
         self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
         self.dlg.rose_checkBox.setToolTip(rose_tooltip)
 
+        #Picture Management
+        PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
+        self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
+        PictureFolder_tooltip = "<p>Browse to the folder that contains field and sample photographs.<p>"
+        self.dlg.lineEdit_14.setToolTip(PictureFolder_tooltip)
+        FilepathExisting_tooltip = "<p>If toogled on, the filepath of existing photographs will be updated to the selected folder.<p>"
+        self.dlg.option1_ckeckbox.setToolTip(FilepathExisting_tooltip)
+        FilepathDefault_tooltip = "<p>If toogled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.<p>"
+        self.dlg.option2_ckeckbox.setToolTip(FilepathDefault_tooltip)
+        FilepathValidate_tooltip = "<p>Update photograph repository information.<p>"
+        self.dlg.option2_ckeckbox.setToolTip(FilepathValidate_tooltip)
+        EXIF_tooltip = "<p>Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.<p>"
+        self.dlg.pushButton_use_exif_azimuth.setToolTip(EXIF_tooltip)
+
+
     ###############################################################################
     ####################                   RUN                   ##################
     ###############################################################################
-    def use_exif_azimuth(self):
-        dec = ""
-        layer_name = "Photographs_PT"
-        layer = QgsProject.instance().mapLayersByName(layer_name)[0]
-        if not layer.isValid():
-            print(f"Error: Layer '{layer_name}' not found or invalid.")
-        else:
+    def extract_exif_azimuth(self, full_path):
+        """
+        Returns the GPSImgDirection in degrees as a float, or None if missing/broken.
+        """
+        try:
+            img = Image.open(full_path)
+            info = img._getexif()
+            print(f"")
+            if not info:
+                return None
 
-            # Start an edit session
+            # find the GPSInfo block
+            gps_info = info.get(34853)  # 34853 is the tag id for GPSInfo
+            if not gps_info:
+                return None
+
+            # decode GPS sub-tags
+            decoded = {}
+            for tag, val in gps_info.items():
+                name = GPSTAGS.get(tag, tag)
+                decoded[name] = val
+
+            direction = decoded.get('GPSImgDirection')
+            if direction is None:
+                return None
+
+            # direction may be an (num,den) tuple
+            if isinstance(direction, tuple) and len(direction) >= 2:
+                num, den = direction[0], direction[1]
+                return float(num) / float(den) if den else None
+
+            return float(direction)
+        except Exception:
+            return None
+
+
+    def use_exif_azimuth(self):
+        from qgis.core import (
+            QgsExpression,
+            QgsExpressionContext,
+            QgsExpressionContextUtils,
+            Qgis
+        )
+        # Names of the two photo layers to process
+        layer_names = ["Photographs_PT", "Compilation_Photographs_PT"]
+        for layer_name in layer_names:
+            layers = QgsProject.instance().mapLayersByName(layer_name)
+            if not layers:
+                self.iface.messageBar().pushMessage(
+                    f"Layer '{layer_name}' not found or invalid.",
+                    level=Qgis.Warning,
+                    duration=15
+                )
+                continue
+            layer = layers[0]
+
+            # Start editing
             if not layer.isEditable():
                 layer.startEditing()
 
-            # Loop through all features in the layer
-            for feature in layer.getFeatures():
-                # Get the feature ID
-                feature_id = feature.id()
-                # print("feature_id",feature_id)
-                # Extract values from "Photographs" and "Date" fields
-                date = feature["Date"]
+            # Prepare the EXIF expression once
+            exif_expr = QgsExpression(
+                "exif(\"Full_Path\", 'Exif.GPSInfo.GPSImgDirection')"
+            )
+
+            # Field indices
+            idx_full = layer.fields().indexFromName("Full_Path")
+            idx_exif = layer.fields().indexFromName("EXIF_Azimuth")
+            idx_az = layer.fields().indexFromName("Azimut")
+            if idx_full < 0 or idx_exif < 0 or idx_az < 0:
+                self.iface.messageBar().pushMessage(
+                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimut attributes.",
+                    level=Qgis.Critical, duration=10
+                )
+                layer.rollback()
+                continue
+
+            # Loop features
+            for feat in layer.getFeatures():
+                fid = feat.id()
+                full_path = feat["Full_Path"]
+                exif_val = feat["EXIF_Azimuth"]
+                az_val = feat["Azimut"]
+                new_exif = None
+
+                # If EXIF_Azimuth is null/empty, try to compute it
+                if exif_val in [None, "", 0]:
+                    new_exif = self.extract_exif_azimuth(full_path)
+                    if new_exif is None:
+                        self.iface.messageBar().pushMessage(
+                            "Warning",
+                            f"Feature {fid}: cannot read EXIF from '{full_path}'; Entered image direction (0, by default) retained.",
+                            level=Qgis.Warning, duration=5
+                        )
+                        continue
+                    exif_val = new_exif
+                    layer.changeAttributeValue(fid, idx_exif, exif_val)
+
+                # At this point exif_val is valid: compute declination
+                # Extract date from "Date" field
+                date = feat["Date"]
                 date = date.split("/")
 
                 day = int(date[2].split(" ")[0])
@@ -5423,9 +6265,9 @@ class GEOL_QMAPS:
                 date = datetime(year, month, day)
 
                 # Extract latitude and longitude from the feature's geometry
-                geometry = feature.geometry()
+                geometry = feat.geometry()
                 if geometry.isEmpty():
-                    print(f"Feature ID {feature_id} has no geometry.")
+                    print(f"Feature {fid} in {layer_name}: has no geometry.")
                     continue
 
                 # Get the point geometry as lat/lon (assuming the layer has point geometry)
@@ -5435,43 +6277,27 @@ class GEOL_QMAPS:
                     print(f"Feature ID {feature_id} does not have point geometry.")
                     continue
 
-                lon = 0.0
-                lat = 5.0
-                date = datetime(2020, 12, 12)
                 # calculate IGRF compnents and  convert to Inc, Dec, Int
-                Be, Bn, Bu = igrf(lon, lat, 0, date)  # returns east, north, up
-                (self.RTE_P_inc, self.RTE_P_dec) = get_inclination_declination(
-                    Be, Bn, Bu, degrees=True
-                )
+                Be, Bn, Bu = igrf(lon, lat, 0, date)
+                inc, dec = get_inclination_declination(Be, Bn, Bu, degrees=True)
+                corrected = exif_val + dec.item()
+    
+                # Final corrected azimuth
+                if new_exif is not None or exif_val is not None:
+                    layer.changeAttributeValue(fid, idx_az, corrected)
 
-                inc = self.RTE_P_inc.item()
-                dec = self.RTE_P_dec.item()
-
-                field_name = "Azimut"
-                # Update the "Azimuth" field with the new value
-                manipulated_value = feature[field_name] + dec
-                field_index = layer.fields().indexFromName("Azimut")
-                if field_index == -1:
-                    print(f"Field '{field_name}' not found in layer '{layer.name()}'")
-                    return
-
-                # Iterate through features and update the field value
-                for feature in layer.getFeatures():
-                    feature[field_index] = manipulated_value  # Update the field value
-                    layer.updateFeature(
-                        feature
-                    )  # Save the updated feature to the layer
-
-                # Commit changes
-                if not layer.commitChanges():
-                    print(f"Failed to commit changes to layer '{layer.name()}'")
-
+            # Commit all changes on this layer
+            if not layer.commitChanges():
                 self.iface.messageBar().pushMessage(
-                    "Photo orientation updated to account for declination {}".format(
-                        round(dec, 2)
-                    ),
+                    f"Failed to commit Image Direction updates on '{layer_name}'.",
+                    level=Qgis.Critical,
+                    duration=10
+                )
+            else:
+                self.iface.messageBar().pushMessage(
+                    f"Layer '{layer_name}': Image directions updated from EXIF and corrected from declination.",
                     level=Qgis.Success,
-                    duration=15,
+                    duration=5
                 )
 
 
@@ -5513,7 +6339,7 @@ class GEOL_QMAPS:
             os.makedirs(directory,exist_ok=True) 
 
 
-        #run through all funcitonality (except importing data)
+        #run through all funcitonality (except importing shp legacy data)
 
         try:
             self.dlg.lineEdit_9.setText("Name")
@@ -5559,13 +6385,11 @@ class GEOL_QMAPS:
         except:
             print("*** clipToCanvas failed")
 
-
         try:
             self.removeDuplicates()
             print("removeDuplicates")
         except:
             print("*** removeDuplicates failed")
-
 
         try:
             self.dlg.lineEdit_18.setText(qlmDirectory)
@@ -5574,14 +6398,12 @@ class GEOL_QMAPS:
         except:
             print("*** save_template_style failed")
 
-
         try:
             self.dlg.lineEdit_53.setText("500")
             self.virtualStops()
             print("virtualStops")
         except:
             print("*** virtualStops failed")
-
 
         try:
             self.dlg.lineEdit_39.setText("UnitTestUser")
@@ -5622,5 +6444,42 @@ class GEOL_QMAPS:
             print("addCsvItem and deleteCsvItem")
         except:
             print("*** addCsvItem and deleteCsvItem failed")
+
+        try:
+            # Test “on” style
+            self.dlg.structure_style_on_pushButton.click()
+            # either rely on clicked.connect or call explicitly
+            self.set_orientation_style()
+            layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+            idx = layer.fields().indexFromName("Measure")
+            expr = layer.defaultValueDefinition(idx).expression()
+            if expr == "'Dip - dip direction'":
+                print("structure_style_on: PASS")
+            else:
+                print(f"*** structure_style_on: FAIL (got {expr})")
+        except Exception as e:
+            print("*** structure_style_on: ERROR", e)
+
+        try:
+            # Test “off” style
+            self.dlg.structure_style_off_pushButton.click()
+            self.set_orientation_style()
+            layer = QgsProject.instance().mapLayersByName("Veins_PT")[0]
+            idx = layer.fields().indexFromName("Measure")
+            expr = layer.defaultValueDefinition(idx).expression()
+            if expr == "'Strike (right-hand rule) - dip'":
+                print("structure_style_off: PASS")
+            else:
+                print(f"*** structure_style_off: FAIL (got {expr})")
+        except Exception as e:
+            print("*** structure_style_off: ERROR", e)
+
+        try:
+            current_proj_folder = head_tail[0]
+            self.dlg.lineEdit_15.setText(current_proj_folder)
+            self.rejig_project()
+            print("rejig_project")
+        except:
+            print("*** rejig_project failed")
 
         print("GEOL_QMAPS_tester finished")

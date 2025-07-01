@@ -2,7 +2,42 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.4 - May 2025*
+*version 3.1.4 - July 2025*
+
+# Changelog 3.1.4
+      3.1.4
+      * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
+      * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
+      * Implemented pre- and postflight checks to detect excessively long filenames (≥256 characters) that may trigger Python errors on Windows; applied to the following tools: Rejig, Clip, Merge, Save QLR, Export, and SyncQFieldToQGIS  
+      * Harmonised and improved tooltips across all plugin buttons  
+      * Refined behaviour of “Reset Window” buttons  
+      * Minor GUI improvements  
+      * Corrected links in the Help tab  
+      
+      **Bug Fixes & Functional Improvements**  
+      * **Merge Projects tool**:  
+        – Fixed bug affecting merging of projects with modified names (e.g., subsets of a master project)  
+        – Automatically generates merged project filename based on shared name substrings (≥5 characters); defaults to `Merged.qgz` otherwise  
+      * **Clip tool**:  
+        – Automatically generates the list of project folders to copy, removing reliance on the hard-coded `cp_dirs` list  
+      * **Save Style Template tool**:  
+        – Resolved bug affecting the saving process  
+      * **Photograph Management tool**:  
+        – EXIF data is now correctly retrieved and written to the Image Direction field (logic block fixed)  
+      * **Import FieldMove Project tool**:  
+        – Now creates a dedicated subfolder to store generated scratch layers  
+      
+      **Shapefile Import Tool – Enhancements**  
+      * Created subfolders for scratch layer outputs  
+      * Fixed issue when importing legacy data lacking lithological information  
+      * Added management of structural lineations  
+      * Improved warning messages  
+      
+      **New Functionalities**  
+      * **New tool in the Data Management tab** to synchronise a QField package (ZIP or folder) to the GEOL-QMAPS QGIS master project (creates a local copy)  
+      * **New tool in the Data Management tab** to update the current GEOL-QMAPS QGIS project to the latest version of the template hosted on Zenodo
+   
+Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
 ## 1. Description
 GEOL-QMAPS, an open-source, QGIS-based solution promoting digital geological mapping in a harmonised, comprehensive and flexible way.<br>
@@ -256,6 +291,9 @@ You may delete it from your mobile device memory once collected field data are s
 > [!TIP]
 > *Before synchronising, it’s a good idea to create a backup of the original QGIS project to avoid any data loss in case of errors during synchronisation.*
 
+> [!TIP]
+> *There is now a* **Synchronise a QField Package to the QGIS Master Project** *tool in the **Database Management** tab of the custom plugin that automates this operation, following the Preferred Procedure described in 5.4.2.*.<br>
+
 * Open the original GEOL-QMAPS QGIS project
 
 * Click on the ***Synchronize from QField*** button of the **QFieldSync** plugin
@@ -302,7 +340,7 @@ The plugin is divided in different tabs, with tools developed to perform actions
 
 ### *6.2.* Import Field Data *Tab*
 #### 6.2.1. Import Legacy Field Data Shapefiles (Point Geometry)
-Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.
+Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.<br>
 ![Import_window](Import_window.PNG)
 
 #### *Step 1*
@@ -321,7 +359,7 @@ Generation of output QGIS layers as scratch temporary layers, once data import i
 Merging any output QGIS layer into a single layer contained within a field data compilation geopackage, that may store data imported from different sources.
 
 #### 6.2.2. Import FieldMove Project 
-Convert existing FieldMove project into GEOL-QMAPS compatible files.
+Convert existing FieldMove project into GEOL-QMAPS compatible files, that can be then saved and imported to the legacy data compilation via the **Import Legacy Field Data Shapefiles (Point Geometry)** tool.
 
 
 ### *6.3.* Fieldwork Preparation *Tab*
@@ -350,7 +388,7 @@ Toggle the preferred measurement convention for planar structures to establish i
 
 #### 6.3.5. Save Changes Made to the Field Data Forms
 Enables to save a new `.qlr` QGIS layer definition file in a directory to be supplied. <br>
-This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.
+This file includes group architecture, customised styles for empty field data layers and updated dictionaries of the FIELD DATA group. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.
 
 #### 6.3.6. Clip Field Data to Current Canvas
 Clip GEOL-QMAPS-standardised legacy field data layers to current QGIS Canvas, or select a polygon shapefile to be the clipping polygon.<br>
@@ -366,41 +404,64 @@ Define a new directory to export the QGIS project containing the clipped legacy 
 ### *6.4.* Data Management *Tab*
 ![DataManagement_window](DataManagement_window.PNG)
 
-#### 6.4.1. Merge Projects
+#### 6.4.1. Update an Old GEOL-QMAPS QGIS Project to the Latest Version (requires and Internet connection)
+Select an existing GEOL-QMAPS project folder **(version≥3.1.0)** and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository. <br>
+Upon completion, an updated project folder named `OldQGISProjectFolderName_updatedversion` is created at the same directory level as the original folder. <br>
+A blank, unzipped copy of the latest `GEOL-QMAPS_vX.X.X` archive file downloaded from Zenodo is stored in the same parent directory. It contains a blank `QGIS_TEMPLATE` project folder and documentation for further use.
+
+> [!WARNING]
+> ***This tool is only compatible with projects created in GEOL-QMAPS version 3.1.0 or later** <br>
+> If you attempt to rejig a **v3.1.0** GEOL-QMAPS project, please note that the layer* `Compilation_Deformation zones_PG` *will not be recognised and loaded automatically due to a historical layer naming issue that was resolved in version 3.1.1. When opening the updated project, the* Handle Unavailable Layers *window will appear.<br>
+> ![6.4.1_HandleUnavailableLayers_1](6.4.1_HandleUnavailableLayers_1.PNG)
+> To restore this layer: <br>
+> (i) In the “Datasource” column, manually edit* layername=Compilation_Deformation_zones_PG *to* layername=Compilation_Deformation_zones_PG *(space instead of underscore between "Deformation" and "zones"),<br>
+> (ii) Click* `Auto-Find` *, the URI in the Datasource field should be updated automatically and turn green,<br>
+> ![6.4.1_HandleUnavailableLayers_2](6.4.1_HandleUnavailableLayers_2.PNG)
+> (iii) Press* `Apply changes` *.<br>
+> The layer will be correctly linked to the updated database but may remain empty if the original project’s data used the previous incorrect name. In that case, feature transfer is skipped during the updating process to maintain schema compatibility.*
+
+#### 6.4.2. Synchronise a QField Package to the QGIS Master Project
+Merge field-collected data from QField (QField package folder or .zip file) back into a GEOL-QMAPS QGIS project in a safe, automated, non-destructive way. <br>
+In more details, the plugin will validate both sources, create a `GEOL-QMPAPSProjectFolder_Synced` copy of your project, overwrite its `CURRENT_MISSION.gpkg` and any DCIM imagery, and leave your originals untouched. <br>
+
+> [!TIP]
+> *Use this tool to ensure you always work with the latest field updates while preserving your master project for archival or versioning purposes.*
+
+#### 6.4.3. Merge Projects
 Select two existing GEOL-QMAPS projects by selecting two existing project directories and a new one to store newly merged projects. <br>
 In more details, both current and GEOL-QMAPS-standardised legacy field data (contained in the *FIELD DATA > CURRENT MISSION* and *FIELD DATA > EXISTING FIELD GEODATABASE* groups in the QGIS template) from both projects are merged. Duplicate rows in each layer will be deleted.
 
 > [!TIP]
 > *Use this tool on a regular basis to merge data collected by distributed field teams. This ensures a consolidated dataset before exporting an updated* `QField Project Folder` *for the next days of mapping.*
 
-#### 6.4.2. Archive Current Field Data
+#### 6.4.4. Archive Current Field Data
 Transfer of all field data from the **`CURRENT_MISSION.gpkg`** geopackage (stored under the *CURRENT MISSION* group in the GEOL-QMAPS QGIS project) to the **`COMPILATION.gpkg`** geopackage, loaded in the *EXISTING FIELD GEODATABASE* sub-group in the GEOL-QMAPS QGIS project.<br>
 This ensures that all field data from the current mission are archived in the compiled geodatabase for long-term management and future use.
 
-#### 6.4.3 Remove Duplicate UUIDs from Project
+#### 6.4.5. Remove Duplicate UUIDs from Project
 After using the **Merge Projects** or **Archive Current Field Data** tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical *UUIDs*. 
 
-#### 6.4.4. Export Layers to Common Themes
-Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into three thematic shapefiles for zones, structures and lithologies.<br>
+#### 6.4.6. Export Compilation Layers to Common Themes
+Specify a directory for exporting all point, polygon, and polyline entities. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<br>
 This ensures data is organised into commonly used categories, facilitating streamlined analysis and integration into other workflows or GIS systems.
 
 > [!CAUTION]
 > *As layers merged do not have the same attribute list, merging attribute tables from different layers results in very large tables that can be challenging to manage. This may lead to performance issues, difficulties in navigation, or complications during data analysis and processing.* <br>
 
-#### 6.4.5. Create Virtual Stops
+#### 6.4.7. Create Virtual Stops
 Define clustering distance to add a cluster code to all different types of points observations according to locality, using a DBSCAN algorithm.<br> 
 This will create a new layer called *Virtual_Stops_datestamp*.
 
 > [!TIP]
 > *This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.* <br>
 
-#### 6.4.6. Stereographic Projection Settings
+#### 6.4.8. Stereographic Projection Settings
 Control fork of [custom Stereonet plugin](https://github.com/swaxi/qgis-stereonet) display.
 
 > [!TIP]
 > *Click on the GitHub link above to download the plugin .zip file, and install it in QGIS* via *the QGIS Plugin Manager.* <br>
 
-#### 6.4.7. Picture Management
+#### 6.4.9. Picture Management
 Allows a new directory to be defined for the storage of field and sampling pictures.
 
 > [!TIP]
@@ -422,29 +483,16 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 **Roadmap for Future Development**
 *GEOL-QMAPS Plugin:*
-* Create groups to store layers generated when importing legacy `.shp` or `FieldMove` data
-* **Export Layers to Common Themes**: 
-  * Export geophysical measurements (**MagSus_PT** and **Density_PT**) and **Stops_PT**, **Sampling_PT**, **Photograph_PT**, and **Observations_PT** spots in two additional layers
-  * Export linear features in a linear data export layer
-  * Delete the empty export point layer generated (bug)
-
-* Check and modify the EXIF tool in agreement with future modifications of the layer **Photographs_PT** (see below)
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
-* Add a tool to import an old GEOL-QMAPS QGIS project and automatically rejig it to the latest version
 
 *Stereonet Plugin:*
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
-*GEOL-QMAPS QGIS Template (for next release):*
-* Generate a single `FIELD_DATA.qlr` layer definition file in *99_COMMAND_FILES_PLUGIN*
-* Delete qmap.json file in *99_COMMAND_FILES_PLUGIN* (not used anymore)
-* Addition of *Norite* and *Troctolite* to the igneous lithologies dictionary
-* **Photographs_PT** layer: 
-  * modify the HTML map tip code to ensure the correct display of photographs if `DCIM/` is not in the *Photograph* field
-  * Add an *EXIF_azimuth* field to simplify retrieving of Image Direction using EXIF metadata via the plugin
-
+*QField:*
+* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
+* Develop a plugin to plot structural measurements in a stereonet on the fly
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)

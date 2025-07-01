@@ -5,12 +5,12 @@
 [general]
 name=geol_qmaps
 qgisMinimumVersion=3.34.0
-description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the geol_qmaps QGIS mapping template developed by the WAXI Team. 
-version=3.1.3
-author=Mark Jessell, Eliott Betend and Julien Perret (University of Western Australia)
+description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
+version=3.1.4
+author=Mark Jessell, Julien Perret and Eliott Betend (University of Western Australia)
 email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
 
-about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the geol_qmaps QGIS mapping template developed by the WAXI Team. 
+about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 
 tracker=https://github.com/swaxi/WAXI_QF/issues
 repository=https://github.com/swaxi/WAXI_QF
@@ -20,12 +20,42 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=3.1.3 Updated import tool
-    * add tester code for non-import functionality
-    * GUI tweaks
+changelog=3.1.4
+      * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
+      * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
+      * Implemented pre- and postflight checks to detect excessively long filenames (≥256 characters) that may trigger Python errors on Windows; applied to the following tools: Rejig, Clip, Merge, Save QLR, Export, and SyncQFieldToQGIS  
+      * Harmonised and improved tooltips across all plugin buttons  
+      * Refined behaviour of “Reset Window” buttons  
+      * Minor GUI improvements  
+      * Corrected links in the Help tab
+      **Bug Fixes & Functional Improvements**  
+      * **Merge Projects tool**:  
+      ** Fixed bug affecting merging of projects with modified names (e.g., subsets of a master project)  
+      ** Automatically generates merged project filename based on shared name substrings (≥5 characters); defaults to `Merged.qgz` otherwise  
+      * **Clip tool**:  
+      ** Automatically generates the list of project folders to copy, removing reliance on the hard-coded `cp_dirs` list  
+      * **Save Style Template tool**:  
+      **Resolved bug affecting the saving process  
+      * **Photograph Management tool**:  
+      ** EXIF data is now correctly retrieved and written to the Image Direction field (logic block fixed)  
+      * **Import FieldMove Project tool**:  
+      ** Now creates a dedicated subfolder to store generated scratch layers  
+      **Shapefile Import Tool – Enhancements**  
+      * Created subfolders for scratch layer outputs  
+      * Fixed issue when importing legacy data lacking lithological information  
+      * Added management of structural lineations  
+      * Improved warning messages  
+      **New Functionalities**  
+      * **New tool in the Data Management tab** to synchronise a QField package (ZIP or folder) to the GEOL-QMAPS QGIS master project (creates a local copy)  
+      * **New tool in the Data Management tab** to update the current GEOL-QMAPS QGIS project to the latest version of the template hosted on Zenodo  
+    3.1.3 2025-04
+      **Updated import tool**
+      * add tester code for non-import functionality
+      * GUI tweaks
+
 
 # Tags are comma separated with spaces allowed
-tags=Digital Geological Mapping, Legacy Field Data Import, FieldWork Preparation, Post-Field Processing, West Africa Exploration Initiative
+tags=Digital Geological Mapping, Legacy Field Data Import, FieldWork Preparation, Post-Field Processing, West Africa Exploration Initiative, QField
 
 homepage=https://github.com/swaxi/WAXI_QF
 category=Plugins
