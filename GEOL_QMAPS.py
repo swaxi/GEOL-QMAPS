@@ -584,12 +584,6 @@ class GEOL_QMAPS:
         if os.path.exists(expected_0) and os.path.exists(expected_1) and os.path.exists(expected_99):
             return True
         else:
-            self.iface.messageBar().pushMessage(
-                "ERROR: A Project based on a GEOL-QMAPS Template should be loaded before using this plugin, "
-                "you can get the template <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>",
-                level=Qgis.Critical,
-                duration=45,
-            )
             return False
 
     # Filename Length Check Helper
