@@ -91,11 +91,11 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
 *Option 1*
 * The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.
 
-* Open the QGIS Plugin Manager, navigate to the **`Settings`** tab and enable the **Show also Experimental Plugins** option
+* Open the QGIS Plugin Manager.
 
-* Switch to the **`All`** tab and search for *geol_qmaps* in the search bar
+* Switch to the **`All`** tab and search for *geol_qmaps* in the search bar.
   
-* Select the plugin and click on **Install Experimental Plugin**
+* Select the plugin and click on **Install Plugin**
 ![Installation_Plugin_Repository](Installation_Plugin_Repository.PNG) 
 
 *Option 2*
