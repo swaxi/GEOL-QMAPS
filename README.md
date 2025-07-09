@@ -486,6 +486,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
+* Enable import of legacy lithology polygons
 
 *Stereonet Plugin:*
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
