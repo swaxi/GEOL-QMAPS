@@ -2,7 +2,7 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.4 - July 2025*
+*version 3.1.4 - August 2025*
 
 # Changelog 3.1.4
       3.1.4
@@ -341,16 +341,33 @@ The plugin is divided in different tabs, with tools developed to perform actions
 ### *6.2.* Import Field Data *Tab*
 #### 6.2.1. Import Legacy Field Data Shapefiles (Point Geometry)
 Reformat existing lithological and structural point databases according to the architecture of the GEOL-QMAPS mapping project template, using fuzzy logic.<br>
+
+> [!CAUTION]
+> *Ensure that the legacy database to be imported is a shapefile (point geometry) referenced in the **WGS 84 coordinate reference system (EPSG:4326)*** <br>
+> *If this is not the case, reproject (warp) the shapefile into EPSG:4326 before importing.* <br>
+> *A warning message will be added in the next version of the plugin.*
+
 ![Import_window](Import_window.PNG)
 
 #### *Step 1*
-Uploading and processing of the legacy database. <br>
+Uploading and processing of the legacy database as a shapefile. <br>
 Processing involves applying an arbitrary threshold to a similarity score calculated by the [*fuzzywuzzy* stringmatching library](https://github.com/seatgeek/fuzzywuzzy), after constructing a thesaurus of similar terms. The latter approach is exemplified in Joshi et al. ([2021](https://gmd.copernicus.org/articles/14/6711/2021/gmd-14-6711-2021.html)).
+
+> [!CAUTION]
+> *If the legacy database shapefile contains a **Geometry** field with geometry information for point entities, this field must be deleted before importing the shapefile.* <br>
+> *Otherwise, a bug is triggered in Step 2 that prevents proper retrieval of all legacy fields.*
+> *This bug will be fixed in the next release of the template.*
 
 #### *Step 2*
 User-supervised validation of the proposed indexing of fields and values during Step 2. <br>
 The user can check and correct mismatches and, if necessary, discard values or columns from the existing field database being processed (different sub-tabs for column names, rock names, and structural data). <br>
 A colour code assists in identifying potential mismatches.
+
+> [!CAUTION]
+> *When importing lineation data, ensure that the legacy database includes a **Kinematics** column with values restricted to: Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment, Unknown.* <br>
+> *This column must be assigned to **Structures – Kinematics** in the Database Fields table of Step 2.* <br>
+> *If kinematic information is not available or there is no kinematics associated to the entity, set the default value in the input file to **Unknown**. Otherwise, the plugin will not populate this field, causing some entities to remain invisible on the map display after import (even though they are correctly imported).* <br>
+> *This bug will be fixed in the next release of the template.*
 
 #### *Step 3*
 Generation of output QGIS layers as scratch temporary layers, once data import is validated.
@@ -472,7 +489,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 > [!TIP]
 > *This tool enables to save time in the field as the* Image Direction *does not have to be manually input based on compass readings while entering a new field photograph the **Photographs_PT** layer.* <br>
 
- > [!CAUTION]
+> [!CAUTION]
 > * Ensure Metadata Capture: *Verify that the mobile device or camera records relevant EXIF metadata, specifically the* Image Direction. <br> 
 > * Metadata Consistency: *Confirm the accuracy of the metadata concerning the orientation of the device when capturing the photograph.* <br>
 > *For example, on some devices (* e.g. *, Google Pixel 7a), photographs taken in landscape mode might have a recorded* Image Direction *that is offset by ±90° from the correct orientation. Additionally, there may be a 180° uncertainty depending on the side of the device used during capture.* <br>
@@ -483,6 +500,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 **Roadmap for Future Development**
 *GEOL-QMAPS Plugin:*
+* Correct bugs identified in the **Import Legacy Field Data Shapefiles (Point Geometry)** tool
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
