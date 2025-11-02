@@ -66,7 +66,7 @@ from qgis.PyQt.QtWidgets import (
     QButtonGroup,
 )
 
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtWidgets import (
     QHeaderView
 )
 from qgis.core import (
@@ -95,6 +95,27 @@ from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
+
+
+# Qt5/Qt6 Compatibility Layer
+try:
+    # Try Qt6 style first
+    _test = Qt.DockWidgetArea.RightDockWidgetArea
+    # Qt6 detected
+    QT6 = True
+
+    # Qt6 style enums are already available
+    RightDockWidgetArea = Qt.DockWidgetArea.RightDockWidgetArea
+
+
+except AttributeError:
+    # Qt5 detected
+    QT6 = False
+
+    # Qt5 style enums
+    RightDockWidgetArea = Qt.RightDockWidgetArea
+
+
 
 import warnings
 
@@ -699,14 +720,14 @@ class GEOL_QMAPS:
                 # Create the dialog with elements (after translation) and keep reference
                 # Only create GUI ONCE in callback, so that it will only load when the plugin is started
 
-                self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+                self.iface.addDockWidget(RightDockWidgetArea, self.dlg)
 
                 # Find existing dock widgets in the right area
                 right_docks = [
                     d
                     for d in self.iface.mainWindow().findChildren(QDockWidget)
                     if self.iface.mainWindow().dockWidgetArea(d)
-                    == Qt.RightDockWidgetArea
+                    == RightDockWidgetArea
                 ]
                 # If there are other dock widgets, tab this one with the first one found
                 if right_docks:

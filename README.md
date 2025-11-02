@@ -6,6 +6,7 @@
 
 # Changelog 3.1.4
       3.1.4
+      * Backward compatibility for QT5 QGIS 3.xx / QT6 QGIS 4.xx   
       * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
       * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
       * Implemented pre- and postflight checks to detect excessively long filenames (≥256 characters) that may trigger Python errors on Windows; applied to the following tools: Rejig, Clip, Merge, Save QLR, Export, and SyncQFieldToQGIS  
