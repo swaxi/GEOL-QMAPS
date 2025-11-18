@@ -131,7 +131,7 @@ By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojec
 
 However, users are advised to change the project CRS to a suitable **projected** CRS (_e.g.,_ `WGS84 / UTM zone 29N` in Côte d'Ivoire) when performing structural analysis using the GEOL-QMAPS QGIS template. Projected CRSs indeed preserve **local angles**, which is critical for accurate structural representation, although they inherently distort areas and distances. 
 
-In version 3.1.4 of the QGIS project template, the rotation of structural symbols has been updated to account for CRSs where the true North orientation differs from the Y-axis of the map view (assuming no manual map rotation is applied). This improvement is based on insights and code provided by [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr) in his [QGIS Field Move Importer](https://github.com/gduclaux/FieldMoveProjectImporter_QGIS).
+In versions 3.1.4 or later of the QGIS project template, the rotation of structural symbols has been updated to account for CRSs where the true North orientation differs from the Y-axis of the map view (assuming no manual map rotation is applied). This improvement is based on insights and code provided by [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr) in his [QGIS Field Move Importer](https://github.com/gduclaux/FieldMoveProjectImporter_QGIS).
 
 The following examples, which illustrate potential angular distortion in `WGS 84: EPSG:4326` and the need for structural symbol rotation correction for given local projected CRSs using Antarctic data, are courtesy of [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr):
 * _CRS = WGS84 EPSG:4326:_
@@ -152,7 +152,7 @@ The following examples, which illustrate potential angular distortion in `WGS 84
   * Point structural measurements are still rotated along the Y-axis of the map view **without correction**, _i.e.,_ as per the default behaviour up to v3.1.3, but this axis no longer represents true North.<br>
 **Result:** Major angular mismatch between misrotated structural measurements and the strike direction of mapped structure traces.
 
-* _same case scenario as above, but **with rotation correction** based on the true North orientation of the applied CRS (implemented in v3.1.4 of the GEOL-QMAPS QGIS project template):_
+* _same case scenario as above, but **with rotation correction** based on the true North orientation of the applied CRS (implemented in v3.1.4 and subsequent releases of the GEOL-QMAPS QGIS project template):_
    * ![WGS84-AntarcticPolarStereographic_RotationCorrected.png](WGS84-AntarcticPolarStereographic_RotationCorrected.png) 
    * Point structural measurements are now correctly rotated relative to true North in the applied CRS, aligning with the measured strike (or trend for linear features).<br>
 **Result:** Accurate match between structural measurements and the apparent strike direction of mapped structure traces, regardless of the true North orientation in the selected CRS. 
