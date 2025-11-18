@@ -2,41 +2,16 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.4 - August 2025*
+*version 3.1.5 - November 2025*
 
-# Changelog 3.1.4
-      3.1.4
-      * Backward compatibility for QT5 QGIS 3.xx / QT6 QGIS 4.xx   
-      * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
-      * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
-      * Implemented pre- and postflight checks to detect excessively long filenames (≥256 characters) that may trigger Python errors on Windows; applied to the following tools: Rejig, Clip, Merge, Save QLR, Export, and SyncQFieldToQGIS  
-      * Harmonised and improved tooltips across all plugin buttons  
-      * Refined behaviour of “Reset Window” buttons  
-      * Minor GUI improvements  
-      * Corrected links in the Help tab  
+# Changelog 3.1.5
+      3.1.4 
+      * Supports QT6, but all tools are still compatible with Qt5
       
       **Bug Fixes & Functional Improvements**  
-      * **Merge Projects tool**:  
-        – Fixed bug affecting merging of projects with modified names (e.g., subsets of a master project)  
-        – Automatically generates merged project filename based on shared name substrings (≥5 characters); defaults to `Merged.qgz` otherwise  
-      * **Clip tool**:  
-        – Automatically generates the list of project folders to copy, removing reliance on the hard-coded `cp_dirs` list  
-      * **Save Style Template tool**:  
-        – Resolved bug affecting the saving process  
-      * **Photograph Management tool**:  
-        – EXIF data is now correctly retrieved and written to the Image Direction field (logic block fixed)  
-      * **Import FieldMove Project tool**:  
-        – Now creates a dedicated subfolder to store generated scratch layers  
-      
-      **Shapefile Import Tool – Enhancements**  
-      * Created subfolders for scratch layer outputs  
-      * Fixed issue when importing legacy data lacking lithological information  
-      * Added management of structural lineations  
-      * Improved warning messages  
-      
-      **New Functionalities**  
-      * **New tool in the Data Management tab** to synchronise a QField package (ZIP or folder) to the GEOL-QMAPS QGIS master project (creates a local copy)  
-      * **New tool in the Data Management tab** to update the current GEOL-QMAPS QGIS project to the latest version of the template hosted on Zenodo
+      * **Import tool**:  
+      - Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
+      - Fixed bug with multiple display of warning boxes 
    
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
@@ -89,7 +64,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   * a log file (**`List of updates of the different releases.docx`**),
 
 ### *4.2. GEOL-QMAPS QGIS Plugin* 
-*Option 1*
 * The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.
 
 * Open the QGIS Plugin Manager.
@@ -98,15 +72,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   
 * Select the plugin and click on **Install Plugin**
 ![Installation_Plugin_Repository](Installation_Plugin_Repository.PNG) 
-
-*Option 2*
-* Visit [the GitHub repository of the custom QGIS plugin related to the QGIS plugin](https://github.com/swaxi/WAXI_QF)
-
-* Save **`geol-qmaps-main.zip`** repository to disk as a zip file 
-
-* Use QGIS Plugin Manager to load directly from zip file
-  ![Installation_Plugin](Installation_Plugin.PNG) 
- 
 
 
 
@@ -287,31 +252,10 @@ You may delete it from your mobile device memory once collected field data are s
 
 > [!TIP]
 > *For distributed field teams, all users can synchronise the master database daily to merge their edits. This ensures a consolidated dataset before exporting an updated* `QField Project Folder` *for the next day of mapping*.<br>
-
-#### 5.4.1. Synchronise the Master QGIS Project from QField - Official Procedure
 > [!TIP]
 > *Before synchronising, it’s a good idea to create a backup of the original QGIS project to avoid any data loss in case of errors during synchronisation.*
 
-> [!TIP]
-> *There is now a* **Synchronise a QField Package to the QGIS Master Project** *tool in the **Database Management** tab of the custom plugin that automates this operation, following the Preferred Procedure described in 5.4.2.*.<br>
-
-* Open the original GEOL-QMAPS QGIS project
-
-* Click on the ***Synchronize from QField*** button of the **QFieldSync** plugin
-
-* Select the location where you copied the `QField Project Folder` that contains newly acquired field data
-
-* Run the syncing process *(QFieldSync will compare the data in the QField project folder with the data in your original QGIS project, including new, edited and deleted features)*
-
-* The QGIS project is now loaded with layers from the `QField Project Folder` (original layers stored in the QGIS project repository are not updated per se!)
-
-* Save the updated QGIS project
-
-> [!CAUTION]
-> *There is a major concern with this procedure: the original data layers of the QGIS project are not loaded anymore, which causes duplication of layers and may be inconvenient for data compilation and project merging.* <br>
-> *That is the reason why we propose a preferred synchronisation procedure below.*
-
-#### 5.4.2. Synchronise the Master QGIS Project from QField - Preferred Procedure
+**Synchronise the Master QGIS Project from QField**
 * Copy the **`CURRENT_MISSION.gpkg`** geopackage file and the `DCIM` folder stored at the root level of the `QField Project Folder`, which contained all newly entered field data.
 
 * Paste and overwrite the **`CURRENT_MISSION.gpkg`** file loaded in the root QGIS project and overwrite the `DCIM` folder at the same path, in `.\.\0_FIELD_DATA` repository.
@@ -354,21 +298,10 @@ Reformat existing lithological and structural point databases according to the a
 Uploading and processing of the legacy database as a shapefile. <br>
 Processing involves applying an arbitrary threshold to a similarity score calculated by the [*fuzzywuzzy* stringmatching library](https://github.com/seatgeek/fuzzywuzzy), after constructing a thesaurus of similar terms. The latter approach is exemplified in Joshi et al. ([2021](https://gmd.copernicus.org/articles/14/6711/2021/gmd-14-6711-2021.html)).
 
-> [!CAUTION]
-> *If the legacy database shapefile contains a **Geometry** field with geometry information for point entities, this field must be deleted before importing the shapefile.* <br>
-> *Otherwise, a bug is triggered in Step 2 that prevents proper retrieval of all legacy fields.*
-> *This bug will be fixed in the next release of the template.*
-
 #### *Step 2*
 User-supervised validation of the proposed indexing of fields and values during Step 2. <br>
 The user can check and correct mismatches and, if necessary, discard values or columns from the existing field database being processed (different sub-tabs for column names, rock names, and structural data). <br>
 A colour code assists in identifying potential mismatches.
-
-> [!CAUTION]
-> *When importing lineation data, ensure that the legacy database includes a **Kinematics** column with values restricted to: Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment, Unknown.* <br>
-> *This column must be assigned to **Structures – Kinematics** in the Database Fields table of Step 2.* <br>
-> *If kinematic information is not available or there is no kinematics associated to the entity, set the default value in the input file to **Unknown**. Otherwise, the plugin will not populate this field, causing some entities to remain invisible on the map display after import (even though they are correctly imported).* <br>
-> *This bug will be fixed in the next release of the template.*
 
 #### *Step 3*
 Generation of output QGIS layers as scratch temporary layers, once data import is validated.
@@ -501,7 +434,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 **Roadmap for Future Development**
 *GEOL-QMAPS Plugin:*
-* Correct bugs identified in the **Import Legacy Field Data Shapefiles (Point Geometry)** tool
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
@@ -511,7 +443,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
 *QField:*
-* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
+* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer), automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
 * Develop a plugin to plot structural measurements in a stereonet on the fly
 
 ## Credits
