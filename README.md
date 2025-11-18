@@ -5,7 +5,7 @@
 *version 3.1.5 - November 2025*
 
 # Changelog 3.1.5
-      3.1.4 
+      3.1.5 
       * Supports QT6, but all tools are still compatible with Qt5
       
       **Bug Fixes & Functional Improvements**  
