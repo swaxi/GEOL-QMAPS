@@ -116,7 +116,7 @@ The figure below, adapted from Perret et al. ([2024](https://doi.org/10.1016/j.a
 
 > [!TIP]
 > *We do not consider QFieldCloud, released by the developers of the QField app, which provides an alternative online method for synchronising and merging data collected in QField within online storage because annual fees apply for full access to cloud functionalities.<br>
-> Yet, please not that another option is to run a local copy of QFieldCloud (available at [https://github.com/opengisch/qfieldcloud](https://github.com/opengisch/qfieldcloud)) on a private server or virtual machine.*
+> Yet, please note that another option is to run a local copy of QFieldCloud (available at [https://github.com/opengisch/qfieldcloud](https://github.com/opengisch/qfieldcloud)) on a private server or virtual machine.*
 
 ### *5.1. Architecture of the QGIS Mapping Template* 
 #### 5.1.1. Repository Content
@@ -268,7 +268,10 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 > *Before heading to the field, test the exported project on the device to ensure everything works smoothly.* <br>
 > *Keep a back-up of your original QGIS project before running any export.*
 
+#### 5.2.5. Add QField Comppas plugin
 
+For instructions on using your device as a geological compass, with autoloading of structural information, visit this site:    https://github.com/swaxi/compass   
+   
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
 A detailed description of the attributes and the design of attribute forms for each field data layer is provided in the following ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf)
