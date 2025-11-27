@@ -268,7 +268,7 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 > *Before heading to the field, test the exported project on the device to ensure everything works smoothly.* <br>
 > *Keep a back-up of your original QGIS project before running any export.*
 
-#### 5.2.5. Add QField Comppas plugin
+#### 5.2.5. Add QField Compass plugin
 
 For instructions on using your device as a geological compass, with autoloading of structural information, visit this site:    https://github.com/swaxi/compass   
    
