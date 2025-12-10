@@ -8,8 +8,8 @@
                               -------------------
         begin                : 2024-11-13
         git sha              : $Format:%H$
-        copyright            : (C) 2024 by GEOL_QMAPS
-        email                : GEOL_QMAPS
+        copyright            : (C) 2025 by GEOL_QMAPS
+        email                : mark.jessell@uwa.edu.au / julien.perret@uwa.edu.au
  ***************************************************************************/
 
 /***************************************************************************
@@ -21,6 +21,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+from qgis.PyQt.QtWidgets import QHeaderView
 from qgis.gui import QgsMessageBar
 from qgis.PyQt.QtCore import (
     QSettings,
@@ -66,7 +67,7 @@ from qgis.PyQt.QtWidgets import (
     QButtonGroup,
 )
 
-from PyQt5.QtWidgets import (
+from qgis.PyQt.QtWidgets import (
     QHeaderView
 )
 from qgis.core import (
@@ -95,6 +96,27 @@ from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
+
+
+# Qt5/Qt6 Compatibility Layer
+try:
+    # Try Qt6 style first
+    _test = Qt.DockWidgetArea.RightDockWidgetArea
+    # Qt6 detected
+    QT6 = True
+
+    # Qt6 style enums are already available
+    RightDockWidgetArea = Qt.DockWidgetArea.RightDockWidgetArea
+
+
+except AttributeError:
+    # Qt5 detected
+    QT6 = False
+
+    # Qt5 style enums
+    RightDockWidgetArea = Qt.RightDockWidgetArea
+
+
 
 import warnings
 
@@ -252,6 +274,75 @@ class GEOL_QMAPS:
         except:
             install_library("fuzzywuzzy")
 
+    @staticmethod
+    def set_header_resize_mode(header, mode_name: str = "Interactive") -> None:
+        """
+        Set QHeaderView resize mode across Qt4/Qt5/Qt6:
+          - PyQt6: QHeaderView.ResizeMode.Interactive and header.setSectionResizeMode(...)
+          - PyQt5: QHeaderView.Interactive and header.setSectionResizeMode(...)
+          - PyQt4: QHeaderView.Interactive and header.setResizeMode(...)
+        """
+        enum = getattr(QHeaderView, "ResizeMode", QHeaderView)  # PyQt6 vs PyQt5/4
+        mode = getattr(enum, mode_name)
+        setter = getattr(header, "setSectionResizeMode", None) or getattr(header, "setResizeMode", None)
+        if setter is None:
+            raise RuntimeError("Unsupported QHeaderView API: cannot set resize mode on this Qt build.")
+        setter(mode)
+
+    @staticmethod
+    def _size_policy(policy_name: str):
+        """Return a QSizePolicy enum value in a Qt4/5/6 compatible way."""
+        enum = getattr(QSizePolicy, "Policy", QSizePolicy)
+        return getattr(enum, policy_name)
+
+    @staticmethod
+    def set_widget_size_policy(widget, h: str = "Expanding", v: str = "Expanding"):
+        """Set QWidget size policy across Qt4/5/6 using string names."""
+        widget.setSizePolicy(GEOL_QMAPS._size_policy(h), GEOL_QMAPS._size_policy(v))
+
+    @staticmethod
+    def qt_align(name: str):
+        """Return a Qt alignment flag that works on Qt4/5/6 (Qt.AlignmentFlag in Qt6)."""
+        enum = getattr(Qt, "AlignmentFlag", Qt)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_brush(name: str):
+        """Return a Qt brush style that works on Qt4/5/6 (Qt.BrushStyle in Qt6)."""
+        enum = getattr(Qt, "BrushStyle", Qt)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_item_flag(name: str):
+        """Return a Qt item flag that works on Qt4/5/6 (Qt.ItemFlag in Qt6)."""
+        enum = getattr(Qt, "ItemFlag", Qt)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_message_icon(name: str):
+        """Return a QMessageBox icon enum in a Qt4/5/6 compatible way."""
+        enum = getattr(QMessageBox, "Icon", QMessageBox)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_message_button(name: str):
+        """Return a QMessageBox standard button enum in a Qt4/5/6 compatible way."""
+        enum = getattr(QMessageBox, "StandardButton", QMessageBox)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_message_role(name: str):
+        """Return a QMessageBox button role enum in a Qt4/5/6 compatible way."""
+        enum = getattr(QMessageBox, "ButtonRole", QMessageBox)
+        return getattr(enum, name)
+
+    @staticmethod
+    def qt_message_exec(box):
+        """Execute a QMessageBox in a Qt4/5/6 compatible way."""
+        exec_fn = getattr(box, "exec", None) or getattr(box, "exec_", None)
+        if exec_fn is None:
+            raise RuntimeError("Unsupported QMessageBox API: no exec/exec_.")
+        return exec_fn()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -268,8 +359,7 @@ class GEOL_QMAPS:
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate("GEOL_QMAPS", message)
 
-        # Lipari colorscale
-
+    # Lipari colorscale
     def lipari_color(self, score):
         """
         Returns a QColor based on the given normalized score (0 to 100)
@@ -294,11 +384,12 @@ class GEOL_QMAPS:
                 b = lower_color.blue() + t * (upper_color.blue() - lower_color.blue())
                 return QColor(int(r), int(g), int(b))
 
+            
     # create legend with colorbar
     def create_legend_widget(self):
         # Create the legend container widget
         legend_container = QWidget()
-        legend_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.set_widget_size_policy(legend_container, "Expanding", "Expanding")
 
         # Horizontal layout for the legend container
         h_layout = QHBoxLayout(legend_container)
@@ -311,23 +402,36 @@ class GEOL_QMAPS:
         v_layout.setSpacing(2)
 
         top_label = QLabel("highest")
-        top_label.setAlignment(Qt.AlignCenter)
+        top_label.setAlignment(self.qt_align("AlignCenter"))
         top_label.setFont(QFont("Arial", 6))
 
         bottom_label = QLabel("lowest")
-        bottom_label.setAlignment(Qt.AlignCenter)
+        bottom_label.setAlignment(self.qt_align("AlignCenter"))
         bottom_label.setFont(QFont("Arial", 6))
 
         # Create the color bar widget (set fixed width and allow vertical expansion)
         color_bar = QLabel()
         color_bar.setFixedWidth(40)
         color_bar.setMinimumHeight(200)
-        color_bar.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        color_bar.setSizePolicy(self._size_policy("Fixed"), self._size_policy("Expanding"))
         color_bar.setStyleSheet(
             "background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, "
             "stop:0 #FF0000, stop:0.5 #FFFFFF, stop:1 #00FF00);"
             "border: 1px solid black;"
         )
+
+        # Add widgets to the vertical layout with the color bar taking extra space
+        v_layout.addWidget(top_label, 0)
+        v_layout.addWidget(color_bar, 1)
+        v_layout.addWidget(bottom_label, 0)
+
+        # Add the vertical layout to the horizontal layout, then add stretch for centring
+        h_layout.addLayout(v_layout)
+        h_layout.addStretch()
+
+        legend_container.setLayout(h_layout)
+        return legend_container
+
 
         # Add widgets to the vertical layout with the color bar taking extra space
         v_layout.addWidget(top_label, 0)
@@ -699,14 +803,14 @@ class GEOL_QMAPS:
                 # Create the dialog with elements (after translation) and keep reference
                 # Only create GUI ONCE in callback, so that it will only load when the plugin is started
 
-                self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dlg)
+                self.iface.addDockWidget(RightDockWidgetArea, self.dlg)
 
                 # Find existing dock widgets in the right area
                 right_docks = [
                     d
                     for d in self.iface.mainWindow().findChildren(QDockWidget)
                     if self.iface.mainWindow().dockWidgetArea(d)
-                    == Qt.RightDockWidgetArea
+                    == RightDockWidgetArea
                 ]
                 # If there are other dock widgets, tab this one with the first one found
                 if right_docks:
@@ -931,32 +1035,53 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def convert_coordinates_WGS84(self, layer):
+        """
+        Ensure a 'Geometry' text field exists and populate/overwrite it with WGS84 (EPSG:4326)
+        WKT for each feature's geometry. This fixes cases where a legacy 'Geometry'
+        attribute contains coordinates in another CRS.
+        """
+        if layer is None:
+            return
 
-        # Selection of all entities in the layer
-        layer.selectAll()
+        # Start edit session
+        if not layer.isEditable():
+            layer.startEditing()
 
-        # Creation of a new 'Geometry' column in the layer's attribute table
-        layer.startEditing()
-        layer.addAttribute(QgsField("Geometry", QVariant.String))
+        # Ensure 'Geometry' field exists; if not, create it
+        fld_idx = layer.fields().indexFromName("Geometry")
+        if fld_idx == -1:
+            layer.addAttribute(QgsField("Geometry", QVariant.String))
+            layer.updateFields()
+            fld_idx = layer.fields().indexFromName("Geometry")
 
-        # Recuperation of CRS (Coordinate Reference System)
-        crs = layer.crs()
+        # Build a robust CRS transform: layer CRS -> EPSG:4326
+        src_crs = layer.crs()
+        dst_crs = QgsCoordinateReferenceSystem("EPSG:4326")
 
-        # Conversion of coordinates to WGS84
-        for feature in layer.selectedFeatures():
-            geometrie = feature.geometry()
+        # QGIS ≥3 uses a transform context; keep a fallback for older signatures
+        try:
+            xform = QgsCoordinateTransform(src_crs, dst_crs, QgsProject.instance().transformContext())
+        except TypeError:
+            # older API fallback
+            xform = QgsCoordinateTransform(src_crs, dst_crs, QgsProject.instance())
 
-            transformation = QgsCoordinateTransform(
-                crs, QgsProject.instance().crs(), QgsProject.instance()
-            )
-            geometrie.transform(transformation)
+        # Update every feature's 'Geometry' with WGS84 WKT
+        for f in layer.getFeatures():  # no selection side-effects
+            g = f.geometry()
+            if not g or g.isEmpty():
+                continue
+            g2 = QgsGeometry(g)  # copy before transforming
+            try:
+                g2.transform(xform)
+            except Exception as err:
+                # If a single feature fails to transform, skip it rather than aborting the whole run
+                continue
+            f.setAttribute(fld_idx, g2.asWkt())
+            layer.updateFeature(f)
 
-            feature["Geometry"] = geometrie.asWkt()
-            layer.updateFeature(feature)
-
-        # Save changes
+        # Commit & refresh
         layer.commitChanges()
-        layer.removeSelection()
+        layer.triggerRepaint()
 
         # Refreshing the view in QGIS
         QgsProject.instance().reloadAllLayers()
@@ -1069,7 +1194,8 @@ class GEOL_QMAPS:
         column_names1 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget1.setHorizontalHeaderLabels(column_names1)
         self.dlg.tableWidget3.setWordWrap(True)
-        self.dlg.tableWidget1.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive) #adjustable width of the columns
+        header = self.dlg.tableWidget1.horizontalHeader()
+        self.set_header_resize_mode(header, "Interactive")  # adjustable width of the columns
         self.dlg.tableWidget1.verticalHeader().setVisible(False) #vertical header (1 to n) invisible
 
         # Set the header font size
@@ -1081,7 +1207,7 @@ class GEOL_QMAPS:
         legend_widget = self.create_legend_widget()
         legend_main_layout = QVBoxLayout(self.dlg.legendbox_3)
         legend_main_layout.setContentsMargins(0, 0, 0, 0)
-        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=self.qt_align("AlignHCenter"))
         self.dlg.legendbox_3.setLayout(legend_main_layout)
 
         # Compute the real maximum score among all rows (ignoring "Geometry")
@@ -1116,8 +1242,8 @@ class GEOL_QMAPS:
                         item.setBackground(new_color)
 
                 # Forbid editing of the first two columns
-                legacy_item.setFlags(legacy_item.flags() & ~Qt.ItemIsEditable)
-                assigned_item.setFlags(assigned_item.flags() & ~Qt.ItemIsEditable)
+                legacy_item.setFlags(legacy_item.flags() & ~self.qt_item_flag("ItemIsEditable"))
+                assigned_item.setFlags(assigned_item.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
                 # Create composite widget for "Modify the assigned value" column:
                 modify_widget = QWidget(self.dlg)
@@ -1174,7 +1300,7 @@ class GEOL_QMAPS:
                     cell_text = item.text()
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
 
@@ -1187,7 +1313,7 @@ class GEOL_QMAPS:
                         cell_text = ""
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
                 else:
@@ -1221,8 +1347,8 @@ class GEOL_QMAPS:
         # Prohibit editing of these cells
         item1 = self.dlg.tableWidget1.item(row, 0)
         item2 = self.dlg.tableWidget1.item(row, 1)
-        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        item1.setFlags(item1.flags() & ~self.qt_item_flag("ItemIsEditable"))
+        item2.setFlags(item2.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
         self.dlg.tableWidget1.repaint()
 
@@ -1258,10 +1384,10 @@ class GEOL_QMAPS:
             combo_box.setCurrentText(current_text)
 
             item = self.dlg.tableWidget1.item(row, 1)
-            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            item.setFlags(item.flags() | self.qt_item_flag("ItemIsEditable"))
             self.row_edit_status[row] = True
 
-        # CASE 3 : f the button is clicked for the 2nd time
+        # CASE 3 : if the button is clicked for the 2nd time
         else:
             combo_box = self.dlg.tableWidget1.cellWidget(row, 1)
             item = self.dlg.tableWidget1.item(row, 1)
@@ -1282,7 +1408,7 @@ class GEOL_QMAPS:
             original_color = QColor(cell_state["color"])
             item.setBackground(original_color)
 
-            item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+            item.setFlags(item.flags() & ~self.qt_item_flag("ItemIsEditable"))
             self.row_edit_status[row] = False
 
         self.dlg.tableWidget1.repaint()
@@ -1345,19 +1471,27 @@ class GEOL_QMAPS:
         assigned_item.setBackground(new_color)
 
     # Come Back
+    # Come Back
     def Go_Back_table1(self):
 
         if self.table1States:
             previousState = self.table1States.pop()
             for row, row_state in enumerate(previousState):
                 for col, cell in enumerate(row_state):
-                    # texte de la cellule
+                    # Saved content
                     cell_text = cell["text"]
+                    cell_color = cell["color"]
+
+                    # Retrieve or create the item
                     item = self.dlg.tableWidget1.item(row, col)
+                    if item is None:
+                        item = QTableWidgetItem()
+                        self.dlg.tableWidget1.setItem(row, col, item)
+
+                    # Restore text
                     item.setText(cell_text)
 
-                    # couleur de la cellule
-                    cell_color = cell["color"]
+                    # Restore background colour (if any)
                     if cell_color:
                         item.setBackground(QColor(cell_color))
 
@@ -1367,36 +1501,54 @@ class GEOL_QMAPS:
             )
 
     # Content retrieval of QTableWidget 1 : COLUMNS NAMES CHECK  ##
+    # Content retrieval of QTableWidget 1 : COLUMNS NAMES CHECK  ##
     def recup_contenu_1(self):
         list_columns_check_OK = []
         new_values_count = {}
 
         for row in range(self.dlg.tableWidget1.rowCount()):
-            if self.dlg.tableWidget1.item(row, 0):
-                old = self.dlg.tableWidget1.item(row, 0).text()
-                if old != "-":
-                    # Retrieve the alias directly from the table
-                    if isinstance(self.dlg.tableWidget1.cellWidget(row, 1), QComboBox):
-                        alias = self.dlg.tableWidget1.cellWidget(row, 1).currentText()
-                    else:
-                        alias = self.dlg.tableWidget1.item(row, 1).text()
+            legacy_item = self.dlg.tableWidget1.item(row, 0)
+            if legacy_item is None:
+                # No legacy value in this row → skip
+                continue
 
-                    if alias != "NULL":
-                        # No more reversing here—store the alias as-is
-                        if alias in new_values_count:
-                            self.iface.messageBar().pushMessage(
-                                f"Erreur: La valeur '{alias}' est en double !",
-                                level=Qgis.Warning,
-                                duration=45,
-                            )
-                            return
-                        new_values_count[alias] = 1
+            old = legacy_item.text()
+            if not old or old == "-":
+                # Ignore empty/placeholder rows
+                continue
 
-                        # (old, alias)
-                        list_columns_check_OK.append([old, alias])
+            # Retrieve the alias safely
+            alias = None
+            cell_widget = self.dlg.tableWidget1.cellWidget(row, 1)
 
+            if isinstance(cell_widget, QComboBox):
+                alias = cell_widget.currentText()
+            else:
+                alias_item = self.dlg.tableWidget1.item(row, 1)
+                if alias_item is not None:
+                    alias = alias_item.text()
+
+            # If we still have no alias, or it is explicitly NULL, skip
+            if not alias or alias == "NULL":
+                continue
+
+            # Check for duplicates
+            if alias in new_values_count:
+                self.iface.messageBar().pushMessage(
+                    f"Error: The value '{alias}' is entered multiple times!",
+                    level=Qgis.Warning,
+                    duration=45,
+                )
+                return
+            new_values_count[alias] = 1
+
+            # Store mapping (old legacy field → alias)
+            list_columns_check_OK.append([old, alias])
+
+        # Always add Geometry mapping
         list_columns_check_OK.append(["Geometry", "Geometry"])
         return list_columns_check_OK
+
 
     ###############################################################################
     ##########    Step 4 : Creation of a DataFrame sorted and checked      ########
@@ -1594,7 +1746,8 @@ class GEOL_QMAPS:
         self.dlg.tableWidget2.setColumnCount(3)
         column_names2 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget2.setHorizontalHeaderLabels(column_names2)
-        self.dlg.tableWidget2.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # interactive width of the columns
+        header2 = self.dlg.tableWidget2.horizontalHeader()
+        self.set_header_resize_mode(header2, "Interactive")
         self.dlg.tableWidget2.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
         self.dlg.tableWidget2.setWordWrap(True) # Enable word wrap on the table widget so that cells wrap text
 
@@ -1607,7 +1760,7 @@ class GEOL_QMAPS:
         legend_widget = self.create_legend_widget()
         legend_main_layout = QVBoxLayout(self.dlg.legendbox)
         legend_main_layout.setContentsMargins(0, 0, 0, 0)
-        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=self.qt_align("AlignHCenter"))
         self.dlg.legendbox.setLayout(legend_main_layout)
 
         # Re-organize the list of unique lithology pairs (sorted in ascending order of score)
@@ -1646,8 +1799,8 @@ class GEOL_QMAPS:
             # Forbid editing of first 2 columns
             item1 = self.dlg.tableWidget2.item(k, 0)
             item2 = self.dlg.tableWidget2.item(k, 1)
-            item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-            item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+            item1.setFlags(item1.flags() & ~self.qt_item_flag("ItemIsEditable"))
+            item2.setFlags(item2.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
             # Delete and Edit actions:
             modify_widget = QWidget(self.dlg)
@@ -1701,7 +1854,7 @@ class GEOL_QMAPS:
                     cell_text = item.text()
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
 
@@ -1714,7 +1867,7 @@ class GEOL_QMAPS:
                         cell_text = ""
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
                 else:
@@ -1746,11 +1899,12 @@ class GEOL_QMAPS:
 
         item1 = self.dlg.tableWidget2.item(row, 0)
         item2 = self.dlg.tableWidget2.item(row, 1)
-        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        item1.setFlags(item1.flags() & ~self.qt_item_flag("ItemIsEditable"))
+        item2.setFlags(item2.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
         self.dlg.tableWidget2.repaint()
 
+    # Come back
     # Come back
     def Go_Back_table2(self):
 
@@ -1758,12 +1912,16 @@ class GEOL_QMAPS:
             previousState = self.table2States.pop()
             for row, row_state in enumerate(previousState):
                 for col, cell in enumerate(row_state):
-
                     cell_text = cell["text"]
+                    cell_color = cell["color"]
+
                     item = self.dlg.tableWidget2.item(row, col)
+                    if item is None:
+                        item = QTableWidgetItem()
+                        self.dlg.tableWidget2.setItem(row, col, item)
+
                     item.setText(cell_text)
 
-                    cell_color = cell["color"]
                     if cell_color:
                         item.setBackground(QColor(cell_color))
 
@@ -1772,24 +1930,46 @@ class GEOL_QMAPS:
                 "No previous action !", level=Qgis.Warning, duration=45
             )
 
-    ## Retrieving QTableWidget 2 content : LITHOLOGIES NAMES CHECK  ##
 
+    ## Retrieving QTableWidget 2 content : LITHOLOGIES NAMES CHECK  ##
     def recup_contenu_2(self):
         list_lithologies_unique_check_OK = []
-        for row in range(self.dlg.tableWidget2.rowCount()):
-            old = self.dlg.tableWidget2.item(row, 0).text().split(" :")[0]
-            if old != "-":
-                # Retrieve the alias
-                if isinstance(self.dlg.tableWidget2.cellWidget(row, 1), QComboBox):
-                    alias = self.dlg.tableWidget2.cellWidget(row, 1).currentText()
-                else:
-                    alias = self.dlg.tableWidget2.item(row, 1).text()
 
-                # Convert alias → real_name
-                real_name = self.reverse_alias_mapping.get(alias, alias)
-                list_lithologies_unique_check_OK.append([old, real_name])
+        for row in range(self.dlg.tableWidget2.rowCount()):
+            legacy_item = self.dlg.tableWidget2.item(row, 0)
+            if legacy_item is None:
+                # Empty row → skip
+                continue
+
+            legacy_text = legacy_item.text()
+            if not legacy_text:
+                continue
+
+            old = legacy_text.split(" :")[0]
+            if old == "-":
+                continue
+
+            # Retrieve alias safely
+            alias = None
+            cell_widget = self.dlg.tableWidget2.cellWidget(row, 1)
+
+            if isinstance(cell_widget, QComboBox):
+                alias = cell_widget.currentText()
+            else:
+                alias_item = self.dlg.tableWidget2.item(row, 1)
+                if alias_item is not None:
+                    alias = alias_item.text()
+
+            if not alias or alias == "NULL":
+                # No valid alias assigned
+                continue
+
+            # Convert alias → real_name using reverse_alias_mapping
+            real_name = self.reverse_alias_mapping.get(alias, alias)
+            list_lithologies_unique_check_OK.append([old, real_name])
 
         return list_lithologies_unique_check_OK
+
 
     ###############################################################################
     ###        Step 7 : Lithologies sorting in differents Excel sheets          ###
@@ -2101,7 +2281,8 @@ class GEOL_QMAPS:
         self.dlg.tableWidget3.setColumnCount(3)
         column_names3 = ["Legacy data value", "Assigned standard value", "Modify the assigned value"]
         self.dlg.tableWidget3.setHorizontalHeaderLabels(column_names3)
-        self.dlg.tableWidget3.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # adjustable width of the columns
+        header3 = self.dlg.tableWidget3.horizontalHeader()
+        self.set_header_resize_mode(header3, "Interactive")
         self.dlg.tableWidget3.verticalHeader().setVisible(False)  # vertical header (1 to n) invisible
         self.dlg.tableWidget3.setWordWrap(True) # Enable word wrap on the table widget so that cells wrap text
 
@@ -2114,7 +2295,7 @@ class GEOL_QMAPS:
         legend_widget = self.create_legend_widget()
         legend_main_layout = QVBoxLayout(self.dlg.legendbox_2)
         legend_main_layout.setContentsMargins(0, 0, 0, 0)
-        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=Qt.AlignHCenter)
+        legend_main_layout.addWidget(legend_widget, stretch=1, alignment=self.qt_align("AlignHCenter"))
         self.dlg.legendbox_2.setLayout(legend_main_layout)
 
         # Assume list_trio_struct_no_duplicate is a list of structure pairs (old, new, score)
@@ -2153,8 +2334,8 @@ class GEOL_QMAPS:
             # Forbid editing of first 2 columns
             item1 = self.dlg.tableWidget3.item(k, 0)
             item2 = self.dlg.tableWidget3.item(k, 1)
-            item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-            item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+            item1.setFlags(item1.flags() & ~self.qt_item_flag("ItemIsEditable"))
+            item2.setFlags(item2.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
             # Create composite widget for "Modify the assigned value" column:
             modify_widget = QWidget(self.dlg)
@@ -2212,7 +2393,7 @@ class GEOL_QMAPS:
                     cell_text = item.text()
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
 
@@ -2225,7 +2406,7 @@ class GEOL_QMAPS:
                         cell_text = ""
                     cell_color = (
                         item.background().color().name()
-                        if item.background().style() != Qt.NoBrush
+                        if item.background().style() != self.qt_brush("NoBrush")
                         else None
                     )
                 else:
@@ -2257,8 +2438,8 @@ class GEOL_QMAPS:
 
         item1 = self.dlg.tableWidget3.item(row, 0)
         item2 = self.dlg.tableWidget3.item(row, 1)
-        item1.setFlags(item1.flags() & ~Qt.ItemIsEditable)
-        item2.setFlags(item2.flags() & ~Qt.ItemIsEditable)
+        item1.setFlags(item1.flags() & ~self.qt_item_flag("ItemIsEditable"))
+        item2.setFlags(item2.flags() & ~self.qt_item_flag("ItemIsEditable"))
 
         self.dlg.tableWidget3.repaint()
 
@@ -2269,12 +2450,16 @@ class GEOL_QMAPS:
             previousState = self.table3States.pop()
             for row, row_state in enumerate(previousState):
                 for col, cell in enumerate(row_state):
-
                     cell_text = cell["text"]
+                    cell_color = cell["color"]
+
                     item = self.dlg.tableWidget3.item(row, col)
+                    if item is None:
+                        item = QTableWidgetItem()
+                        self.dlg.tableWidget3.setItem(row, col, item)
+
                     item.setText(cell_text)
 
-                    cell_color = cell["color"]
                     if cell_color:
                         item.setBackground(QColor(cell_color))
 
@@ -2283,8 +2468,8 @@ class GEOL_QMAPS:
                 "No previous action !", level=Qgis.Warning, duration=45
             )
 
-    ## Retrieving QTableWidget 2 content : LITHOLOGIES NAMES CHECK  ##
 
+    ## Retrieving QTableWidget 3 content : STRUCTURE TYPES CHECK  ##
     def recup_contenu_3(self):
         """
         Collects the final user-verified mapping for Structures from tableWidget3.
@@ -2330,28 +2515,36 @@ class GEOL_QMAPS:
         ]
 
         for row in range(self.dlg.tableWidget3.rowCount()):
-            item0 = self.dlg.tableWidget3.item(row, 0)
-            if not item0:
-                continue
-            old_value = item0.text().strip()
-            if not old_value or old_value == "-":
+            legacy_item = self.dlg.tableWidget3.item(row, 0)
+            if legacy_item is None:
                 continue
 
-            widget1 = self.dlg.tableWidget3.cellWidget(row, 1)
-            if isinstance(widget1, QComboBox):
-                assigned_value = widget1.currentText().strip()
+            old = legacy_item.text()
+            if not old or old == "-":
+                continue
+
+            # Safely retrieve the assigned structure from column 1
+            alias = None
+            cell_widget = self.dlg.tableWidget3.cellWidget(row, 1)
+            if isinstance(cell_widget, QComboBox):
+                alias = cell_widget.currentText()
             else:
-                itm = self.dlg.tableWidget3.item(row, 1)
-                assigned_value = itm.text().strip() if itm else "NULL"
+                alias_item = self.dlg.tableWidget3.item(row, 1)
+                if alias_item is not None:
+                    alias = alias_item.text()
+
+            if not alias or alias == "NULL":
+                # If nothing assigned, skip or treat as Unknown depending on your logic
+                continue
 
             # find matching by alias (mapping[1]):
             matched = False
             for std in AssignedStructures:
-                if std[1] == assigned_value:
-                    print(f"Standard value selected in AssignedStructures: {assigned_value}")
+                if std[1] == alias:
+                    print(f"Standard value selected in AssignedStructures: {alias}")
                     structure_map.append([
-                        old_value,  # original text
-                        assigned_value,  # alias chosen
+                        old,  # original text
+                        alias,  # alias chosen
                         std[2],  # standard layer name
                         std[3],  # Type
                     ])
@@ -2360,10 +2553,10 @@ class GEOL_QMAPS:
                     break
 
             if not matched:
-                print(f"Standard value selected not in AssignedStructures: {assigned_value}")
+                print(f"Standard value selected not in AssignedStructures: {alias}")
                 structure_map.append([
-                    old_value,
-                    assigned_value,
+                    old,
+                    alias,
                     "Unknown",
                     "",  # no Type
                 ])
@@ -2376,7 +2569,7 @@ class GEOL_QMAPS:
         return structure_map
 
     ###############################################################################
-    ######         Step 9 : Structure sorting in differents Excel sheets     ######
+    ######         Step 9 : Structure sorting in different Excel sheets     ######
     ###############################################################################
 
     def structure_sorting(self, fichier_output, structure_map, list_columns_check3, name_input_file):
@@ -2405,6 +2598,26 @@ class GEOL_QMAPS:
             if col not in fichier_output.columns:
                 fichier_output[col] = ""
 
+        # 2bis) Ensure a default Kinematics column if linear measurements are present
+        #       but no Kinematics field was mapped in Table1.
+        trend_dir_alias = "Structures - Linear Measurements / Trend - Plunge Direction"
+        trend_plunge_alias = "Structures - Linear Measurements / Trend - Plunge"
+        kinematics_alias = "Structures - Kinematics"
+
+        has_linear = (
+            trend_dir_alias in list_columns_check3
+            or trend_plunge_alias in list_columns_check3
+        )
+        has_kinematics = kinematics_alias in list_columns_check3
+
+        if has_linear and not has_kinematics:
+            # Create a generic 'Kinematics' column used by the export templates,
+            # with a default value of 'Unknown' for all rows.
+            if "Kinematics" not in fichier_output.columns:
+                print('Kinematics not assigned in Database Fields.')
+                fichier_output["Kinematics"] = "Unknown"
+                print(f'fichier output before filling: {fichier_output}')
+
         # 3) Apply to each row
         for idx, row in fichier_output.iterrows():
             legacy = str(row.get("Structures - Structure Type", "")).strip()
@@ -2417,6 +2630,8 @@ class GEOL_QMAPS:
                     print(f"[DEBUG] Row {idx}: set Type='{info['Type']}'")
             else:
                 print(f"[DEBUG] Row {idx}: no mapping for '{legacy}', skipping")
+
+        print(f'fichier output after filling: {fichier_output}')
 
         # 3) Create empty DataFrames for each known structure layer.
         project = QgsProject.instance()
@@ -2459,20 +2674,36 @@ class GEOL_QMAPS:
                     continue
                 target_df = fichier_output_structures[df_key]
                 print(f"Targeted dataframe before append:\n{target_df}")  # debug
+
                 row_to_append = []
                 for col_reference in target_df.columns:
                     lc = col_reference.lower()
+
                     if lc == "type":
                         # copy the Type field
                         value = fichier_output.at[i, "Type"]
+
+                    elif lc == "kinematics":
+                        # Force Kinematics propagation, independent of alias_mapping.
+                        # This covers the case where Kinematics was auto-created in fichier_output
+                        # (e.g. when no Kinematics field was mapped in Table1).
+                        if "Kinematics" in fichier_output.columns:
+                            value = fichier_output.at[i, "Kinematics"]
+                        elif "Structures - Kinematics" in fichier_output.columns:
+                            value = fichier_output.at[i, "Structures - Kinematics"]
+                        else:
+                            value = ""
+
                     else:
-                        # fall back via alias mapping
+                        # fall back via alias mapping for all other columns
                         alias_for_col = self.alias_mapping.get(col_reference, col_reference)
                         if alias_for_col in fichier_output.columns:
                             value = fichier_output.at[i, alias_for_col]
                         else:
                             value = ""
+
                     row_to_append.append(value)
+
                 # If "Reference" exists and was not assigned in Table1, fill it.
                 if "Reference" in target_df.columns and "Reference" not in list_columns_check3:
                     ref_index = target_df.columns.get_loc("Reference")
@@ -2720,7 +2951,7 @@ class GEOL_QMAPS:
             if layer.isValid():
                 pass
             else:
-                self.iface.messageBar().pushMessage("Erreur", "Unable to load selected layer !", level=Qgis.Critical)
+                self.iface.messageBar().pushMessage("Error", "Unable to load selected layer !", level=Qgis.Critical)
 
             # Step 1 : Check layer coordinates + Create the Geometry column
             self.convert_coordinates_WGS84(layer)
@@ -2761,28 +2992,31 @@ class GEOL_QMAPS:
             "Names of columns checked: Please proceed further with Step 2 (Lithology Names and/or Structure Types tables)", level=Qgis.Success, duration=45
         )
 
-        # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.
+        # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.        # but only once per plugin instance.
         if "Structures - Structure Type" in list_columns_check3:
-            msg = QMessageBox(self.dlg)
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Warning")
-            msg.setText(
-                "If your data source includes both linear and planar measurements, and that dip direction and "
-                "trend/plunge direction (and/or dip and plunge, respectively) share the same data fields, "
-                "please ensure that you import them separately.\n\n"
-                "• For planar measurements, assign legacy fields to standard values as follows:\n"
-                "  – Structures – Planar Measurements / Dip Direction\n"
-                "  – Structures – Planar Measurements / Dip\n\n"
-                "• For linear measurements, assign them using:\n"
-                "  – Structures – Linear Measurements / Trend – Plunge Direction\n"
-                "  – Structures – Linear Measurements / Trend – Plunge\n\n"
-                "If you want to add kinematics information to legacy lineations, please make sure to have a "
-                "“Kinematics” column in the legacy database, with values limited to:\n"
-                "Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment. \n"
-                "This field should be assigned to “Structures - Kinematics“."
-            )
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec_()
+            if not getattr(self, "_structure_type_help_shown", False):
+                msg = QMessageBox(self.dlg)
+                msg.setIcon(self.qt_message_icon("Warning"))
+                msg.setWindowTitle("Warning")
+                msg.setText(
+                    "If your data source includes both linear and planar measurements, and that dip direction and "
+                    "trend/plunge direction (and/or dip and plunge, respectively) share the same data fields, "
+                    "please ensure that you import them separately.\n\n"
+                    "• For planar measurements, assign legacy fields to standard values as follows:\n"
+                    "  – Structures – Planar Measurements / Dip Direction\n"
+                    "  – Structures – Planar Measurements / Dip\n\n"
+                    "• For linear measurements, assign legacy fields to standard values as follows:\n"
+                    "  – Structures – Linear Measurements / Trend – Plunge Direction\n"
+                    "  – Structures – Linear Measurements / Trend – Plunge\n\n"
+                    "If you want to add kinematics information to legacy lineations, please make sure to have a "
+                    "“Kinematics” column in the legacy database, with values limited to:\n"
+                    "Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment. \n"
+                    "This field should be assigned to “Structures - Kinematics“.")
+                msg.setStandardButtons(self.qt_message_button("Ok"))
+                self.qt_message_exec(msg)
+
+                # Mark that we have already shown this guidance
+                self._structure_type_help_shown = True
 
         return fichier_output, list_columns_check3
 
@@ -2861,9 +3095,23 @@ class GEOL_QMAPS:
         Called when pushbutton10 is clicked.
         Uses the helper method_lithologies_check_OK to generate the lithologies DataFrame.
         """
-        self.fichier_output_lithology = self.method_lithologies_check_OK(name_layer_to_import, fichier_output, list_columns_check3)
+        # Run the lithology checking / sorting pipeline
+        self.fichier_output_lithology = self.method_lithologies_check_OK(
+            name_layer_to_import,
+            fichier_output,
+            list_columns_check3,
+        )
+
+        # Flag that lithologies are ready for export
         self.create_lithologies = True
-        self.iface.messageBar().pushMessage("Names of lithologies checked: Please proceed further with Step 2 (if you need to check the Structure Types table) or 3", level=Qgis.Success, duration=45)
+
+        # Inform the user
+        self.iface.messageBar().pushMessage(
+            "Names of lithologies have been successfully assigned. "
+            "You can now proceed further in Step 2 ((Structure Types table if needed) or move to Step 3 (Generate Standardised Legacy Data).",
+            level=Qgis.Success,
+            duration=45,
+        )
 
     def click_structure_check_OK(self, fichier_output, list_columns_check3, name_layer_to_import):
         """
@@ -2871,9 +3119,24 @@ class GEOL_QMAPS:
         Uses the helper method_structures_check_OK to generate the structures DataFrame.
         """
         print("Enter click_structure_check_OK")
-        self.fichier_output_structures = self.method_structures_check_OK(fichier_output, list_columns_check3, name_layer_to_import)
+
+        # Run the structures checking / sorting pipeline
+        self.fichier_output_structures = self.method_structures_check_OK(
+            fichier_output,
+            list_columns_check3,
+            name_layer_to_import,
+        )
+
+        # Flag that structures are ready for export
         self.create_structures = True
-        self.iface.messageBar().pushMessage("Types of structures checked: Please proceed further with Step 2 (if you need to check the Lithology Names table) or 3", level=Qgis.Success, duration=45)
+
+        # Inform the user
+        self.iface.messageBar().pushMessage(
+            "Types of structures have been successfully assigned. "
+            "You can now proceed further in Step 2 (Lithologies table if needed) or move to Step 3 (Generate Standardised Legacy Data).",
+            level=Qgis.Success,
+            duration=45,
+        )
 
     def Generate_Output_QGIS_Layers(self):
         """
@@ -3612,7 +3875,7 @@ class GEOL_QMAPS:
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
-        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.4 at the moment
+        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.5 at the moment
         # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
         import socket
         try:
@@ -3629,7 +3892,7 @@ class GEOL_QMAPS:
 
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/15460411/files/GEOL-QMAPS_v3.1.4.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.request import urlopen
         try:
             with urlopen(url, timeout=60) as resp:
@@ -3662,7 +3925,7 @@ class GEOL_QMAPS:
             zf.extractall(str(parent))
 
         # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
-        template_src = parent / "GEOL-QMAPS_v3.1.4" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+        template_src = parent / "GEOL-QMAPS_v3.1.5" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
 
 
         # 4b) Prepare the destination name and remove any stale copy
@@ -3839,9 +4102,9 @@ class GEOL_QMAPS:
         msg = QtWidgets.QMessageBox(self.iface.mainWindow())
         msg.setWindowTitle("Select QField Package to synchronise to QGIS")
         msg.setText("Choose QField package type:")
-        zip_btn = msg.addButton("ZIP archive", QtWidgets.QMessageBox.ActionRole)
-        folder_btn = msg.addButton("Folder", QtWidgets.QMessageBox.ActionRole)
-        msg.exec_()
+        zip_btn = msg.addButton("ZIP archive", self.qt_message_role("ActionRole"))
+        folder_btn = msg.addButton("Folder", self.qt_message_role("ActionRole"))
+        self.qt_message_exec(msg)
 
         # Determine which button was clicked
         if msg.clickedButton() == zip_btn:
@@ -3900,10 +4163,10 @@ class GEOL_QMAPS:
             ("This operation will create a copy of the QGIS project folder and "
              "overwrite its current field data with that from the QField package. "
              "Ensure both sources are the latest versions. Continue?"),
-            QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel,
-            QtWidgets.QMessageBox.Cancel
+            self.qt_message_button("Ok") | self.qt_message_button("Cancel"),
+            self.qt_message_button("Cancel")
         )
-        if reply != QtWidgets.QMessageBox.Ok:
+        if reply != self.qt_message_button("Ok"):
             return
 
         # Drive check (C: or other non-removable)
