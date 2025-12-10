@@ -65,7 +65,7 @@ QTabBar::tab:hover {
 </string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>
@@ -3698,22 +3698,27 @@ font-weight: bold;</string>
          <x>10</x>
          <y>30</y>
          <width>351</width>
-         <height>91</height>
+         <height>111</height>
         </rect>
        </property>
        <property name="font">
         <font>
          <family>Arial</family>
+         <pointsize>8</pointsize>
+         <weight>50</weight>
+         <italic>false</italic>
+         <bold>false</bold>
         </font>
        </property>
        <property name="acceptDrops">
         <bool>false</bool>
        </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
        <property name="styleSheet">
-        <string notr="true">#plainTextEdit_9{
-
-background-color: rgb(240, 240, 240, 0);
-}</string>
+        <string notr="true">#plainTextEdit_9{background-color: rgb(240, 240, 240, 0);font: 8pt &quot;Arial&quot;;}
+</string>
        </property>
        <property name="inputMethodHints">
         <set>Qt::ImhNone</set>
@@ -3728,17 +3733,16 @@ background-color: rgb(240, 240, 240, 0);
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>If you have bugs to report, suggestions for improvements or new tools to add to this plugin:
-
-Please submit them on the GitHub issues page:
-
-Or contact us: </string>
+        <string>If you have bugs to report, suggestions for improvements or new tools to add to this plugin, please submit them on the GitHub issues page, or contact us !</string>
+       </property>
+       <property name="backgroundVisible">
+        <bool>true</bool>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_23">
        <property name="geometry">
         <rect>
-         <x>240</x>
+         <x>60</x>
          <y>110</y>
          <width>91</width>
          <height>21</height>
@@ -3758,7 +3762,7 @@ font-weight: bold;</string>
       <widget class="QPushButton" name="pushButton_28">
        <property name="geometry">
         <rect>
-         <x>110</x>
+         <x>210</x>
          <y>110</y>
          <width>81</width>
          <height>21</height>
@@ -3811,16 +3815,20 @@ font-weight: bold;</string>
        <property name="font">
         <font>
          <family>Arial</family>
+         <pointsize>8</pointsize>
+         <weight>50</weight>
+         <italic>false</italic>
+         <bold>false</bold>
         </font>
        </property>
        <property name="acceptDrops">
         <bool>false</bool>
        </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
        <property name="styleSheet">
-        <string notr="true">#plainTextEdit_5{
-
-background-color: rgb(240, 240, 240, 0);
-}</string>
+        <string notr="true">#plainTextEdit_5{background-color: rgb(240, 240, 240, 0);font: 8pt &quot;Arial&quot;;}</string>
        </property>
        <property name="inputMethodHints">
         <set>Qt::ImhNone</set>
@@ -3844,7 +3852,7 @@ For more information, please consult: </string>
        <property name="geometry">
         <rect>
          <x>260</x>
-         <y>90</y>
+         <y>70</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -3864,7 +3872,7 @@ font-weight: bold;</string>
        <property name="geometry">
         <rect>
          <x>400</x>
-         <y>90</y>
+         <y>70</y>
          <width>121</width>
          <height>21</height>
         </rect>
@@ -4035,7 +4043,7 @@ background-color: rgb(240, 240, 240,0);
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>Please visit the Help - Roamap section of the User Guide:</string>
+        <string>Please visit the Help - Roadmap section of the User Guide:</string>
        </property>
        <property name="backgroundVisible">
         <bool>false</bool>
