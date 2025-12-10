@@ -82,7 +82,7 @@ The figure below, adapted from Perret et al. ([2024](https://doi.org/10.1016/j.a
 
 > [!TIP]
 > *We do not consider QFieldCloud, released by the developers of the QField app, which provides an alternative online method for synchronising and merging data collected in QField within online storage because annual fees apply for full access to cloud functionalities.<br>
-> Yet, please not that another option is to run a local copy of QFieldCloud (available at [https://github.com/opengisch/qfieldcloud](https://github.com/opengisch/qfieldcloud)) on a private server or virtual machine.*
+> Yet, please note that another option is to run a local copy of QFieldCloud (available at [https://github.com/opengisch/qfieldcloud](https://github.com/opengisch/qfieldcloud)) on a private server or virtual machine.*
 
 ### *5.1. Architecture of the QGIS Mapping Template* 
 #### 5.1.1. Repository Content
@@ -233,6 +233,12 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 > [!TIP]
 > *Before heading to the field, test the exported project on the device to ensure everything works smoothly.* <br>
 > *Keep a back-up of your original QGIS project before running any export.*
+
+#### 5.2.5. Add QField Compass Plugin
+For instructions on using your device as a geological compass, with autoloading of structural information, visit this [site](https://github.com/swaxi/compass).
+
+#### 5.2.6. Add QField Stereonet Plugin
+For instructions on plotting on the fly structural measurements contained in any GEOL-QMAPS structural data layer in a lower-hemisphere stereonet, with symbol colour-filling based on the generation index, visit this [site](https://github.com/swaxi/stereonet). 
 
 
 ### *5.3. Fieldwork: Data Collection* 
@@ -445,7 +451,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 *QField:*
 * Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer), automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
-* Develop a plugin to plot structural measurements in a stereonet on the fly
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
