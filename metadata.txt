@@ -27,7 +27,10 @@ changelog=3.1.5
       **Bug Fixes & Functional Improvements**  
       * **Import tool**:  
       ** Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data.
-      ** Fixed bug with multiple display of warning boxes. 
+      ** Fixed bug with multiple display of warning boxes
+      **New Functionalities**  
+      * New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
+      * New **QField Stereonet Tool** to plot structural measurements in a lower-hemisphere stereonet on the fly in QField 
     3.1.4 2025-08
       * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
       * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
