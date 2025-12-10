@@ -4,38 +4,16 @@
 
 *version 3.1.4 - August 2025*
 
-# Changelog 3.1.4
-      3.1.4
-      * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
-      * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
-      * Implemented pre- and postflight checks to detect excessively long filenames (≥256 characters) that may trigger Python errors on Windows; applied to the following tools: Rejig, Clip, Merge, Save QLR, Export, and SyncQFieldToQGIS  
-      * Harmonised and improved tooltips across all plugin buttons  
-      * Refined behaviour of “Reset Window” buttons  
-      * Minor GUI improvements  
-      * Corrected links in the Help tab  
-      
-      **Bug Fixes & Functional Improvements**  
-      * **Merge Projects tool**:  
-        – Fixed bug affecting merging of projects with modified names (e.g., subsets of a master project)  
-        – Automatically generates merged project filename based on shared name substrings (≥5 characters); defaults to `Merged.qgz` otherwise  
-      * **Clip tool**:  
-        – Automatically generates the list of project folders to copy, removing reliance on the hard-coded `cp_dirs` list  
-      * **Save Style Template tool**:  
-        – Resolved bug affecting the saving process  
-      * **Photograph Management tool**:  
-        – EXIF data is now correctly retrieved and written to the Image Direction field (logic block fixed)  
-      * **Import FieldMove Project tool**:  
-        – Now creates a dedicated subfolder to store generated scratch layers  
-      
-      **Shapefile Import Tool – Enhancements**  
-      * Created subfolders for scratch layer outputs  
-      * Fixed issue when importing legacy data lacking lithological information  
-      * Added management of structural lineations  
-      * Improved warning messages  
-      
+# Changelog 3.1.5
+      * Supports QT6
+      * **Bug Fixes & Functional Improvements**  
+      * **Import tool**:  
+      – Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
+      – Fixed bug with multiple display of warning boxes
+           
       **New Functionalities**  
-      * **New tool in the Data Management tab** to synchronise a QField package (ZIP or folder) to the GEOL-QMAPS QGIS master project (creates a local copy)  
-      * **New tool in the Data Management tab** to update the current GEOL-QMAPS QGIS project to the latest version of the template hosted on Zenodo
+      – New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
+      – New **QField Stereonet Tool** to plot structural measurements in a lower-hemisphere stereonet on the fly in QField
    
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
