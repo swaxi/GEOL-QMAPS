@@ -5,13 +5,11 @@
 *version 3.1.5 - November 2025*
 
 # Changelog 3.1.5
-      3.1.5 
-      * Supports QT6, but all tools are still compatible with Qt5
-      
-      **Bug Fixes & Functional Improvements**  
+      * Supports QT6
+      * **Bug Fixes & Functional Improvements**  
       * **Import tool**:  
-      - Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
-      - Fixed bug with multiple display of warning boxes 
+      – Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
+      – Fixed bug with multiple display of warning boxes 
    
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
