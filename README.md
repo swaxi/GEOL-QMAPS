@@ -10,6 +10,10 @@
       * **Import tool**:  
       – Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
       – Fixed bug with multiple display of warning boxes 
+           
+      **New Functionalities**  
+      – New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
+      – New **QField Stereonet Tool** to plot structural measurements in a lower-hemisphere stereonet on the fly in QField
    
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
@@ -236,9 +240,8 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 For instructions on using your device as a geological compass, with autoloading of structural information, visit this [site](https://github.com/swaxi/compass).
 
 #### 5.2.6. Add QField Stereonet Plugin
-For instructions on plotting on the fly structural measurements contained in any GEOL-QMAPS structural data layer in a lower-hemisphere stereonet, with symbol colour-filling based on the generation index, visit this [site](https://github.com/swaxi/stereonet). 
-
-
+For instructions on plotting on the fly structural measurements contained in any GEOL-QMAPS structural data layer in a lower-hemisphere stereonet, with symbol colour-filling based on the generation index, visit this [site](https://github.com/swaxi/stereonet).
+   
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
 A detailed description of the attributes and the design of attribute forms for each field data layer is provided in the following ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf)
