@@ -2,14 +2,14 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.4 - August 2025*
+*version 3.1.5 - November 2025*
 
 # Changelog 3.1.5
       * Supports QT6
       * **Bug Fixes & Functional Improvements**  
       * **Import tool**:  
       – Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
-      – Fixed bug with multiple display of warning boxes
+      – Fixed bug with multiple display of warning boxes 
            
       **New Functionalities**  
       – New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
@@ -66,7 +66,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   * a log file (**`List of updates of the different releases.docx`**),
 
 ### *4.2. GEOL-QMAPS QGIS Plugin* 
-*Option 1*
 * The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.
 
 * Open the QGIS Plugin Manager.
@@ -75,15 +74,6 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   
 * Select the plugin and click on **Install Plugin**
 ![Installation_Plugin_Repository](Installation_Plugin_Repository.PNG) 
-
-*Option 2*
-* Visit [the GitHub repository of the custom QGIS plugin related to the QGIS plugin](https://github.com/swaxi/WAXI_QF)
-
-* Save **`geol-qmaps-main.zip`** repository to disk as a zip file 
-
-* Use QGIS Plugin Manager to load directly from zip file
-  ![Installation_Plugin](Installation_Plugin.PNG) 
- 
 
 
 
@@ -143,7 +133,7 @@ By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojec
 
 However, users are advised to change the project CRS to a suitable **projected** CRS (_e.g.,_ `WGS84 / UTM zone 29N` in Côte d'Ivoire) when performing structural analysis using the GEOL-QMAPS QGIS template. Projected CRSs indeed preserve **local angles**, which is critical for accurate structural representation, although they inherently distort areas and distances. 
 
-In version 3.1.4 of the QGIS project template, the rotation of structural symbols has been updated to account for CRSs where the true North orientation differs from the Y-axis of the map view (assuming no manual map rotation is applied). This improvement is based on insights and code provided by [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr) in his [QGIS Field Move Importer](https://github.com/gduclaux/FieldMoveProjectImporter_QGIS).
+In versions 3.1.4 or later of the QGIS project template, the rotation of structural symbols has been updated to account for CRSs where the true North orientation differs from the Y-axis of the map view (assuming no manual map rotation is applied). This improvement is based on insights and code provided by [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr) in his [QGIS Field Move Importer](https://github.com/gduclaux/FieldMoveProjectImporter_QGIS).
 
 The following examples, which illustrate potential angular distortion in `WGS 84: EPSG:4326` and the need for structural symbol rotation correction for given local projected CRSs using Antarctic data, are courtesy of [Guillaume Duclaux](mailto:Guillaume.DUCLAUX@univ-cotedazur.fr):
 * _CRS = WGS84 EPSG:4326:_
@@ -164,7 +154,7 @@ The following examples, which illustrate potential angular distortion in `WGS 84
   * Point structural measurements are still rotated along the Y-axis of the map view **without correction**, _i.e.,_ as per the default behaviour up to v3.1.3, but this axis no longer represents true North.<br>
 **Result:** Major angular mismatch between misrotated structural measurements and the strike direction of mapped structure traces.
 
-* _same case scenario as above, but **with rotation correction** based on the true North orientation of the applied CRS (implemented in v3.1.4 of the GEOL-QMAPS QGIS project template):_
+* _same case scenario as above, but **with rotation correction** based on the true North orientation of the applied CRS (implemented in v3.1.4 and subsequent releases of the GEOL-QMAPS QGIS project template):_
    * ![WGS84-AntarcticPolarStereographic_RotationCorrected.png](WGS84-AntarcticPolarStereographic_RotationCorrected.png) 
    * Point structural measurements are now correctly rotated relative to true North in the applied CRS, aligning with the measured strike (or trend for linear features).<br>
 **Result:** Accurate match between structural measurements and the apparent strike direction of mapped structure traces, regardless of the true North orientation in the selected CRS. 
@@ -246,9 +236,11 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 > *Before heading to the field, test the exported project on the device to ensure everything works smoothly.* <br>
 > *Keep a back-up of your original QGIS project before running any export.*
 
-#### 5.2.5. Add QField Compass plugin
+#### 5.2.5. Add QField Compass Plugin
+For instructions on using your device as a geological compass, with autoloading of structural information, visit this [site](https://github.com/swaxi/compass).
 
-For instructions on using your device as a geological compass, with autoloading of structural information, visit this site:    https://github.com/swaxi/compass   
+#### 5.2.6. Add QField Stereonet Plugin
+For instructions on plotting on the fly structural measurements contained in any GEOL-QMAPS structural data layer in a lower-hemisphere stereonet, with symbol colour-filling based on the generation index, visit this [site](https://github.com/swaxi/stereonet).
    
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
@@ -267,31 +259,10 @@ You may delete it from your mobile device memory once collected field data are s
 
 > [!TIP]
 > *For distributed field teams, all users can synchronise the master database daily to merge their edits. This ensures a consolidated dataset before exporting an updated* `QField Project Folder` *for the next day of mapping*.<br>
-
-#### 5.4.1. Synchronise the Master QGIS Project from QField - Official Procedure
 > [!TIP]
 > *Before synchronising, it’s a good idea to create a backup of the original QGIS project to avoid any data loss in case of errors during synchronisation.*
 
-> [!TIP]
-> *There is now a* **Synchronise a QField Package to the QGIS Master Project** *tool in the **Database Management** tab of the custom plugin that automates this operation, following the Preferred Procedure described in 5.4.2.*.<br>
-
-* Open the original GEOL-QMAPS QGIS project
-
-* Click on the ***Synchronize from QField*** button of the **QFieldSync** plugin
-
-* Select the location where you copied the `QField Project Folder` that contains newly acquired field data
-
-* Run the syncing process *(QFieldSync will compare the data in the QField project folder with the data in your original QGIS project, including new, edited and deleted features)*
-
-* The QGIS project is now loaded with layers from the `QField Project Folder` (original layers stored in the QGIS project repository are not updated per se!)
-
-* Save the updated QGIS project
-
-> [!CAUTION]
-> *There is a major concern with this procedure: the original data layers of the QGIS project are not loaded anymore, which causes duplication of layers and may be inconvenient for data compilation and project merging.* <br>
-> *That is the reason why we propose a preferred synchronisation procedure below.*
-
-#### 5.4.2. Synchronise the Master QGIS Project from QField - Preferred Procedure
+**Synchronise the Master QGIS Project from QField**
 * Copy the **`CURRENT_MISSION.gpkg`** geopackage file and the `DCIM` folder stored at the root level of the `QField Project Folder`, which contained all newly entered field data.
 
 * Paste and overwrite the **`CURRENT_MISSION.gpkg`** file loaded in the root QGIS project and overwrite the `DCIM` folder at the same path, in `.\.\0_FIELD_DATA` repository.
@@ -334,21 +305,10 @@ Reformat existing lithological and structural point databases according to the a
 Uploading and processing of the legacy database as a shapefile. <br>
 Processing involves applying an arbitrary threshold to a similarity score calculated by the [*fuzzywuzzy* stringmatching library](https://github.com/seatgeek/fuzzywuzzy), after constructing a thesaurus of similar terms. The latter approach is exemplified in Joshi et al. ([2021](https://gmd.copernicus.org/articles/14/6711/2021/gmd-14-6711-2021.html)).
 
-> [!CAUTION]
-> *If the legacy database shapefile contains a **Geometry** field with geometry information for point entities, this field must be deleted before importing the shapefile.* <br>
-> *Otherwise, a bug is triggered in Step 2 that prevents proper retrieval of all legacy fields.*
-> *This bug will be fixed in the next release of the template.*
-
 #### *Step 2*
 User-supervised validation of the proposed indexing of fields and values during Step 2. <br>
 The user can check and correct mismatches and, if necessary, discard values or columns from the existing field database being processed (different sub-tabs for column names, rock names, and structural data). <br>
 A colour code assists in identifying potential mismatches.
-
-> [!CAUTION]
-> *When importing lineation data, ensure that the legacy database includes a **Kinematics** column with values restricted to: Dextral-slip, Sinistral-slip, Reverse-slip, Normal-slip, Low-angle detachment, Unknown.* <br>
-> *This column must be assigned to **Structures – Kinematics** in the Database Fields table of Step 2.* <br>
-> *If kinematic information is not available or there is no kinematics associated to the entity, set the default value in the input file to **Unknown**. Otherwise, the plugin will not populate this field, causing some entities to remain invisible on the map display after import (even though they are correctly imported).* <br>
-> *This bug will be fixed in the next release of the template.*
 
 #### *Step 3*
 Generation of output QGIS layers as scratch temporary layers, once data import is validated.
@@ -480,8 +440,8 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 ![Help_window](Help_window.PNG)
 
 **Roadmap for Future Development**
+
 *GEOL-QMAPS Plugin:*
-* Correct bugs identified in the **Import Legacy Field Data Shapefiles (Point Geometry)** tool
 * Add a button to enter references for publications or reports associated with the processed legacy field data
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
@@ -491,8 +451,7 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 * Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
 *QField:*
-* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer) , automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
-* Develop a plugin to plot structural measurements in a stereonet on the fly
+* Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer), automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
