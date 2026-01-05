@@ -4,7 +4,7 @@
 
 [general]
 name=geol_qmaps
-qgisMinimumVersion=3.34.0
+qgisMinimumVersion=3.30.0
 qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 version=3.1.5
