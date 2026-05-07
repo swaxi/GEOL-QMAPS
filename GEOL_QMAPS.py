@@ -96,6 +96,7 @@ from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
+from urllib.parse import urlparse
 
 
 # Qt5/Qt6 Compatibility Layer
@@ -3840,6 +3841,12 @@ class GEOL_QMAPS:
         if folder:
             self.dlg.lineEdit_15.setText(folder)
 
+    def _validate_url(self, url: str) -> str:
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
+        return url
+
     def rejig_project(self):
         """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
@@ -3895,7 +3902,7 @@ class GEOL_QMAPS:
         url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.request import urlopen
         try:
-            with urlopen(url, timeout=60) as resp:
+            with urlopen(self._validate_url(url), timeout=60) as resp:
                 data = resp.read()
             local_path = str(tmpzip)
             with open(local_path, 'wb') as f:
@@ -4889,7 +4896,8 @@ class GEOL_QMAPS:
 
         # Rewrite QGZ internals to use relative paths
         import zipfile
-        import xml.etree.ElementTree as ET
+        #import xml.etree.ElementTree as ET
+        import defusedxml.ElementTree as ET
         # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
