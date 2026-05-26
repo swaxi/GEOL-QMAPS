@@ -132,7 +132,25 @@ import sys
 import numpy as np
 import shutil
 import json
-from xml.etree import ElementTree as ET  # ADD
+try:
+    import defusedxml.ElementTree as ET
+
+except ImportError:
+    try:
+        if platform.system() == "Windows":
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+        else:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+
+        import defusedxml.ElementTree as ET
+
+    except Exception:
+        # Fallback if install fails
+        from xml.etree import ElementTree as ET
 from datetime import datetime
 import re
 
@@ -707,6 +725,12 @@ class GEOL_QMAPS:
                 if len(full_path) > max_length:
                     bad_paths.append(full_path)
 
+                # Also check Windows extended path compatibility
+                win_path = "\\\\?\\" + full_path
+
+                if len(win_path) > max_length:
+                    bad_paths.append(full_path)
+
         if bad_paths:
             # Write the list to a temp file
             log_file = os.path.join(tempfile.gettempdir(), "geol_qmaps_bad_paths.txt")
@@ -731,6 +755,15 @@ class GEOL_QMAPS:
             )
             return False
 
+        # Check whether the TEMP merge destination itself is already too deep
+        temp_dir = tempfile.gettempdir()
+
+        if len(os.path.abspath(temp_dir)) > 100:
+            self.iface.messageBar().pushMessage(
+                "Warning: Windows TEMP directory path is already long and may contribute to merge failures.",
+                level=Qgis.Warning,
+                duration=15
+            )
         return True
 
 
@@ -3885,8 +3918,14 @@ class GEOL_QMAPS:
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
         url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        from urllib.parse import urlparse
         from urllib.request import urlopen
         try:
+            parsed_url = urlparse(url)
+
+            if parsed_url.scheme not in {"https"}:
+                raise ValueError(f"Unsupported URL scheme: {parsed_url.scheme!r}")
+
             with urlopen(url, timeout=60) as resp:
                 data = resp.read()
             local_path = str(tmpzip)
@@ -4780,10 +4819,40 @@ class GEOL_QMAPS:
             shutil.rmtree(merge_root, onerror=_rm_readonly)
 
         # Copy main project tree, ignoring project files
-        shutil.copytree(
-            main_folder, merge_root,
-            ignore=shutil.ignore_patterns('*.qgs','*.qgz','*.bak')
-        )
+        # Safer copytree implementation for long Windows paths
+        def _copytree_safe(src, dst):
+            os.makedirs(dst, exist_ok=True)
+
+            for root, dirs, files in os.walk(src):
+                rel = os.path.relpath(root, src)
+
+                if rel == ".":
+                    target_dir = dst
+                else:
+                    target_dir = os.path.join(dst, rel)
+
+                os.makedirs(target_dir, exist_ok=True)
+
+                for name in files:
+
+                    # Ignore project files
+                    if name.lower().endswith((".qgs", ".qgz", ".bak")):
+                        continue
+
+                    src_file = os.path.join(root, name)
+                    dst_file = os.path.join(target_dir, name)
+
+                    try:
+                        shutil.copy2(src_file, dst_file)
+
+                    except OSError as e:
+                        self.iface.messageBar().pushMessage(
+                            f"Could not copy file:\n{src_file}\n\nError: {e}",
+                            level=Qgis.Warning,
+                            duration=20
+                        )
+
+        _copytree_safe(main_folder, merge_root)
 
         # Helpers
         def merge_folder(src, dst):
@@ -4881,7 +4950,6 @@ class GEOL_QMAPS:
 
         # Rewrite QGZ internals to use relative paths
         import zipfile
-        import xml.etree.ElementTree as ET
         # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
