@@ -2175,7 +2175,7 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>170</y>
+        <y>200</y>
         <width>761</width>
         <height>91</height>
        </rect>
@@ -2423,7 +2423,7 @@ border-style: solid;border-width: 1px;border-color: black
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>340</y>
+        <y>410</y>
         <width>491</width>
         <height>91</height>
        </rect>
@@ -2533,7 +2533,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>340</y>
+        <y>410</y>
         <width>261</width>
         <height>91</height>
        </rect>
@@ -2617,7 +2617,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>440</y>
+        <y>530</y>
         <width>761</width>
         <height>141</height>
        </rect>
@@ -2829,7 +2829,7 @@ font-size: 12px;
       <property name="geometry">
        <rect>
         <x>400</x>
-        <y>270</y>
+        <y>320</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -2901,7 +2901,7 @@ font-size: 12px;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>270</y>
+        <y>320</y>
         <width>371</width>
         <height>61</height>
        </rect>
@@ -2984,7 +2984,7 @@ font-style: italic;</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>30</y>
+        <y>20</y>
         <width>761</width>
         <height>61</height>
        </rect>
@@ -3096,7 +3096,7 @@ border-style: solid;border-width: 1px;border-color: black
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>100</y>
+        <y>110</y>
         <width>761</width>
         <height>61</height>
        </rect>
