@@ -96,7 +96,6 @@ from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
-from urllib.parse import urlparse
 
 
 # Qt5/Qt6 Compatibility Layer
@@ -874,15 +873,7 @@ class GEOL_QMAPS:
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
 
-                    # Stereo
-                    self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
-                    self.dlg.stereonet_pushButton_2.clicked.connect(
-                        lambda: QDesktopServices.openUrl(
-                            QUrl("https://github.com/swaxi/qgis-stereonet")
-                        )
-                    )
-
-                    # Dictinaries
+                    # Dictionaries
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
@@ -3841,12 +3832,6 @@ class GEOL_QMAPS:
         if folder:
             self.dlg.lineEdit_15.setText(folder)
 
-    def _validate_url(self, url: str) -> str:
-        parsed = urlparse(url)
-        if parsed.scheme not in ("http", "https"):
-            raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
-        return url
-
     def rejig_project(self):
         """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
@@ -3902,7 +3887,7 @@ class GEOL_QMAPS:
         url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.request import urlopen
         try:
-            with urlopen(self._validate_url(url), timeout=60) as resp:
+            with urlopen(url, timeout=60) as resp:
                 data = resp.read()
             local_path = str(tmpzip)
             with open(local_path, 'wb') as f:
@@ -4896,8 +4881,7 @@ class GEOL_QMAPS:
 
         # Rewrite QGZ internals to use relative paths
         import zipfile
-        #import xml.etree.ElementTree as ET
-        import defusedxml.ElementTree as ET
+        import xml.etree.ElementTree as ET
         # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
@@ -5680,37 +5664,6 @@ class GEOL_QMAPS:
 
         qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
 
-    ### Stereographic projection settings ###
-
-    def set_stereoConfig(self):
-
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        stereoConfigPath = os.path.join(
-            os.path.dirname(WAXI_projet_path), self.dir_99 + "/stereonet.json"
-        )
-        stereoConfig = {
-            "showGtCircles": True,
-            "showContours": True,
-            "showKinematics": True,
-            "linPlanes": True,
-            "roseDiagram": True,
-        }
-
-        if os.path.exists(stereoConfigPath):
-            with open(stereoConfigPath, "r") as json_file:
-                stereoConfig = json.load(json_file)
-
-        stereoConfig = {
-            "showGtCircles": self.dlg.gtCircles_checkBox.isChecked(),
-            "showContours": self.dlg.contours_checkBox.isChecked(),
-            "showKinematics": self.dlg.kinematics_checkBox.isChecked(),
-            "linPlanes": self.dlg.linPlanes_checkBox.isChecked(),
-            "roseDiagram": self.dlg.rose_checkBox.isChecked(),
-        }
-
-        with open(stereoConfigPath, "w") as outfile:
-            json.dump(stereoConfig, outfile, indent=4)
-
     def merge_2_layers(self):
         name1 = self.dlg.comboBox_merge1_2.currentText()
         name2 = self.dlg.comboBox_merge2_2.currentText()
@@ -6395,20 +6348,6 @@ class GEOL_QMAPS:
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
         self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
 
-        # Stereographic Projection
-        self.dlg.stereonet_pushButton.setToolTip("<p>Control fork of custom Stereonet plugin display.<p>")
-        gtCircles_tooltip = "<p>Select Checkbox to switch to Great Circle Display for Stereonet Plugin<p>"
-        contours_tooltip = "<p>Select Checkbox to add Contour Display for Stereonet Plugin<p>"
-        kinematics_tooltip = "<p>Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin<p>"
-        linPlanes_tooltip = "<p>Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin<p>"
-        rose_tooltip = "<p>Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin<p>"
-        stereonet_tooltip = "<p>Select Checkbox to control Display behaviour for Stereonet Plugin<p>"
-        self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
-        self.dlg.contours_checkBox.setToolTip(contours_tooltip)
-        self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
-        self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
-        self.dlg.rose_checkBox.setToolTip(rose_tooltip)
-
         #Picture Management
         PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
         self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
@@ -6695,13 +6634,6 @@ class GEOL_QMAPS:
             print("update_source_photo")
         except:
             print("*** update_source_photo failed")
-
-        try:
-            self.dlg.rose_checkBox.setChecked(True)
-            self.set_stereoConfig()
-            print("set_stereoConfig")
-        except:
-            print("*** set_stereoConfig failed")
 
         try:
             current_layer = "General__List of Users"

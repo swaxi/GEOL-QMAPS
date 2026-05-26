@@ -65,7 +65,7 @@ QTabBar::tab:hover {
 </string>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>0</number>
     </property>
     <property name="usesScrollButtons">
      <bool>false</bool>
@@ -2106,7 +2106,7 @@ font-size: 12px;
 </string>
        </property>
        <property name="text">
-        <string>Strike (Right-Hand Rule)/Dip</string>
+        <string>Strike (Right-Hand Rule)-Dip</string>
        </property>
       </widget>
       <widget class="QRadioButton" name="structure_style_on_pushButton">
@@ -2613,223 +2613,11 @@ font-size: 12px;
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="groupBox_12">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>440</y>
-        <width>761</width>
-        <height>111</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Arial</family>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="title">
-       <string>Stereographic Projection Settings</string>
-      </property>
-      <widget class="QLabel" name="label_24">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>30</y>
-         <width>371</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <weight>50</weight>
-         <italic>true</italic>
-         <bold>false</bold>
-         <stylestrategy>NoAntialias</stylestrategy>
-        </font>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <property name="text">
-        <string>This tool controls the display of the qgis-stereonet plugin, available here: </string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="stereonet_pushButton_2">
-       <property name="geometry">
-        <rect>
-         <x>370</x>
-         <y>30</y>
-         <width>141</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-       </property>
-       <property name="text">
-        <string>QGIS-stereonet plugin </string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_6">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>50</y>
-         <width>451</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Select Features to Plot (Lower Hemisphere, Equal-Area Stereonet Projection):</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="stereonet_pushButton">
-       <property name="geometry">
-        <rect>
-         <x>640</x>
-         <y>80</y>
-         <width>111</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">background-color: rgb(220, 220, 220);
-font-weight: bold;
-font-style: italic;
-font-family: Arial; 
-font-size: 12px;</string>
-       </property>
-       <property name="text">
-        <string>Update Settings</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="contours_checkBox">
-       <property name="geometry">
-        <rect>
-         <x>110</x>
-         <y>80</y>
-         <width>81</width>
-         <height>19</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Contours</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="gtCircles_checkBox">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>80</y>
-         <width>91</width>
-         <height>19</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Great Circles</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="kinematics_checkBox">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>460</x>
-         <y>80</y>
-         <width>85</width>
-         <height>19</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Kinematics</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="rose_checkBox">
-       <property name="geometry">
-        <rect>
-         <x>350</x>
-         <y>80</y>
-         <width>101</width>
-         <height>19</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Rose Diagram</string>
-       </property>
-      </widget>
-      <widget class="QCheckBox" name="linPlanes_checkBox">
-       <property name="geometry">
-        <rect>
-         <x>190</x>
-         <y>80</y>
-         <width>161</width>
-         <height>19</height>
-        </rect>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">font-family: Arial; 
-font-size: 12px;
-</string>
-       </property>
-       <property name="text">
-        <string>Lineation-bearing Planes</string>
-       </property>
-      </widget>
-     </widget>
      <widget class="QGroupBox" name="groupBox_16">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>560</y>
+        <y>440</y>
         <width>761</width>
         <height>141</height>
        </rect>
@@ -3485,7 +3273,6 @@ border-style: solid;border-width: 1px;border-color: black
       </widget>
      </widget>
      <zorder>groupBox_11</zorder>
-     <zorder>groupBox_12</zorder>
      <zorder>groupBox_10</zorder>
      <zorder>groupBox_8</zorder>
      <zorder>groupBox_16</zorder>
