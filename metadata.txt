@@ -7,7 +7,8 @@ name=geol_qmaps
 qgisMinimumVersion=3.30.0
 qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
-version=3.1.5
+version=3.1.5.1
+supportsQt6=True
 author=Mark Jessell, Julien Perret and Eliott Betend (University of Western Australia)
 email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
 
@@ -21,7 +22,9 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=3.1.5
+changelog=3.1.5.1
+      * Removal of the Stereographic Projection Settings tool in the Database Management tab, as per the latest release of the qgis-stereonet plugin with embedded control fork button
+    3.1.5 2025-11
       * Supports QT6
       **Bug Fixes & Functional Improvements**  
       * **Import tool**:  

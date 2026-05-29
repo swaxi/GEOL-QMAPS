@@ -96,7 +96,6 @@ from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
-from urllib.parse import urlparse
 
 
 # Qt5/Qt6 Compatibility Layer
@@ -133,7 +132,25 @@ import sys
 import numpy as np
 import shutil
 import json
-from xml.etree import ElementTree as ET  # ADD
+try:
+    import defusedxml.ElementTree as ET
+
+except ImportError:
+    try:
+        if platform.system() == "Windows":
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+        else:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+
+        import defusedxml.ElementTree as ET
+
+    except Exception:
+        # Fallback if install fails
+        from xml.etree import ElementTree as ET
 from datetime import datetime
 import re
 
@@ -708,6 +725,12 @@ class GEOL_QMAPS:
                 if len(full_path) > max_length:
                     bad_paths.append(full_path)
 
+                # Also check Windows extended path compatibility
+                win_path = "\\\\?\\" + full_path
+
+                if len(win_path) > max_length:
+                    bad_paths.append(full_path)
+
         if bad_paths:
             # Write the list to a temp file
             log_file = os.path.join(tempfile.gettempdir(), "geol_qmaps_bad_paths.txt")
@@ -732,6 +755,15 @@ class GEOL_QMAPS:
             )
             return False
 
+        # Check whether the TEMP merge destination itself is already too deep
+        temp_dir = tempfile.gettempdir()
+
+        if len(os.path.abspath(temp_dir)) > 100:
+            self.iface.messageBar().pushMessage(
+                "Warning: Windows TEMP directory path is already long and may contribute to merge failures.",
+                level=Qgis.Warning,
+                duration=15
+            )
         return True
 
 
@@ -874,15 +906,7 @@ class GEOL_QMAPS:
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
 
-                    # Stereo
-                    self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
-                    self.dlg.stereonet_pushButton_2.clicked.connect(
-                        lambda: QDesktopServices.openUrl(
-                            QUrl("https://github.com/swaxi/qgis-stereonet")
-                        )
-                    )
-
-                    # Dictinaries
+                    # Dictionaries
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
@@ -3841,12 +3865,6 @@ class GEOL_QMAPS:
         if folder:
             self.dlg.lineEdit_15.setText(folder)
 
-    def _validate_url(self, url: str) -> str:
-        parsed = urlparse(url)
-        if parsed.scheme not in ("http", "https"):
-            raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
-        return url
-
     def rejig_project(self):
         """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
@@ -3900,9 +3918,15 @@ class GEOL_QMAPS:
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
         url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        from urllib.parse import urlparse
         from urllib.request import urlopen
         try:
-            with urlopen(self._validate_url(url), timeout=60) as resp:
+            parsed_url = urlparse(url)
+
+            if parsed_url.scheme not in {"https"}:
+                raise ValueError(f"Unsupported URL scheme: {parsed_url.scheme!r}")
+
+            with urlopen(url, timeout=60) as resp:
                 data = resp.read()
             local_path = str(tmpzip)
             with open(local_path, 'wb') as f:
@@ -4795,10 +4819,40 @@ class GEOL_QMAPS:
             shutil.rmtree(merge_root, onerror=_rm_readonly)
 
         # Copy main project tree, ignoring project files
-        shutil.copytree(
-            main_folder, merge_root,
-            ignore=shutil.ignore_patterns('*.qgs','*.qgz','*.bak')
-        )
+        # Safer copytree implementation for long Windows paths
+        def _copytree_safe(src, dst):
+            os.makedirs(dst, exist_ok=True)
+
+            for root, dirs, files in os.walk(src):
+                rel = os.path.relpath(root, src)
+
+                if rel == ".":
+                    target_dir = dst
+                else:
+                    target_dir = os.path.join(dst, rel)
+
+                os.makedirs(target_dir, exist_ok=True)
+
+                for name in files:
+
+                    # Ignore project files
+                    if name.lower().endswith((".qgs", ".qgz", ".bak")):
+                        continue
+
+                    src_file = os.path.join(root, name)
+                    dst_file = os.path.join(target_dir, name)
+
+                    try:
+                        shutil.copy2(src_file, dst_file)
+
+                    except OSError as e:
+                        self.iface.messageBar().pushMessage(
+                            f"Could not copy file:\n{src_file}\n\nError: {e}",
+                            level=Qgis.Warning,
+                            duration=20
+                        )
+
+        _copytree_safe(main_folder, merge_root)
 
         # Helpers
         def merge_folder(src, dst):
@@ -4896,8 +4950,6 @@ class GEOL_QMAPS:
 
         # Rewrite QGZ internals to use relative paths
         import zipfile
-        #import xml.etree.ElementTree as ET
-        import defusedxml.ElementTree as ET
         # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
@@ -5680,37 +5732,6 @@ class GEOL_QMAPS:
 
         qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
 
-    ### Stereographic projection settings ###
-
-    def set_stereoConfig(self):
-
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        stereoConfigPath = os.path.join(
-            os.path.dirname(WAXI_projet_path), self.dir_99 + "/stereonet.json"
-        )
-        stereoConfig = {
-            "showGtCircles": True,
-            "showContours": True,
-            "showKinematics": True,
-            "linPlanes": True,
-            "roseDiagram": True,
-        }
-
-        if os.path.exists(stereoConfigPath):
-            with open(stereoConfigPath, "r") as json_file:
-                stereoConfig = json.load(json_file)
-
-        stereoConfig = {
-            "showGtCircles": self.dlg.gtCircles_checkBox.isChecked(),
-            "showContours": self.dlg.contours_checkBox.isChecked(),
-            "showKinematics": self.dlg.kinematics_checkBox.isChecked(),
-            "linPlanes": self.dlg.linPlanes_checkBox.isChecked(),
-            "roseDiagram": self.dlg.rose_checkBox.isChecked(),
-        }
-
-        with open(stereoConfigPath, "w") as outfile:
-            json.dump(stereoConfig, outfile, indent=4)
-
     def merge_2_layers(self):
         name1 = self.dlg.comboBox_merge1_2.currentText()
         name2 = self.dlg.comboBox_merge2_2.currentText()
@@ -6395,20 +6416,6 @@ class GEOL_QMAPS:
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
         self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
 
-        # Stereographic Projection
-        self.dlg.stereonet_pushButton.setToolTip("<p>Control fork of custom Stereonet plugin display.<p>")
-        gtCircles_tooltip = "<p>Select Checkbox to switch to Great Circle Display for Stereonet Plugin<p>"
-        contours_tooltip = "<p>Select Checkbox to add Contour Display for Stereonet Plugin<p>"
-        kinematics_tooltip = "<p>Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin<p>"
-        linPlanes_tooltip = "<p>Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin<p>"
-        rose_tooltip = "<p>Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin<p>"
-        stereonet_tooltip = "<p>Select Checkbox to control Display behaviour for Stereonet Plugin<p>"
-        self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
-        self.dlg.contours_checkBox.setToolTip(contours_tooltip)
-        self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
-        self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
-        self.dlg.rose_checkBox.setToolTip(rose_tooltip)
-
         #Picture Management
         PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
         self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
@@ -6695,13 +6702,6 @@ class GEOL_QMAPS:
             print("update_source_photo")
         except:
             print("*** update_source_photo failed")
-
-        try:
-            self.dlg.rose_checkBox.setChecked(True)
-            self.set_stereoConfig()
-            print("set_stereoConfig")
-        except:
-            print("*** set_stereoConfig failed")
 
         try:
             current_layer = "General__List of Users"
