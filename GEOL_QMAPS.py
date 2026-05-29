@@ -90,13 +90,26 @@ from qgis.core import (
     QgsCoordinateTransformContext,
 )
 from qgis.PyQt.QtCore import QVariant, QUrl
+
+# Qt5/Qt6 compatibility: QVariant type constants were removed in PyQt6.
+# _QVAR_STRING / _QVAR_LONG work on both PyQt5 (Qt5) and PyQt6 (Qt6).
+try:
+    _QVAR_STRING = _QVAR_STRING
+    _QVAR_LONG   = _QVAR_LONG
+    _QVAR_INT    = QVariant.Int
+    _QVAR_DOUBLE = QVariant.Double
+except AttributeError:
+    from qgis.PyQt.QtCore import QMetaType as _QMT
+    _QVAR_STRING = _QMT.Type.QString
+    _QVAR_LONG   = _QMT.Type.LongLong
+    _QVAR_INT    = _QMT.Type.Int
+    _QVAR_DOUBLE = _QMT.Type.Double
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
 from qgis.PyQt.QtWidgets import QAction, QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
-from urllib.parse import urlparse
 
 
 # Qt5/Qt6 Compatibility Layer
@@ -133,7 +146,25 @@ import sys
 import numpy as np
 import shutil
 import json
-from xml.etree import ElementTree as ET  # ADD
+try:
+    import defusedxml.ElementTree as ET
+
+except ImportError:
+    try:
+        if platform.system() == "Windows":
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+        else:
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", "defusedxml"]
+            )
+
+        import defusedxml.ElementTree as ET
+
+    except Exception:
+        # Fallback if install fails
+        from xml.etree import ElementTree as ET
 from datetime import datetime
 import re
 
@@ -558,7 +589,9 @@ class GEOL_QMAPS:
         for action in self.actions:
             self.iface.removePluginMenu(self.tr("&GEOL_QMAPS"), action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
+        # remove the toolbar from the QGIS main window and destroy the Qt widget
+        self.iface.mainWindow().removeToolBar(self.toolbar)
+        self.toolbar.deleteLater()
         del self.toolbar
 
     # --------------------------------------------------------------------------
@@ -708,6 +741,12 @@ class GEOL_QMAPS:
                 if len(full_path) > max_length:
                     bad_paths.append(full_path)
 
+                # Also check Windows extended path compatibility
+                win_path = "\\\\?\\" + full_path
+
+                if len(win_path) > max_length:
+                    bad_paths.append(full_path)
+
         if bad_paths:
             # Write the list to a temp file
             log_file = os.path.join(tempfile.gettempdir(), "geol_qmaps_bad_paths.txt")
@@ -732,6 +771,15 @@ class GEOL_QMAPS:
             )
             return False
 
+        # Check whether the TEMP merge destination itself is already too deep
+        temp_dir = tempfile.gettempdir()
+
+        if len(os.path.abspath(temp_dir)) > 100:
+            self.iface.messageBar().pushMessage(
+                "Warning: Windows TEMP directory path is already long and may contribute to merge failures.",
+                level=Qgis.Warning,
+                duration=15
+            )
         return True
 
 
@@ -874,15 +922,7 @@ class GEOL_QMAPS:
                     # Stop
                     self.dlg.virtual_pushButton.clicked.connect(self.virtualStops)
 
-                    # Stereo
-                    self.dlg.stereonet_pushButton.clicked.connect(self.set_stereoConfig)
-                    self.dlg.stereonet_pushButton_2.clicked.connect(
-                        lambda: QDesktopServices.openUrl(
-                            QUrl("https://github.com/swaxi/qgis-stereonet")
-                        )
-                    )
-
-                    # Dictinaries
+                    # Dictionaries
                     self.dlg.csv_pushButton.clicked.connect(self.addCsvItem)
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
@@ -1051,7 +1091,7 @@ class GEOL_QMAPS:
         # Ensure 'Geometry' field exists; if not, create it
         fld_idx = layer.fields().indexFromName("Geometry")
         if fld_idx == -1:
-            layer.addAttribute(QgsField("Geometry", QVariant.String))
+            layer.addAttribute(QgsField("Geometry", _QVAR_STRING))
             layer.updateFields()
             fld_idx = layer.fields().indexFromName("Geometry")
 
@@ -1993,22 +2033,26 @@ class GEOL_QMAPS:
         for k in range(len(list_lithologies_unique_check_OK)):
             list_old.append(list_lithologies_unique_check_OK[k][0])
 
-        fichier_output = fichier_output[fichier_output["Lithology - Outcrop Lithology"].isin(list_old)]
+        print(f"[GEOL sort] list_lithologies_unique_check_OK ({len(list_lithologies_unique_check_OK)}): {list_lithologies_unique_check_OK[:5]}")
+        print(f"[GEOL sort] list_old ({len(list_old)}): {list_old[:5]}")
+        col_values = fichier_output["Lithology - Outcrop Lithology"].tolist() if "Lithology - Outcrop Lithology" in fichier_output.columns else "COLUMN MISSING"
+        print(f"[GEOL sort] fichier_output lithology col values ({len(col_values) if isinstance(col_values, list) else '?'}): {col_values[:5] if isinstance(col_values, list) else col_values}")
+
+        fichier_output = fichier_output[fichier_output["Lithology - Outcrop Lithology"].isin(list_old)].copy()
         fichier_output = fichier_output.reset_index(drop=True)
+        print(f"[GEOL sort] rows after isin filter: {len(fichier_output)}")
 
-        # We browse the column containing the old lithos in file_output
-        for m in range(len(fichier_output["Lithology - Outcrop Lithology"])):
+        # Build a lookup dict for O(1) replacement instead of nested loops
+        replacement_map = {pair[0]: pair[1] for pair in list_lithologies_unique_check_OK}
 
-            # We browse the list of unique (old, new) pairs verified by the user
-            for k in range(len(list_lithologies_unique_check_OK)):
+        # Replace legacy lithology names with assigned standard names
+        fichier_output["Lithology - Outcrop Lithology"] = (
+            fichier_output["Lithology - Outcrop Lithology"]
+            .map(replacement_map)
+            .fillna(fichier_output["Lithology - Outcrop Lithology"])
+        )
 
-                if (
-                    fichier_output["Lithology - Outcrop Lithology"].iloc[m]
-                    == list_lithologies_unique_check_OK[k][0]
-                ):
-                    fichier_output["Lithology - Outcrop Lithology"].iloc[m] = list_lithologies_unique_check_OK[
-                        k
-                    ][1]
+        print(f"[GEOL sort] after replacement, unique lithology values: {fichier_output['Lithology - Outcrop Lithology'].unique().tolist()}")
 
         ### Sorting lithologies ###
 
@@ -2066,6 +2110,8 @@ class GEOL_QMAPS:
             name_worksheet1 = litho_class + "_" + filename_without_extension
             fichier_output_lithology[name_worksheet1] = pd.DataFrame(columns=header)
 
+        print(f"[GEOL sort] litho_local sample: {litho_local[:3]}  litho_intrusive sample: {litho_igneous_intrusive[:3]}")
+        unmatched = []
         for k in range(0, len(fichier_output["Lithology - Outcrop Lithology"])):
 
             r = fichier_output["Lithology - Outcrop Lithology"][k]
@@ -2152,6 +2198,14 @@ class GEOL_QMAPS:
                     list_columns_check3,
                     filename_without_extension,
                 )
+            else:
+                unmatched.append(r)
+
+        if unmatched:
+            print(f"[GEOL sort] {len(unmatched)} rows did not match any category. Unique unmatched values: {list(set(unmatched))}")
+        for key, df in fichier_output_lithology.items():
+            if len(df) > 0:
+                print(f"[GEOL sort] sheet '{key}': {len(df)} rows")
         return fichier_output_lithology
 
     # add each row to the master dictionary of pandas
@@ -2744,19 +2798,14 @@ class GEOL_QMAPS:
 
         if file_lithology and file_structure:
             workbooks = [file_lithology, file_structure]
-
         elif file_lithology:
             workbooks = [file_lithology]
-            # file_lithology.save(r"C:\\Users\\00073294\\Dropbox\\temp_dropbox\\GEOL-QMAPS_v3.0.10 - test 1 and test 2 for merging tool\\debug.xlsx")
-
         elif file_structure:
             workbooks = [file_structure]
-            # file_structure.save(
-            #    r"C:\\Users\\00073294\\Dropbox\\WAXI4\\gis\\####W4S5\\debug.xlsx"
-            # )
-
         else:
             workbooks = []
+
+        print(f"[GEOL] workbooks count: {len(workbooks)}")
         self.sheetHashUUID = {}
         for workbook in workbooks:
 
@@ -2765,23 +2814,26 @@ class GEOL_QMAPS:
 
                 # Get the sheet’s DataFrame
                 df = workbook[sheet]
+                print(f"[GEOL] sheet=’{sheet}’  rows={len(df)}  cols={list(df.columns)}")
+
+                if df.empty:
+                    print(f"[GEOL]   → skipping empty sheet ‘{sheet}’")
+                    continue
 
                 # Retrieve column names
                 headers = list(df.columns)
 
                 # Retrieve some key indices
                 dipdir_idx = headers.index("Dip_Dir") if "Dip_Dir" in headers else None
-                # print(f"dip dir index in {layer_name} is:{dipdir_idx}")
                 strike_idx = headers.index("Strike_RHR") if "Strike_RHR" in headers else None
-                # print(f"strike index in {layer_name} is:{strike_idx}")
                 measure_idx = headers.index("Measure") if "Measure" in headers else None
-                # print(f"Type of structural measurement index in {layer_name} is:{measure_idx}")
                 trend_idx = headers.index("Trend") if "Trend" in headers else None
-                # print(f"Younging trend index in {layer_name} is:{trend_idx}")
                 younging_idx = headers.index("Younging") if "Younging" in headers else None
-                # print(f"Younging indication index in {layer_name} is:{younging_idx}")
 
                 # Retrieve geometry column index
+                if "Geometry" not in headers:
+                    print(f"[GEOL]   ERROR: ‘Geometry’ column not found in sheet ‘{sheet}’. Headers: {headers}")
+                    continue
                 geometry_column_index = headers.index("Geometry")
 
                 # Vector layer creation
@@ -2789,49 +2841,51 @@ class GEOL_QMAPS:
                 layer = QgsVectorLayer("Point?crs=epsg:4326", layer_name, "memory")
 
                 if "_PT" in layer_name:
-                    name_reference = layer_name.split("_PT")[0]
-                    name_reference = name_reference + "_PT"
-
+                    name_reference = layer_name.split("_PT")[0] + "_PT"
                 elif "_PG" in layer_name:
-                    name_reference = layer_name.split("_PG")[0]
-                    name_reference = name_reference + "_PG"
+                    name_reference = layer_name.split("_PG")[0] + "_PG"
+                else:
+                    name_reference = layer_name
 
+                print(f"[GEOL]   looking up reference layer: ‘{name_reference}’")
                 project = QgsProject.instance()
-                layer_reference = project.mapLayersByName(name_reference)[0]
+                ref_candidates = project.mapLayersByName(name_reference)
+                if not ref_candidates:
+                    print(f"[GEOL]   ERROR: reference layer ‘{name_reference}’ not found in project")
+                    continue
+                layer_reference = ref_candidates[0]
 
-                type_field_data = []
-                for field in layer_reference.fields():
-                    type_donnee = field.typeName()
-                    type_field_data.append(type_donnee)
-
+                type_field_data = [field.typeName() for field in layer_reference.fields()]
                 field_names = layer_reference.fields().names()
 
-                # Add fields name
+                print(f"[GEOL]   ref fields ({len(field_names)}): {field_names}")
+                print(f"[GEOL]   df headers ({len(headers)}): {headers}")
+
+                if len(headers) != len(type_field_data):
+                    print(f"[GEOL]   ERROR: column count mismatch — df has {len(headers)}, ref layer has {len(type_field_data)}")
+                    continue
+
+                # Add fields to new memory layer
                 layer_fields = []
-                compte = 0
-
-                for header in headers:
+                for compte, header in enumerate(headers):
                     type_donnee = type_field_data[compte]
-
                     if type_donnee == "String":
-                        field = QgsField(header, QVariant.String)
-                    elif type_donnee == "Integer":
-                        # print("int",header)
-                        field = QgsField(header, QVariant.LongLong)
-                    elif type_donnee == "Integer64":
-                        # print("int64",header)
-                        field = QgsField(header, QVariant.LongLong)
+                        field = QgsField(header, _QVAR_STRING)
+                    elif type_donnee in ("Integer", "Integer64"):
+                        field = QgsField(header, _QVAR_LONG)
                     elif type_donnee == "JSON":
-                        field = QgsField(header, QVariant.String)
+                        field = QgsField(header, _QVAR_STRING)
+                    else:
+                        field = QgsField(header, _QVAR_STRING)
                     layer_fields.append(field)
-                    compte += 1
 
                 layer.dataProvider().addAttributes(layer_fields)
                 layer.updateFields()
 
                 # Add fields content by looping through sheet rows
+                features_to_add = []
                 for index, row in workbook[sheet].iterrows():
-
+                  try:
                     # Convert row to mutable list
                     row_vals = list(row)
 
@@ -2886,7 +2940,7 @@ class GEOL_QMAPS:
 
                     # Geometry updated with row_vals
                     feature = QgsFeature(layer.fields())
-                    geometry_wkt = row[geometry_column_index]
+                    geometry_wkt = row.iloc[geometry_column_index]
                     feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
                     
                     # Other fields of the attribute table by looping through sheet columns
@@ -2918,18 +2972,28 @@ class GEOL_QMAPS:
                             else:
                                 feature.setAttribute(i, str(value))
                         elif type_donnee in ["Integer", "Integer64"]:
-                            if value.strip():
+                            str_val = str(value).strip()
+                            if str_val and str_val.lower() not in ("nan", "none", ""):
                                 try:
-                                    feature.setAttribute(i, int(float(value.strip())))
+                                    feature.setAttribute(i, int(float(str_val)))
                                 except ValueError:
                                     feature.setAttribute(i, None)
-                    layer.dataProvider().addFeature(feature)
-                layer.commitChanges()
+                    features_to_add.append(feature)
+                  except Exception as _row_err:
+                    print(f"[GEOL]   ERROR on row {index}: {type(_row_err).__name__}: {_row_err}")
+
+                print(f"[GEOL]   features built: {len(features_to_add)}")
+                ok, _ = layer.dataProvider().addFeatures(features_to_add)
+                layer.updateExtents()
+                print(f"[GEOL]   addFeatures ok={ok}  featureCount={layer.featureCount()}")
 
                 # Add the layer to the QGIS project
                 if layer.featureCount() > 0:
-                    QgsProject.instance().addMapLayer(layer,addToLegend=False)
+                    QgsProject.instance().addMapLayer(layer, addToLegend=False)
                     sub_harm_group.insertLayer(0, layer)
+                    print(f"[GEOL]   → added layer '{layer_name}' to project")
+                else:
+                    print(f"[GEOL]   → layer '{layer_name}' has 0 features, not added")
                 iface.mapCanvas().refresh()
 
     ###############################################################################
@@ -3841,12 +3905,6 @@ class GEOL_QMAPS:
         if folder:
             self.dlg.lineEdit_15.setText(folder)
 
-    def _validate_url(self, url: str) -> str:
-        parsed = urlparse(url)
-        if parsed.scheme not in ("http", "https"):
-            raise ValueError(f"Disallowed URL scheme: {parsed.scheme!r}")
-        return url
-
     def rejig_project(self):
         """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
@@ -3900,9 +3958,15 @@ class GEOL_QMAPS:
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
         url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        from urllib.parse import urlparse
         from urllib.request import urlopen
         try:
-            with urlopen(self._validate_url(url), timeout=60) as resp:
+            parsed_url = urlparse(url)
+
+            if parsed_url.scheme not in {"https"}:
+                raise ValueError(f"Unsupported URL scheme: {parsed_url.scheme!r}")
+
+            with urlopen(url, timeout=60) as resp:
                 data = resp.read()
             local_path = str(tmpzip)
             with open(local_path, 'wb') as f:
@@ -4795,10 +4859,40 @@ class GEOL_QMAPS:
             shutil.rmtree(merge_root, onerror=_rm_readonly)
 
         # Copy main project tree, ignoring project files
-        shutil.copytree(
-            main_folder, merge_root,
-            ignore=shutil.ignore_patterns('*.qgs','*.qgz','*.bak')
-        )
+        # Safer copytree implementation for long Windows paths
+        def _copytree_safe(src, dst):
+            os.makedirs(dst, exist_ok=True)
+
+            for root, dirs, files in os.walk(src):
+                rel = os.path.relpath(root, src)
+
+                if rel == ".":
+                    target_dir = dst
+                else:
+                    target_dir = os.path.join(dst, rel)
+
+                os.makedirs(target_dir, exist_ok=True)
+
+                for name in files:
+
+                    # Ignore project files
+                    if name.lower().endswith((".qgs", ".qgz", ".bak")):
+                        continue
+
+                    src_file = os.path.join(root, name)
+                    dst_file = os.path.join(target_dir, name)
+
+                    try:
+                        shutil.copy2(src_file, dst_file)
+
+                    except OSError as e:
+                        self.iface.messageBar().pushMessage(
+                            f"Could not copy file:\n{src_file}\n\nError: {e}",
+                            level=Qgis.Warning,
+                            duration=20
+                        )
+
+        _copytree_safe(main_folder, merge_root)
 
         # Helpers
         def merge_folder(src, dst):
@@ -4896,8 +4990,6 @@ class GEOL_QMAPS:
 
         # Rewrite QGZ internals to use relative paths
         import zipfile
-        #import xml.etree.ElementTree as ET
-        import defusedxml.ElementTree as ET
         # use the module‐level tempfile
         tmp = tempfile.mkdtemp()
 
@@ -4967,7 +5059,7 @@ class GEOL_QMAPS:
                     # Add Fields if the provider supports it
                     if caps & QgsVectorDataProvider.AddAttributes:
                         res = layer.dataProvider().addAttributes(
-                            [QgsField("Layer", QVariant.String)]
+                            [QgsField("Layer", _QVAR_STRING)]
                         )
                         layer.updateFields()
 
@@ -5385,9 +5477,9 @@ class GEOL_QMAPS:
 
             # Add only common fields to the new layer
             new_fields = [
-                QgsField(field_name, QVariant.String) for field_name in field_names
+                QgsField(field_name, _QVAR_STRING) for field_name in field_names
             ]
-            new_fields.append(QgsField("v_stop", QVariant.String))  # Add v_stop field
+            new_fields.append(QgsField("v_stop", _QVAR_STRING))  # Add v_stop field
             provider.addAttributes(new_fields)
             merged_layers.updateFields()
 
@@ -5440,7 +5532,7 @@ class GEOL_QMAPS:
             merged_layers.startEditing()
             if merged_layers.dataProvider().fieldNameIndex("Virtual_ID") == -1:
                 merged_layers.dataProvider().addAttributes(
-                    [QgsField("Virtual_ID", QVariant.String)]
+                    [QgsField("Virtual_ID", _QVAR_STRING)]
                 )
                 merged_layers.updateFields()
 
@@ -5632,7 +5724,7 @@ class GEOL_QMAPS:
                 merged_layers.startEditing()
                 if merged_layers.dataProvider().fieldNameIndex("v_stop") == -1:
                     merged_layers.dataProvider().addAttributes(
-                        [QgsField("v_stop", QVariant.String)]
+                        [QgsField("v_stop", _QVAR_STRING)]
                     )
                     merged_layers.updateFields()
 
@@ -5679,37 +5771,6 @@ class GEOL_QMAPS:
         qinst = QgsProject.instance()
 
         qinst.removeMapLayer(qinst.mapLayersByName(lyrname)[0].id())
-
-    ### Stereographic projection settings ###
-
-    def set_stereoConfig(self):
-
-        WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
-        stereoConfigPath = os.path.join(
-            os.path.dirname(WAXI_projet_path), self.dir_99 + "/stereonet.json"
-        )
-        stereoConfig = {
-            "showGtCircles": True,
-            "showContours": True,
-            "showKinematics": True,
-            "linPlanes": True,
-            "roseDiagram": True,
-        }
-
-        if os.path.exists(stereoConfigPath):
-            with open(stereoConfigPath, "r") as json_file:
-                stereoConfig = json.load(json_file)
-
-        stereoConfig = {
-            "showGtCircles": self.dlg.gtCircles_checkBox.isChecked(),
-            "showContours": self.dlg.contours_checkBox.isChecked(),
-            "showKinematics": self.dlg.kinematics_checkBox.isChecked(),
-            "linPlanes": self.dlg.linPlanes_checkBox.isChecked(),
-            "roseDiagram": self.dlg.rose_checkBox.isChecked(),
-        }
-
-        with open(stereoConfigPath, "w") as outfile:
-            json.dump(stereoConfig, outfile, indent=4)
 
     def merge_2_layers(self):
         name1 = self.dlg.comboBox_merge1_2.currentText()
@@ -6395,20 +6456,6 @@ class GEOL_QMAPS:
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
         self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
 
-        # Stereographic Projection
-        self.dlg.stereonet_pushButton.setToolTip("<p>Control fork of custom Stereonet plugin display.<p>")
-        gtCircles_tooltip = "<p>Select Checkbox to switch to Great Circle Display for Stereonet Plugin<p>"
-        contours_tooltip = "<p>Select Checkbox to add Contour Display for Stereonet Plugin<p>"
-        kinematics_tooltip = "<p>Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin<p>"
-        linPlanes_tooltip = "<p>Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin<p>"
-        rose_tooltip = "<p>Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin<p>"
-        stereonet_tooltip = "<p>Select Checkbox to control Display behaviour for Stereonet Plugin<p>"
-        self.dlg.gtCircles_checkBox.setToolTip(gtCircles_tooltip)
-        self.dlg.contours_checkBox.setToolTip(contours_tooltip)
-        self.dlg.kinematics_checkBox.setToolTip(kinematics_tooltip)
-        self.dlg.linPlanes_checkBox.setToolTip(linPlanes_tooltip)
-        self.dlg.rose_checkBox.setToolTip(rose_tooltip)
-
         #Picture Management
         PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
         self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
@@ -6695,13 +6742,6 @@ class GEOL_QMAPS:
             print("update_source_photo")
         except:
             print("*** update_source_photo failed")
-
-        try:
-            self.dlg.rose_checkBox.setChecked(True)
-            self.set_stereoConfig()
-            print("set_stereoConfig")
-        except:
-            print("*** set_stereoConfig failed")
 
         try:
             current_layer = "General__List of Users"

@@ -9,6 +9,19 @@ import shutil
 from qgis.core import QgsPointXY, QgsGeometry, QgsFeature, QgsVectorLayer, QgsProject
 from qgis.core import QgsField
 from qgis.PyQt.QtCore import QVariant
+
+# Qt5/Qt6 compatibility: QVariant type constants removed in PyQt6.
+try:
+    _QVAR_STRING = _QVAR_STRING
+    _QVAR_LONG   = QVariant.LongLong
+    _QVAR_INT    = _QVAR_INT
+    _QVAR_DOUBLE = _QVAR_DOUBLE
+except AttributeError:
+    from qgis.PyQt.QtCore import QMetaType as _QMT
+    _QVAR_STRING = _QMT.Type.QString
+    _QVAR_LONG   = _QMT.Type.LongLong
+    _QVAR_INT    = _QMT.Type.Int
+    _QVAR_DOUBLE = _QMT.Type.Double
 from qgis.core import QgsRasterLayer
 
 class FM_Import:
@@ -222,14 +235,14 @@ class FM_Import:
         # Step 2: Start editing the layer
         layer.startEditing()
         layer.dataProvider().addAttributes([
-            QgsField('localityName', QVariant.String),
-            QgsField('rockUnit', QVariant.String),
-            QgsField('thickness', QVariant.Int),
-            QgsField('opacity', QVariant.Int),
-            QgsField('style', QVariant.String),
-            QgsField('filled', QVariant.Int),
-            QgsField('timedate', QVariant.String),
-            QgsField('notes', QVariant.String)
+            QgsField('localityName', _QVAR_STRING),
+            QgsField('rockUnit', _QVAR_STRING),
+            QgsField('thickness', _QVAR_INT),
+            QgsField('opacity', _QVAR_INT),
+            QgsField('style', _QVAR_STRING),
+            QgsField('filled', _QVAR_INT),
+            QgsField('timedate', _QVAR_STRING),
+            QgsField('notes', _QVAR_STRING)
         ])   
         layer.updateFields()
 
@@ -264,17 +277,17 @@ class FM_Import:
 
         layer.startEditing()
         layer.dataProvider().addAttributes([
-            QgsField('localityName', QVariant.String),
-            QgsField('altitude', QVariant.Int),
-            QgsField('horiz_precision', QVariant.Int),
-            QgsField('vert_precision', QVariant.Int),
-            QgsField('lineationType', QVariant.String),
-            QgsField('plunge', QVariant.Int),
-            QgsField('plungeAzimuth', QVariant.Int),
-            QgsField('declination', QVariant.Int),
-            QgsField(rockUnit, QVariant.String),
-            QgsField('timedate', QVariant.String),
-            QgsField('notes', QVariant.String),
+            QgsField('localityName', _QVAR_STRING),
+            QgsField('altitude', _QVAR_INT),
+            QgsField('horiz_precision', _QVAR_INT),
+            QgsField('vert_precision', _QVAR_INT),
+            QgsField('lineationType', _QVAR_STRING),
+            QgsField('plunge', _QVAR_INT),
+            QgsField('plungeAzimuth', _QVAR_INT),
+            QgsField('declination', _QVAR_INT),
+            QgsField(rockUnit, _QVAR_STRING),
+            QgsField('timedate', _QVAR_STRING),
+            QgsField('notes', _QVAR_STRING),
         ])  
         layer.updateFields()
 
@@ -317,18 +330,18 @@ class FM_Import:
         
         layer.startEditing()
         layer.dataProvider().addAttributes([
-            QgsField('localityName', QVariant.String),
-            QgsField('altitude', QVariant.Double),
-            QgsField('horiz_precision', QVariant.Int),
-            QgsField('vert_precision', QVariant.Int),
-            QgsField('planeType', QVariant.String),
-            QgsField('dip', QVariant.Int),
-            QgsField('dipAzimuth', QVariant.Int),
-            QgsField('strike', QVariant.Int),
-            QgsField('declination', QVariant.Int),
-            QgsField(rockUnit, QVariant.String),
-            QgsField('timedate', QVariant.String),
-            QgsField('notes', QVariant.String),
+            QgsField('localityName', _QVAR_STRING),
+            QgsField('altitude', _QVAR_DOUBLE),
+            QgsField('horiz_precision', _QVAR_INT),
+            QgsField('vert_precision', _QVAR_INT),
+            QgsField('planeType', _QVAR_STRING),
+            QgsField('dip', _QVAR_INT),
+            QgsField('dipAzimuth', _QVAR_INT),
+            QgsField('strike', _QVAR_INT),
+            QgsField('declination', _QVAR_INT),
+            QgsField(rockUnit, _QVAR_STRING),
+            QgsField('timedate', _QVAR_STRING),
+            QgsField('notes', _QVAR_STRING),
         ])   
         layer.updateFields()
 
@@ -382,22 +395,22 @@ class FM_Import:
         # Step 2: Start editing the layer
         layer.startEditing()
         layer.dataProvider().addAttributes([
-            QgsField('id', QVariant.Double),
-            QgsField('Photo ID', QVariant.String),
-            QgsField('Azimut', QVariant.Double),
-            QgsField('Photo', QVariant.String),
-            QgsField('Date', QVariant.String),
-            QgsField('Mission', QVariant.String),
-            QgsField('Country', QVariant.String),
-            QgsField('Stop_ID', QVariant.String),
-            QgsField('Layer', QVariant.String),
-            QgsField('Virtual_ID', QVariant.Int),
-            QgsField('Source', QVariant.String),
-            QgsField('CRS', QVariant.String),
-            QgsField('Comments', QVariant.String),
-            QgsField('UUID', QVariant.String),
-            QgsField('User', QVariant.String),
-            QgsField('path', QVariant.String),
+            QgsField('id', _QVAR_DOUBLE),
+            QgsField('Photo ID', _QVAR_STRING),
+            QgsField('Azimut', _QVAR_DOUBLE),
+            QgsField('Photo', _QVAR_STRING),
+            QgsField('Date', _QVAR_STRING),
+            QgsField('Mission', _QVAR_STRING),
+            QgsField('Country', _QVAR_STRING),
+            QgsField('Stop_ID', _QVAR_STRING),
+            QgsField('Layer', _QVAR_STRING),
+            QgsField('Virtual_ID', _QVAR_INT),
+            QgsField('Source', _QVAR_STRING),
+            QgsField('CRS', _QVAR_STRING),
+            QgsField('Comments', _QVAR_STRING),
+            QgsField('UUID', _QVAR_STRING),
+            QgsField('User', _QVAR_STRING),
+            QgsField('path', _QVAR_STRING),
         ])   
         layer.updateFields()
 
@@ -467,12 +480,12 @@ class FM_Import:
         # Step 2: Start editing the layer
         layer.startEditing()
         layer.dataProvider().addAttributes([
-            QgsField('localityName', QVariant.String),
-            QgsField('altitude', QVariant.Int),
-            QgsField('horiz_precision', QVariant.Int),
-            QgsField('vert_precision', QVariant.Int),
-            QgsField('timedate', QVariant.String),
-            QgsField('description', QVariant.String),
+            QgsField('localityName', _QVAR_STRING),
+            QgsField('altitude', _QVAR_INT),
+            QgsField('horiz_precision', _QVAR_INT),
+            QgsField('vert_precision', _QVAR_INT),
+            QgsField('timedate', _QVAR_STRING),
+            QgsField('description', _QVAR_STRING),
         ])   
         layer.updateFields()
         

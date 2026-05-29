@@ -2,9 +2,10 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.5 - November 2025*
+*version 3.1.5.1 - May 2026*
 
-# Changelog 3.1.5
+# Changelog 3.1.5 and 3.1.5.1
+      * Removal of the Stereographic Projection Settings tool in the Database Management tab, as per the latest release of the qgis-stereonet plugin with embedded control fork button
       * Supports QT6
       * **Bug Fixes & Functional Improvements**  
       * **Import tool**:  
@@ -413,13 +414,7 @@ This will create a new layer called *Virtual_Stops_datestamp*.
 > [!TIP]
 > *This can be very slow for large datasets, so probably best applied to clipped data for a region of interest.* <br>
 
-#### 6.4.8. Stereographic Projection Settings
-Control fork of [custom Stereonet plugin](https://github.com/swaxi/qgis-stereonet) display.
-
-> [!TIP]
-> *Click on the GitHub link above to download the plugin .zip file, and install it in QGIS* via *the QGIS Plugin Manager.* <br>
-
-#### 6.4.9. Picture Management
+#### 6.4.8. Picture Management
 Allows a new directory to be defined for the storage of field and sampling pictures.
 
 > [!TIP]
