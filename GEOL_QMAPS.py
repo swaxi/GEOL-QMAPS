@@ -94,8 +94,8 @@ from qgis.PyQt.QtCore import QVariant, QUrl
 # Qt5/Qt6 compatibility: QVariant type constants were removed in PyQt6.
 # _QVAR_STRING / _QVAR_LONG work on both PyQt5 (Qt5) and PyQt6 (Qt6).
 try:
-    _QVAR_STRING = _QVAR_STRING
-    _QVAR_LONG   = _QVAR_LONG
+    _QVAR_STRING = QVariant.String
+    _QVAR_LONG   = QVariant.LongLong
     _QVAR_INT    = QVariant.Int
     _QVAR_DOUBLE = QVariant.Double
 except AttributeError:
@@ -6294,13 +6294,13 @@ class GEOL_QMAPS:
 
     def define_tips(self):
         #Reset the Window
-        ResetWindow_tooltip = "Reset this window..."
+        ResetWindow_tooltip = self.tr("Reset this window...")
         self.dlg.pushButton_13.setToolTip(ResetWindow_tooltip)
         self.dlg.pushButton_19.setToolTip(ResetWindow_tooltip)
         self.dlg.pushButton_22.setToolTip(ResetWindow_tooltip)
 
         #Browse
-        Browse_tooltip = "Browse..."
+        Browse_tooltip = self.tr("Browse...")
         self.dlg.pushButton_7.setToolTip(Browse_tooltip)
         self.dlg.pushButton_FM_project_select.setToolTip(Browse_tooltip)
         self.dlg.pushButton_17.setToolTip(Browse_tooltip)
@@ -6317,157 +6317,157 @@ class GEOL_QMAPS:
 
         #IMPORT FIELD DATA
         # Import Legacy SHP
-        ImportShp_tooltip = "<p>Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.<p>"
+        ImportShp_tooltip = self.tr("<p>Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.<p>")
         self.dlg.label_19.setToolTip(ImportShp_tooltip)
 
-        ImportShpStep1_tooltip = "<p>Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).<p>"
+        ImportShpStep1_tooltip = self.tr("<p>Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).<p>")
         self.dlg.groupBox.setToolTip(ImportShpStep1_tooltip)
 
-        ImportShpStep2_tooltip = "<p>Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.<p>"
+        ImportShpStep2_tooltip = self.tr("<p>Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.<p>")
         self.dlg.label_35.setToolTip(ImportShpStep2_tooltip)
-        ImportShpStep2Fields_tooltip = "<p>Validate standard field names assigned to legacy database fields.<p>"
+        ImportShpStep2Fields_tooltip = self.tr("<p>Validate standard field names assigned to legacy database fields.<p>")
         self.dlg.pushButton_9.setToolTip(ImportShpStep2Fields_tooltip)
-        ImportShpStep2Litho_tooltip = "<p>Validate standard lithology names assigned to legacy lithologies.<p>"
+        ImportShpStep2Litho_tooltip = self.tr("<p>Validate standard lithology names assigned to legacy lithologies.<p>")
         self.dlg.pushButton_10.setToolTip(ImportShpStep2Litho_tooltip)
-        ImportShpStep2Struct_tooltip = "<p>Validate standard structure types assigned to legacy structures.<p>"
+        ImportShpStep2Struct_tooltip = self.tr("<p>Validate standard structure types assigned to legacy structures.<p>")
         self.dlg.pushButton_26.setToolTip(ImportShpStep2Struct_tooltip)
-        ImportShpStep2Undo_tooltip = "<p>Undo the last edit.<p>"
+        ImportShpStep2Undo_tooltip = self.tr("<p>Undo the last edit.<p>")
         self.dlg.pushButton_11.setToolTip(ImportShpStep2Undo_tooltip)
         self.dlg.pushButton_12.setToolTip(ImportShpStep2Undo_tooltip)
         self.dlg.pushButton_25.setToolTip(ImportShpStep2Undo_tooltip)
 
-        ImportShpStep3_tooltip = "<p>Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!<p>"
+        ImportShpStep3_tooltip = self.tr("<p>Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!<p>")
         self.dlg.groupBox_3.setToolTip(ImportShpStep3_tooltip)
 
-        ImportShpStep4_tooltip = "<p>Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.<p>"
+        ImportShpStep4_tooltip = self.tr("<p>Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.<p>")
         self.dlg.groupBox_15.setToolTip(ImportShpStep4_tooltip)
 
         #Import FieldMove Project
-        ImportFM_tooltip = "<p>Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.<p>"
+        ImportFM_tooltip = self.tr("<p>Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.<p>")
         self.dlg.groupBox_19.setToolTip(ImportFM_tooltip)
 
 
         #FIELDWORK PREPARATION
         # Update Project ID and Location
-        Update_tooltip = "<p>Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.<p>"
+        Update_tooltip = self.tr("<p>Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.<p>")
         self.dlg.groupBox_6.setToolTip(Update_tooltip)
-        Proj_name_tooltip = "<p>Type the updated name of the project, e.g. Mission ID/Year.</p>"
+        Proj_name_tooltip = self.tr("<p>Type the updated name of the project, e.g. Mission ID/Year.</p>")
         self.dlg.lineEdit_9.setToolTip(Proj_name_tooltip)
-        Proj_region_tooltip = "<p>Type the name of the region the project applies to e.g. Sefwi Belt.</p>"
+        Proj_region_tooltip = self.tr("<p>Type the name of the region the project applies to e.g. Sefwi Belt.</p>")
         self.dlg.lineEdit_10.setToolTip(Proj_region_tooltip)
-        self.dlg.projName_pushButton.setToolTip("<p>Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.<p>")
+        self.dlg.projName_pushButton.setToolTip(self.tr("<p>Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.<p>"))
 
         # Set User by Default
-        DefaultUser_tooltip = "<p>Assign an existing or new user to be the default for one layer or all field data layers going forward.<p>"
+        DefaultUser_tooltip = self.tr("<p>Assign an existing or new user to be the default for one layer or all field data layers going forward.<p>")
         self.dlg.groupBox_18.setToolTip(DefaultUser_tooltip)
-        DefaultUserOneLayer_tooltip = "<p>If toggled on, select the field data layer to update with a new default value for the User field.<p>"
+        DefaultUserOneLayer_tooltip = self.tr("<p>If toggled on, select the field data layer to update with a new default value for the User field.<p>")
         self.dlg.radioButton_Some.setToolTip(DefaultUserOneLayer_tooltip)
-        DefaultUserOneLayerSelect_tooltip = "<p>Select in the dropdown list the field data layer to update with a new default value for the User field.<p>"
+        DefaultUserOneLayerSelect_tooltip = self.tr("<p>Select in the dropdown list the field data layer to update with a new default value for the User field.<p>")
         self.dlg.comboBox_layers_user.setToolTip(DefaultUserOneLayerSelect_tooltip)
-        DefaultUserAllLayers_tooltip = "<p>If toggled on, all field data layers will be updated with a new default value for the User field.<p>"
+        DefaultUserAllLayers_tooltip = self.tr("<p>If toggled on, all field data layers will be updated with a new default value for the User field.<p>")
         self.dlg.radioButton_All.setToolTip(DefaultUserAllLayers_tooltip)
-        self.dlg.pushButton_user_default.setToolTip("<p>Update the User metadata value for one or all field data layers.<p>")
+        self.dlg.pushButton_user_default.setToolTip(self.tr("<p>Update the User metadata value for one or all field data layers.<p>"))
 
         #Edit Dictionaries
-        EditDico_tooltip = "<p>Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.<p>"
+        EditDico_tooltip = self.tr("<p>Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.<p>")
         self.dlg.groupBox_5.setToolTip(EditDico_tooltip)
-        Dico_tooltip = "<p>Select which dictionary to add or delete item to from the dropdown list.</p>"
+        Dico_tooltip = self.tr("<p>Select which dictionary to add or delete item to from the dropdown list.</p>")
         self.dlg.comboBox.setToolTip(Dico_tooltip)
-        AddValue_tooltip = "<p>Type a new value to add to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.</p>"
+        AddValue_tooltip = self.tr("<p>Type a new value to add to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.</p>")
         self.dlg.lineEdit_38.setToolTip(AddValue_tooltip)
-        self.dlg.csv_pushButton.setToolTip("<p>Add new item to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.<p>")
-        DeleteValue_tooltip = "<p>Select what item to delete from the selected dictionary.</p>"
+        self.dlg.csv_pushButton.setToolTip(self.tr("<p>Add new item to the selected dictionary. Update the layer's symbology accordingly to reflect the new items if depends on the modified dictionary.<p>"))
+        DeleteValue_tooltip = self.tr("<p>Select what item to delete from the selected dictionary.</p>")
         self.dlg.comboBox_delete.setToolTip(DeleteValue_tooltip)
-        self.dlg.csv_pushButton_2.setToolTip("<p>Delete the selected item from the related dictionary. Update the layer's symbology accordingly to remove those referring to deleted items.<p>")
+        self.dlg.csv_pushButton_2.setToolTip(self.tr("<p>Delete the selected item from the related dictionary. Update the layer's symbology accordingly to remove those referring to deleted items.<p>"))
 
         #Define Default Structural Measurement for Planar Structures
-        StructConv_tooltip = "<p>Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.<p>"
+        StructConv_tooltip = self.tr("<p>Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.<p>")
         self.dlg.groupBox_20.setToolTip(StructConv_tooltip)
-        DipDir_tooltip = "<p>If toggled on, planar measurements should be then entered as dip/dip direction by default.<p>"
+        DipDir_tooltip = self.tr("<p>If toggled on, planar measurements should be then entered as dip/dip direction by default.<p>")
         self.dlg.structure_style_on_pushButton.setToolTip(DipDir_tooltip)
-        RHR_tooltip = "<p>If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.<p>"
+        RHR_tooltip = self.tr("<p>If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.<p>")
         self.dlg.structure_style_off_pushButton.setToolTip(RHR_tooltip)
 
         #Save Changes Made to the Field Data Forms
-        SaveQLR_tooltip = "<p>Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.<p>"
+        SaveQLR_tooltip = self.tr("<p>Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.<p>")
         self.dlg.groupBox_17.setToolTip(SaveQLR_tooltip)
-        SaveButton_tooltip = "<p>Save the updated GEOL-QMAPS layer definition file to the specified folder.<p>"
+        SaveButton_tooltip = self.tr("<p>Save the updated GEOL-QMAPS layer definition file to the specified folder.<p>")
         self.dlg.pushButton_save__project_template_style_2.setToolTip(SaveButton_tooltip)
 
         #Clip Field Data to Current Canvas
-        ClipTool_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.<p>"
+        ClipTool_tooltip = self.tr("<p>Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.<p>")
         self.dlg.groupBox_4.setToolTip(ClipTool_tooltip)
-        Clip_path_tooltip = "<p>Path to new clipped GEOL-QMAPS project directory.</p>"
+        Clip_path_tooltip = self.tr("<p>Path to new clipped GEOL-QMAPS project directory.</p>")
         self.dlg.lineEdit_3.setToolTip(Clip_path_tooltip)
-        ClipPolygon_tooltip = "<p>Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.</p>"
+        ClipPolygon_tooltip = self.tr("<p>Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.</p>")
         self.dlg.lineEdit_8.setToolTip(ClipPolygon_tooltip)
-        ClippingButton_tooltip = "<p>Clip GEOL-QMAPS-standardised field data layers.<p>"
+        ClippingButton_tooltip = self.tr("<p>Clip GEOL-QMAPS-standardised field data layers.<p>")
         self.dlg.clip_pushButton.setToolTip(ClippingButton_tooltip)
 
 
         #DATA MANAGEMENT
         #Rejig to the Latest GEOL-QMAPS Version
-        RejigTool_tooltip = "<p>Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.<p>"
+        RejigTool_tooltip = self.tr("<p>Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.<p>")
         self.dlg.groupBox_22.setToolTip(RejigTool_tooltip)
-        RejigValidate_tooltip = "<p>Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.<p>"
+        RejigValidate_tooltip = self.tr("<p>Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.<p>")
         self.dlg.rejig_pushButton_4.setToolTip(RejigValidate_tooltip)
 
         #Synchronise a QField Package to the QGIS Master Project
-        SyncTool_tooltip = "<p>Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.<p>"
+        SyncTool_tooltip = self.tr("<p>Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.<p>")
         self.dlg.groupBox_23.setToolTip(SyncTool_tooltip)
-        SyncValidate_tooltip = "<p>Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.<p>"
+        SyncValidate_tooltip = self.tr("<p>Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.<p>")
         self.dlg.pushButton_SyncQFieldToQGIS.setToolTip(SyncValidate_tooltip)
 
         #Merge Projects
-        MergeTool_tooltip = "<p>Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.<p>"
+        MergeTool_tooltip = self.tr("<p>Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.<p>")
         self.dlg.groupBox_8.setToolTip(MergeTool_tooltip)
-        Merge_main_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.</p>"
+        Merge_main_tooltip = self.tr("<p>Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.</p>")
         self.dlg.lineEdit_11.setToolTip(Merge_main_tooltip)
-        Merge_sub_tooltip = "<p>Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.</p>"
+        Merge_sub_tooltip = self.tr("<p>Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.</p>")
         self.dlg.lineEdit_26.setToolTip(Merge_sub_tooltip)
-        Merge_output_tooltip = "<p>Path to directory of newly merged GEOL-QMAPS QGIS project.</p>"
+        Merge_output_tooltip = self.tr("<p>Path to directory of newly merged GEOL-QMAPS QGIS project.</p>")
         self.dlg.lineEdit_37.setToolTip(Merge_output_tooltip)
-        MergeValidate_tooltip = "<p>Merge selected GEOL-QMAPS QGIS projects.<p>"
+        MergeValidate_tooltip = self.tr("<p>Merge selected GEOL-QMAPS QGIS projects.<p>")
         self.dlg.merge_pushButton.setToolTip(MergeValidate_tooltip)
 
         #Archive Current Field Data
-        ArchiveTool_tooltip = "<p>Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.<p>"
+        ArchiveTool_tooltip = self.tr("<p>Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.<p>")
         self.dlg.groupBox_21.setToolTip(ArchiveTool_tooltip)
         self.dlg.merge_current_existing_pushButton_3.setToolTip(ArchiveTool_tooltip)
 
         #Remove Duplicate UUIDs from Project
-        RemoveDuplicateTool_tooltip = "<p>After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.<p>"
+        RemoveDuplicateTool_tooltip = self.tr("<p>After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.<p>")
         self.dlg.groupBox_9.setToolTip(RemoveDuplicateTool_tooltip)
-        self.dlg.merge_pushButton_2.setToolTip("<p>Remove duplicates in current and compilation field data layers.<p>")
+        self.dlg.merge_pushButton_2.setToolTip(self.tr("<p>Remove duplicates in current and compilation field data layers.<p>"))
 
         #Export Compilation Layers to Common Themes
-        ExportTool_tooltip = "<p>Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<p>"
+        ExportTool_tooltip = self.tr("<p>Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).<p>")
         self.dlg.groupBox_10.setToolTip(ExportTool_tooltip)
-        ExportPath_tooltip = "<p>Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.<p>"
+        ExportPath_tooltip = self.tr("<p>Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.<p>")
         self.dlg.lineEdit_7.setToolTip(ExportPath_tooltip)
-        ExportValidate_tooltip = "<p>Export compilation layers to common themes.<p>"
+        ExportValidate_tooltip = self.tr("<p>Export compilation layers to common themes.<p>")
         self.dlg.pushButton_5.setToolTip(ExportValidate_tooltip)
-        self.dlg.export_pushButton.setToolTip("Export layers")
+        self.dlg.export_pushButton.setToolTip(self.tr("Export layers"))
 
         #Create Virtual Stops
-        VirtualStops_tooltip = "<p>Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.<p>"
+        VirtualStops_tooltip = self.tr("<p>Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.<p>")
         self.dlg.groupBox_11.setToolTip(VirtualStops_tooltip)
-        Epsilon_tooltip = "<p> Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.<p>"
+        Epsilon_tooltip = self.tr("<p> Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.<p>")
         self.dlg.lineEdit_53.setToolTip(Epsilon_tooltip)
-        self.dlg.virtual_pushButton.setToolTip("<p>Create virtual stops.<p>")
+        self.dlg.virtual_pushButton.setToolTip(self.tr("<p>Create virtual stops.<p>"))
 
         #Picture Management
-        PictureManagement_tooltip = "<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>"
+        PictureManagement_tooltip = self.tr("<p>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.<p>")
         self.dlg.groupBox_16.setToolTip(PictureManagement_tooltip)
-        PictureFolder_tooltip = "<p>Browse to the folder that contains field and sample photographs.<p>"
+        PictureFolder_tooltip = self.tr("<p>Browse to the folder that contains field and sample photographs.<p>")
         self.dlg.lineEdit_14.setToolTip(PictureFolder_tooltip)
-        FilepathExisting_tooltip = "<p>If toogled on, the filepath of existing photographs will be updated to the selected folder.<p>"
+        FilepathExisting_tooltip = self.tr("<p>If toogled on, the filepath of existing photographs will be updated to the selected folder.<p>")
         self.dlg.option1_ckeckbox.setToolTip(FilepathExisting_tooltip)
-        FilepathDefault_tooltip = "<p>If toogled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.<p>"
+        FilepathDefault_tooltip = self.tr("<p>If toogled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.<p>")
         self.dlg.option2_ckeckbox.setToolTip(FilepathDefault_tooltip)
-        FilepathValidate_tooltip = "<p>Update photograph repository information.<p>"
+        FilepathValidate_tooltip = self.tr("<p>Update photograph repository information.<p>")
         self.dlg.option2_ckeckbox.setToolTip(FilepathValidate_tooltip)
-        EXIF_tooltip = "<p>Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.<p>"
+        EXIF_tooltip = self.tr("<p>Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.<p>")
         self.dlg.pushButton_use_exif_azimuth.setToolTip(EXIF_tooltip)
 
 

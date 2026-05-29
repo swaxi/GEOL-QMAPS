@@ -12,10 +12,10 @@ from qgis.PyQt.QtCore import QVariant
 
 # Qt5/Qt6 compatibility: QVariant type constants removed in PyQt6.
 try:
-    _QVAR_STRING = _QVAR_STRING
+    _QVAR_STRING = QVariant.String
     _QVAR_LONG   = QVariant.LongLong
-    _QVAR_INT    = _QVAR_INT
-    _QVAR_DOUBLE = _QVAR_DOUBLE
+    _QVAR_INT    = QVariant.Int
+    _QVAR_DOUBLE = QVariant.Double
 except AttributeError:
     from qgis.PyQt.QtCore import QMetaType as _QMT
     _QVAR_STRING = _QMT.Type.QString
