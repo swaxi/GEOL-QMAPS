@@ -75,16 +75,20 @@ _ITALIC_FONT.setItalic(True)
 # Small helpers
 # ---------------------------------------------------------------------------
 
-def _lbl(parent, text, x, y, w, h, style=_LBL, font=None, align=None, wrap=False):
+def _lbl(parent, text, x, y, w, h, style=None, font=None, align=None, wrap=False):
     lbl = QLabel(text, parent)
     lbl.setGeometry(x, y, w, h)
-    lbl.setStyleSheet(style)
+
     if font:
         lbl.setFont(font)
+    else:
+        lbl.setStyleSheet(style or _LBL)
+
     if align is not None:
         lbl.setAlignment(align)
     if wrap:
         lbl.setWordWrap(True)
+
     return lbl
 
 
@@ -215,6 +219,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.versions_label = _lbl(W, "version", 230, 10, 521, 20,
                                     style="font-family: Arial;",
                                     align=Qt.AlignRight | Qt.AlignVCenter)
+
 
         # --- Step 1 ---
         self.groupBox = _gb(W, _tr("Step 1: Select the Shapefile to Import"), 10, 40, 371, 61)
@@ -435,14 +440,15 @@ class GEOL_QMAPSDockWidget(QDockWidget):
             W,
             _tr("Update an Old GEOL-QMAPS QGIS Project to the Latest Version "
                 "(requires an Internet connection)"),
-            10, 20, 761, 71, ptsize=12)
-        _lbl(self.groupBox_22,
-             _tr("Old Project Folder ( version must be >v3.1.0):"),
-             10, 8, 741, 21)
-        self.lineEdit_15 = _le(self.groupBox_22, 10, 32, 450, 21,
-                                "***old-project-folder***")
-        self.pushButton_37 = _btn(self.groupBox_22, "...", 470, 32, 31, 21, _BTN_BROWSE)
-        self.rejig_pushButton_4 = _btn(self.groupBox_22, _tr("Update Version"), 511, 32, 200, 21)
+            10, 20, 761, 80, ptsize=12
+        )
+
+        _lbl(self.groupBox_22, _tr("Old Project Folder (version must be >v3.1.0):"),
+             10, 25, 741, 21)
+
+        self.lineEdit_15 = _le(self.groupBox_22, 10, 50, 450, 21, "***old-project-folder***")
+        self.pushButton_37 = _btn(self.groupBox_22, "...", 470, 50, 31, 21, _BTN_BROWSE)
+        self.rejig_pushButton_4 = _btn(self.groupBox_22, _tr("Update Version"), 511, 50, 200, 21)
 
         # Sync QField to QGIS
         # lineEdit_QGISFolder shrunk 131→111; Sync widened 51→120
@@ -508,41 +514,86 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.export_pushButton = _btn(self.groupBox_10, _tr("Export Layers"), 300, 60, 170, 21)
 
         # Create Virtual Stops — label above lineEdit on row 1; button on row 2
-        self.groupBox_11 = _gb(W, _tr("Create Virtual Stops"), 500, 490, 270, 91, ptsize=12)
-        _lbl(self.groupBox_11, _tr("Minimal Neighbour Distance (m) :"), 10, 12, 250, 21, wrap=True)
-        self.lineEdit_53 = _le(self.groupBox_11, 10, 35, 61, 21)
-        self.lineEdit_53.setText("100")
-        self.virtual_pushButton = _btn(self.groupBox_11, _tr("Create Virtual Stops"),
-                                        10, 58, 250, 21)
+        self.groupBox_11 = _gb(
+            W,
+            _tr("Create Virtual Stops"),
+            500, 490, 270, 100,
+            ptsize=12
+        )
+        _lbl(
+            self.groupBox_11,
+            _tr("Minimal Neighbour Distance (m):"),
+            10, 25, 250, 21
+        )
+        self.lineEdit_53 = _le(
+            self.groupBox_11,
+            10, 50, 61, 21,
+            "100"
+        )
+        self.virtual_pushButton = _btn(
+            self.groupBox_11,
+            _tr("Create Virtual Stops"),
+            10, 73, 250, 21
+        )
 
         # Picture Management — "Path to..." label on own row above lineEdit
-        self.groupBox_16 = _gb(W, _tr("Picture Management"), 10, 610, 761, 141, ptsize=12)
-        _lbl(self.groupBox_16,
-             _tr("Path to Field and Sample Photograph Directory:"),
-             10, 8, 741, 21)
-        self.lineEdit_14 = _le(self.groupBox_16, 10, 30, 680, 21,
-                                _tr("Select the updated field and sample photograph folder"))
-        self.pushButton_15 = _btn(self.groupBox_16, "...", 700, 30, 31, 21,
-                                   _BTN_BROWSE, "Choose your Main Project")
+        self.groupBox_16 = _gb(
+            W,
+            _tr("Picture Management"),
+            10, 610, 761, 150,
+            ptsize=12
+        )
+
+        _lbl(
+            self.groupBox_16,
+            _tr("Path to Field and Sample Photograph Directory:"),
+            10, 25, 741, 21
+        )
+
+        self.lineEdit_14 = _le(
+            self.groupBox_16,
+            10, 50, 680, 21,
+            _tr("Select the updated field and sample photograph folder")
+        )
+
+        self.pushButton_15 = _btn(
+            self.groupBox_16,
+            "...",
+            700, 50, 31, 21,
+            _BTN_BROWSE
+        )
+
         self.option1_ckeckbox = QCheckBox(
             _tr("Update the Filepath Information for Existing Photographs"),
-            self.groupBox_16)
-        self.option1_ckeckbox.setGeometry(10, 55, 741, 21)
-        self.option1_ckeckbox.setStyleSheet(_LBL)
+            self.groupBox_16
+        )
+        self.option1_ckeckbox.setGeometry(10, 75, 741, 21)
+
         self.option2_ckeckbox = QCheckBox(
-            _tr("Set the New Path as a Default Value for Future Field and Sample "
-                "Photograph Entry"),
-            self.groupBox_16)
-        self.option2_ckeckbox.setGeometry(10, 76, 511, 21)
-        self.option2_ckeckbox.setStyleSheet(_LBL)
+            _tr("Set the New Path as a Default Value for Future Field and Sample Photograph Entry"),
+            self.groupBox_16
+        )
+        self.option2_ckeckbox.setGeometry(10, 96, 511, 21)
+
         self.pushButton_update_source_photo = _btn(
-            self.groupBox_16, _tr("Update Repository"), 531, 76, 220, 21)
-        _lbl(self.groupBox_16,
-             _tr("Use Photograph EXIF Metadata to Retrieve Image Direction:"),
-             10, 100, 330, 31, wrap=True)
+            self.groupBox_16,
+            _tr("Update Repository"),
+            531, 96, 220, 21,
+            _BTN,
+            _tr("Update photograph paths in the project repository.")
+        )
+
+        _lbl(
+            self.groupBox_16,
+            _tr("Use Photograph EXIF Metadata to Retrieve Image Direction:"),
+            10, 121, 381, 21
+        )
+
         self.pushButton_use_exif_azimuth = _btn(
-            self.groupBox_16, _tr("Update Image Direction from Metadata"),
-            340, 104, 411, 21)
+            self.groupBox_16,
+            _tr("Update Image Direction from Metadata"),
+            391, 121, 360, 21
+        )
 
         # Bottom bar — RESET widened 141→215, moved left; y shifted +80
         self.pushButton_22 = _btn(W, _tr("RESET THE WINDOW"), 565, 790, 215, 21)
