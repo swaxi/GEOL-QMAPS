@@ -8,12 +8,12 @@ Each outer tab is wrapped in a QScrollArea so the panel works on small screens.
 import os
 
 from qgis.PyQt import QtGui, QtWidgets
-from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication
+from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication, QSize
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QTabWidget, QScrollArea, QVBoxLayout,
     QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox,
     QTableWidget, QTableWidgetItem, QRadioButton, QCheckBox,
-    QPlainTextEdit, QFrame,
+    QPlainTextEdit, QFrame, QTabBar,
 )
 from qgis.PyQt.QtGui import QFont
 
@@ -29,7 +29,7 @@ def _tr(text):
 _OUTER_TAB_SS = """
 QTabWidget::tab-bar { alignment: left; }
 QTabBar::tab {
-    min-width: 240px; min-height: 23px;
+    min-height: 23px;
     background-color: rgb(220,220,220,255);
     border-radius: 2px; border: 1px solid #000000;
     font-family: Arial; font-size: 13px;
@@ -66,6 +66,9 @@ _HELP_BTN = ("font-family: Arial; font-size: 12px; font-style: italic;"
              "background-color: rgb(220,220,220); font-weight: bold;")
 
 _COPYRIGHT = "© 2025 West African Exploration Initiative. All Rights Reserved."
+
+_PANEL_W = 760
+_GROUP_W = 741
 
 _ITALIC_FONT = QFont("Arial")
 _ITALIC_FONT.setItalic(True)
@@ -159,6 +162,34 @@ def _scrollwrap(widget):
 
 
 # ---------------------------------------------------------------------------
+# Tab Panel Bars
+# ---------------------------------------------------------------------------
+
+class EqualWidthTabBar(QTabBar):
+    """Tab bar with four tabs evenly distributed across the available width."""
+
+    def tabSizeHint(self, index):
+        size = super().tabSizeHint(index)
+
+        count = max(1, self.count())
+
+        parent = self.parentWidget()
+        parent_width = parent.width() if parent is not None else 0
+
+        available_width = max(self.width(), parent_width, 760)
+
+        tab_width = available_width // count
+
+        if index == count - 1:
+            tab_width = available_width - tab_width * (count - 1)
+
+        return QSize(tab_width, max(size.height(), 26))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.updateGeometry()
+
+# ---------------------------------------------------------------------------
 # Main dock widget
 # ---------------------------------------------------------------------------
 
@@ -181,11 +212,12 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         vbox.setContentsMargins(10, 0, 0, 0)
 
         self.tabWidget = QTabWidget()
+        self.tabWidget.setTabBar(EqualWidthTabBar())
         bold13 = QFont("Arial", 13)
         bold13.setBold(True)
         self.tabWidget.setFont(bold13)
         self.tabWidget.setStyleSheet(_OUTER_TAB_SS)
-        self.tabWidget.setUsesScrollButtons(True)
+        self.tabWidget.setUsesScrollButtons(False)
         self.tabWidget.setMinimumSize(80, 500)
 
         self.tabWidget.addTab(_scrollwrap(self._tab_import()),    _tr("Import Field Data"))
