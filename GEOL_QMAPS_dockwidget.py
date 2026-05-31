@@ -52,6 +52,17 @@ QTabBar::tab:selected { background-color: rgb(190,190,190); }
 QTabBar::tab:hover    { background-color: rgb(229,241,251); }
 """
 
+_TOOLTIP_SS = """
+QToolTip {
+    background-color: #ffffdc;
+    color: black;
+    border: 1px solid #767676;
+    padding: 3px;
+    font-family: Arial;
+    font-size: 11px;
+}
+"""
+
 _BTN = ("background-color: rgb(220,220,220);"
         "font-weight: bold; font-style: italic;"
         "font-family: Arial; font-size: 12px;")
@@ -217,7 +228,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         bold13.setBold(True)
         self.tabWidget.setFont(bold13)
         self.tabWidget.setStyleSheet(_OUTER_TAB_SS)
-        self.tabWidget.setUsesScrollButtons(False)
+        self.tabWidget.setUsesScrollButtons(True)
         self.tabWidget.setMinimumSize(80, 500)
 
         self.tabWidget.addTab(_scrollwrap(self._tab_import()),    _tr("Import Field Data"))
@@ -383,22 +394,48 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.radioButton_All.setChecked(True)
         self.radioButton_All.setStyleSheet(_LBL)
 
-        # Edit Dictionaries — label row (y=42) above input row (y=64); h=91→100
-        self.groupBox_5 = _gb(W, _tr("Edit Dictionaries"), 10, 240, 761, 100, ptsize=12)
-        _lbl(self.groupBox_5, _tr("Dictionary: "), 10, 18, 120, 21)
-        self.comboBox = _cb(self.groupBox_5, 125, 18, 376, 21,
-                             _tr("Select a dictionary to update"))
-        _lbl(self.groupBox_5, _tr("Item to Add:"), 10, 42, 175, 21)
-        _lbl(self.groupBox_5, _tr("Item to Delete:"), 395, 42, 185, 21)
-        self.lineEdit_38 = _le(self.groupBox_5, 10, 64, 115, 21, _tr("Type the item to add"))
-        self.csv_pushButton = _btn(self.groupBox_5, _tr("Add Item"), 130, 64, 150, 21)
+        # Edit Dictionaries — dropdown and labels shifted down to avoid overlap with the group-box title
+        self.groupBox_5 = _gb(W, _tr("Edit Dictionaries"), 10, 240, 761, 110, ptsize=12)
+
+        _lbl(self.groupBox_5, _tr("Dictionary: "), 10, 28, 120, 21)
+
+        self.comboBox = _cb(
+            self.groupBox_5,
+            125, 28, 376, 21,
+            _tr("Select a dictionary to update")
+        )
+
+        _lbl(self.groupBox_5, _tr("Item to Add:"), 10, 55, 175, 21)
+        _lbl(self.groupBox_5, _tr("Item to Delete:"), 395, 55, 185, 21)
+
+        self.lineEdit_38 = _le(
+            self.groupBox_5,
+            10, 77, 115, 21,
+            _tr("Type the item to add")
+        )
+
+        self.csv_pushButton = _btn(
+            self.groupBox_5,
+            _tr("Add Item"),
+            130, 77, 150, 21
+        )
+
         vline = QFrame(self.groupBox_5)
-        vline.setGeometry(385, 42, 1, 43)
+        vline.setGeometry(385, 55, 1, 43)
         vline.setFrameShape(QFrame.VLine)
         vline.setLineWidth(1)
-        self.comboBox_delete = _cb(self.groupBox_5, 395, 64, 105, 21,
-                                    _tr("Select the item to delete"))
-        self.csv_pushButton_2 = _btn(self.groupBox_5, _tr("Delete Item"), 505, 64, 150, 21)
+
+        self.comboBox_delete = _cb(
+            self.groupBox_5,
+            395, 77, 105, 21,
+            _tr("Select the item to delete")
+        )
+
+        self.csv_pushButton_2 = _btn(
+            self.groupBox_5,
+            _tr("Delete Item"),
+            505, 77, 150, 21
+        )
 
         # Define Default Structural Measurement
         # Dip button widened 121→225; Strike button widened 181→480
@@ -442,8 +479,8 @@ class GEOL_QMAPSDockWidget(QDockWidget):
                                _tr("Select a folder to store clipped field data"))
         self.lineEdit_8 = _le(self.groupBox_4, 160, 60, 411, 21,
                                _tr("Select a polygon shapefile to be used as a clipping mask"))
-        self.pushButton  = _btn(self.groupBox_4, "...", 720, 30, 31, 21, _BTN)
-        self.pushButton_6 = _btn(self.groupBox_4, "...", 581, 60, 31, 21, _BTN)
+        self.pushButton  = _btn(self.groupBox_4, "...", 720, 30, 31, 21, _BTN_BROWSE)
+        self.pushButton_6 = _btn(self.groupBox_4, "...", 581, 60, 31, 21, _BTN_BROWSE)
         self.clip_pushButton = _btn(self.groupBox_4, _tr("Clip"), 622, 60, 120, 21, _BTN)
 
         # Bottom bar — RESET widened 141→215, moved left
@@ -695,7 +732,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         gb33 = _gb(W, _tr("Roadmap for Future Development"), 10, 260, 761, 61, ptsize=12)
         self.plainTextEdit_11 = _pte(
             gb33, 10, 30, 731, 31,
-            _tr("Please visit the Help - Roadmap section of the User Guide:"),
+            _tr("Please visit the following page:"),
             "plainTextEdit_11")
         self.pushButton_30 = _btn(gb33, _tr("User Guide - Roadmap"), 255, 30, 250, 21, _HELP_BTN)
 
