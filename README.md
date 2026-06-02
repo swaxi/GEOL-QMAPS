@@ -4,18 +4,21 @@
 
 *version 3.1.5.1 - May 2026*
 
-# Changelog 3.1.5 and 3.1.5.1
-      * Removal of the Stereographic Projection Settings tool in the Database Management tab, as per the latest release of the qgis-stereonet plugin with embedded control fork button
-      * Supports QT6
-      * **Bug Fixes & Functional Improvements**  
-      * **Import tool**:  
-      – Fixed bug affecting import of data if a geometry column exists in the imported shapefile and in the absence of a kinematics column for structural data
-      – Fixed bug with multiple display of warning boxes 
-           
-      **New Functionalities**  
-      – New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
-      – New **QField Stereonet Tool** to plot structural measurements in a lower-hemisphere stereonet on the fly in QField
-   
+# Changelog 3.1.5.1
+
+      **GUI Improvements**
+      - Replaced the legacy Qt Designer (.ui) interface with a fully Python-generated dock widget.
+      - Improved compatibility with Qt6 and future QGIS releases.
+      - Corrected multiple widget alignment and display issues.
+      - Improved layout consistency across plugin tabs.
+      - Harmonised button and tooltip styling.
+     
+      **Functional Changes**
+       Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **qgis-stereonet** plugin through its embedded control button.
+     
+      **Documentation**
+     - Updated user documentation and workflow descriptions to reflect the revised stereonet workflow.
+  
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
 ## 1. Description

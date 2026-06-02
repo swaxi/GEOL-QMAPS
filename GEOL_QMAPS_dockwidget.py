@@ -8,12 +8,12 @@ Each outer tab is wrapped in a QScrollArea so the panel works on small screens.
 import os
 
 from qgis.PyQt import QtGui, QtWidgets
-from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication
+from qgis.PyQt.QtCore import pyqtSignal, Qt, QCoreApplication, QSize
 from qgis.PyQt.QtWidgets import (
     QDockWidget, QWidget, QTabWidget, QScrollArea, QVBoxLayout,
     QLabel, QPushButton, QLineEdit, QComboBox, QGroupBox,
     QTableWidget, QTableWidgetItem, QRadioButton, QCheckBox,
-    QPlainTextEdit, QFrame,
+    QPlainTextEdit, QFrame, QTabBar,
 )
 from qgis.PyQt.QtGui import QFont
 
@@ -29,7 +29,7 @@ def _tr(text):
 _OUTER_TAB_SS = """
 QTabWidget::tab-bar { alignment: left; }
 QTabBar::tab {
-    min-width: 240px; min-height: 23px;
+    min-height: 23px;
     background-color: rgb(220,220,220,255);
     border-radius: 2px; border: 1px solid #000000;
     font-family: Arial; font-size: 13px;
@@ -52,6 +52,17 @@ QTabBar::tab:selected { background-color: rgb(190,190,190); }
 QTabBar::tab:hover    { background-color: rgb(229,241,251); }
 """
 
+_TOOLTIP_SS = """
+QToolTip {
+    background-color: #ffffdc;
+    color: black;
+    border: 1px solid #767676;
+    padding: 3px;
+    font-family: Arial;
+    font-size: 11px;
+}
+"""
+
 _BTN = ("background-color: rgb(220,220,220);"
         "font-weight: bold; font-style: italic;"
         "font-family: Arial; font-size: 12px;")
@@ -67,6 +78,9 @@ _HELP_BTN = ("font-family: Arial; font-size: 12px; font-style: italic;"
 
 _COPYRIGHT = "© 2025 West African Exploration Initiative. All Rights Reserved."
 
+_PANEL_W = 760
+_GROUP_W = 741
+
 _ITALIC_FONT = QFont("Arial")
 _ITALIC_FONT.setItalic(True)
 
@@ -75,16 +89,20 @@ _ITALIC_FONT.setItalic(True)
 # Small helpers
 # ---------------------------------------------------------------------------
 
-def _lbl(parent, text, x, y, w, h, style=_LBL, font=None, align=None, wrap=False):
+def _lbl(parent, text, x, y, w, h, style=None, font=None, align=None, wrap=False):
     lbl = QLabel(text, parent)
     lbl.setGeometry(x, y, w, h)
-    lbl.setStyleSheet(style)
+
     if font:
         lbl.setFont(font)
+    else:
+        lbl.setStyleSheet(style or _LBL)
+
     if align is not None:
         lbl.setAlignment(align)
     if wrap:
         lbl.setWordWrap(True)
+
     return lbl
 
 
@@ -155,6 +173,34 @@ def _scrollwrap(widget):
 
 
 # ---------------------------------------------------------------------------
+# Tab Panel Bars
+# ---------------------------------------------------------------------------
+
+class EqualWidthTabBar(QTabBar):
+    """Tab bar with four tabs evenly distributed across the available width."""
+
+    def tabSizeHint(self, index):
+        size = super().tabSizeHint(index)
+
+        count = max(1, self.count())
+
+        parent = self.parentWidget()
+        parent_width = parent.width() if parent is not None else 0
+
+        available_width = max(self.width(), parent_width, 760)
+
+        tab_width = available_width // count
+
+        if index == count - 1:
+            tab_width = available_width - tab_width * (count - 1)
+
+        return QSize(tab_width, max(size.height(), 26))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.updateGeometry()
+
+# ---------------------------------------------------------------------------
 # Main dock widget
 # ---------------------------------------------------------------------------
 
@@ -177,6 +223,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         vbox.setContentsMargins(10, 0, 0, 0)
 
         self.tabWidget = QTabWidget()
+        self.tabWidget.setTabBar(EqualWidthTabBar())
         bold13 = QFont("Arial", 13)
         bold13.setBold(True)
         self.tabWidget.setFont(bold13)
@@ -215,6 +262,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.versions_label = _lbl(W, "version", 230, 10, 521, 20,
                                     style="font-family: Arial;",
                                     align=Qt.AlignRight | Qt.AlignVCenter)
+
 
         # --- Step 1 ---
         self.groupBox = _gb(W, _tr("Step 1: Select the Shapefile to Import"), 10, 40, 371, 61)
@@ -346,22 +394,48 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.radioButton_All.setChecked(True)
         self.radioButton_All.setStyleSheet(_LBL)
 
-        # Edit Dictionaries — label row (y=42) above input row (y=64); h=91→100
-        self.groupBox_5 = _gb(W, _tr("Edit Dictionaries"), 10, 240, 761, 100, ptsize=12)
-        _lbl(self.groupBox_5, _tr("Dictionary: "), 10, 18, 120, 21)
-        self.comboBox = _cb(self.groupBox_5, 125, 18, 376, 21,
-                             _tr("Select a dictionary to update"))
-        _lbl(self.groupBox_5, _tr("Item to Add:"), 10, 42, 175, 21)
-        _lbl(self.groupBox_5, _tr("Item to Delete:"), 395, 42, 185, 21)
-        self.lineEdit_38 = _le(self.groupBox_5, 10, 64, 115, 21, _tr("Type the item to add"))
-        self.csv_pushButton = _btn(self.groupBox_5, _tr("Add Item"), 130, 64, 150, 21)
+        # Edit Dictionaries — dropdown and labels shifted down to avoid overlap with the group-box title
+        self.groupBox_5 = _gb(W, _tr("Edit Dictionaries"), 10, 240, 761, 110, ptsize=12)
+
+        _lbl(self.groupBox_5, _tr("Dictionary: "), 10, 28, 120, 21)
+
+        self.comboBox = _cb(
+            self.groupBox_5,
+            125, 28, 376, 21,
+            _tr("Select a dictionary to update")
+        )
+
+        _lbl(self.groupBox_5, _tr("Item to Add:"), 10, 55, 175, 21)
+        _lbl(self.groupBox_5, _tr("Item to Delete:"), 395, 55, 185, 21)
+
+        self.lineEdit_38 = _le(
+            self.groupBox_5,
+            10, 77, 115, 21,
+            _tr("Type the item to add")
+        )
+
+        self.csv_pushButton = _btn(
+            self.groupBox_5,
+            _tr("Add Item"),
+            130, 77, 150, 21
+        )
+
         vline = QFrame(self.groupBox_5)
-        vline.setGeometry(385, 42, 1, 43)
+        vline.setGeometry(385, 55, 1, 43)
         vline.setFrameShape(QFrame.VLine)
         vline.setLineWidth(1)
-        self.comboBox_delete = _cb(self.groupBox_5, 395, 64, 105, 21,
-                                    _tr("Select the item to delete"))
-        self.csv_pushButton_2 = _btn(self.groupBox_5, _tr("Delete Item"), 505, 64, 150, 21)
+
+        self.comboBox_delete = _cb(
+            self.groupBox_5,
+            395, 77, 105, 21,
+            _tr("Select the item to delete")
+        )
+
+        self.csv_pushButton_2 = _btn(
+            self.groupBox_5,
+            _tr("Delete Item"),
+            505, 77, 150, 21
+        )
 
         # Define Default Structural Measurement
         # Dip button widened 121→225; Strike button widened 181→480
@@ -405,8 +479,8 @@ class GEOL_QMAPSDockWidget(QDockWidget):
                                _tr("Select a folder to store clipped field data"))
         self.lineEdit_8 = _le(self.groupBox_4, 160, 60, 411, 21,
                                _tr("Select a polygon shapefile to be used as a clipping mask"))
-        self.pushButton  = _btn(self.groupBox_4, "...", 720, 30, 31, 21, _BTN)
-        self.pushButton_6 = _btn(self.groupBox_4, "...", 581, 60, 31, 21, _BTN)
+        self.pushButton  = _btn(self.groupBox_4, "...", 720, 30, 31, 21, _BTN_BROWSE)
+        self.pushButton_6 = _btn(self.groupBox_4, "...", 581, 60, 31, 21, _BTN_BROWSE)
         self.clip_pushButton = _btn(self.groupBox_4, _tr("Clip"), 622, 60, 120, 21, _BTN)
 
         # Bottom bar — RESET widened 141→215, moved left
@@ -435,14 +509,15 @@ class GEOL_QMAPSDockWidget(QDockWidget):
             W,
             _tr("Update an Old GEOL-QMAPS QGIS Project to the Latest Version "
                 "(requires an Internet connection)"),
-            10, 20, 761, 71, ptsize=12)
-        _lbl(self.groupBox_22,
-             _tr("Old Project Folder ( version must be >v3.1.0):"),
-             10, 8, 741, 21)
-        self.lineEdit_15 = _le(self.groupBox_22, 10, 32, 450, 21,
-                                "***old-project-folder***")
-        self.pushButton_37 = _btn(self.groupBox_22, "...", 470, 32, 31, 21, _BTN_BROWSE)
-        self.rejig_pushButton_4 = _btn(self.groupBox_22, _tr("Update Version"), 511, 32, 200, 21)
+            10, 20, 761, 80, ptsize=12
+        )
+
+        _lbl(self.groupBox_22, _tr("Old Project Folder (version must be >v3.1.0):"),
+             10, 25, 741, 21)
+
+        self.lineEdit_15 = _le(self.groupBox_22, 10, 50, 450, 21, "***old-project-folder***")
+        self.pushButton_37 = _btn(self.groupBox_22, "...", 470, 50, 31, 21, _BTN_BROWSE)
+        self.rejig_pushButton_4 = _btn(self.groupBox_22, _tr("Update Version"), 511, 50, 200, 21)
 
         # Sync QField to QGIS
         # lineEdit_QGISFolder shrunk 131→111; Sync widened 51→120
@@ -508,41 +583,86 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.export_pushButton = _btn(self.groupBox_10, _tr("Export Layers"), 300, 60, 170, 21)
 
         # Create Virtual Stops — label above lineEdit on row 1; button on row 2
-        self.groupBox_11 = _gb(W, _tr("Create Virtual Stops"), 500, 490, 270, 91, ptsize=12)
-        _lbl(self.groupBox_11, _tr("Minimal Neighbour Distance (m) :"), 10, 12, 250, 21, wrap=True)
-        self.lineEdit_53 = _le(self.groupBox_11, 10, 35, 61, 21)
-        self.lineEdit_53.setText("100")
-        self.virtual_pushButton = _btn(self.groupBox_11, _tr("Create Virtual Stops"),
-                                        10, 58, 250, 21)
+        self.groupBox_11 = _gb(
+            W,
+            _tr("Create Virtual Stops"),
+            500, 490, 270, 100,
+            ptsize=12
+        )
+        _lbl(
+            self.groupBox_11,
+            _tr("Minimal Neighbour Distance (m):"),
+            10, 25, 250, 21
+        )
+        self.lineEdit_53 = _le(
+            self.groupBox_11,
+            10, 50, 61, 21,
+            "100"
+        )
+        self.virtual_pushButton = _btn(
+            self.groupBox_11,
+            _tr("Create Virtual Stops"),
+            10, 73, 250, 21
+        )
 
         # Picture Management — "Path to..." label on own row above lineEdit
-        self.groupBox_16 = _gb(W, _tr("Picture Management"), 10, 610, 761, 141, ptsize=12)
-        _lbl(self.groupBox_16,
-             _tr("Path to Field and Sample Photograph Directory:"),
-             10, 8, 741, 21)
-        self.lineEdit_14 = _le(self.groupBox_16, 10, 30, 680, 21,
-                                _tr("Select the updated field and sample photograph folder"))
-        self.pushButton_15 = _btn(self.groupBox_16, "...", 700, 30, 31, 21,
-                                   _BTN_BROWSE, "Choose your Main Project")
+        self.groupBox_16 = _gb(
+            W,
+            _tr("Picture Management"),
+            10, 610, 761, 150,
+            ptsize=12
+        )
+
+        _lbl(
+            self.groupBox_16,
+            _tr("Path to Field and Sample Photograph Directory:"),
+            10, 25, 741, 21
+        )
+
+        self.lineEdit_14 = _le(
+            self.groupBox_16,
+            10, 50, 680, 21,
+            _tr("Select the updated field and sample photograph folder")
+        )
+
+        self.pushButton_15 = _btn(
+            self.groupBox_16,
+            "...",
+            700, 50, 31, 21,
+            _BTN_BROWSE
+        )
+
         self.option1_ckeckbox = QCheckBox(
             _tr("Update the Filepath Information for Existing Photographs"),
-            self.groupBox_16)
-        self.option1_ckeckbox.setGeometry(10, 55, 741, 21)
-        self.option1_ckeckbox.setStyleSheet(_LBL)
+            self.groupBox_16
+        )
+        self.option1_ckeckbox.setGeometry(10, 75, 741, 21)
+
         self.option2_ckeckbox = QCheckBox(
-            _tr("Set the New Path as a Default Value for Future Field and Sample "
-                "Photograph Entry"),
-            self.groupBox_16)
-        self.option2_ckeckbox.setGeometry(10, 76, 511, 21)
-        self.option2_ckeckbox.setStyleSheet(_LBL)
+            _tr("Set the New Path as a Default Value for Future Field and Sample Photograph Entry"),
+            self.groupBox_16
+        )
+        self.option2_ckeckbox.setGeometry(10, 96, 511, 21)
+
         self.pushButton_update_source_photo = _btn(
-            self.groupBox_16, _tr("Update Repository"), 531, 76, 220, 21)
-        _lbl(self.groupBox_16,
-             _tr("Use Photograph EXIF Metadata to Retrieve Image Direction:"),
-             10, 100, 330, 31, wrap=True)
+            self.groupBox_16,
+            _tr("Update Repository"),
+            531, 96, 220, 21,
+            _BTN,
+            _tr("Update photograph paths in the project repository.")
+        )
+
+        _lbl(
+            self.groupBox_16,
+            _tr("Use Photograph EXIF Metadata to Retrieve Image Direction:"),
+            10, 121, 381, 21
+        )
+
         self.pushButton_use_exif_azimuth = _btn(
-            self.groupBox_16, _tr("Update Image Direction from Metadata"),
-            340, 104, 411, 21)
+            self.groupBox_16,
+            _tr("Update Image Direction from Metadata"),
+            391, 121, 360, 21
+        )
 
         # Bottom bar — RESET widened 141→215, moved left; y shifted +80
         self.pushButton_22 = _btn(W, _tr("RESET THE WINDOW"), 565, 790, 215, 21)
@@ -612,7 +732,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         gb33 = _gb(W, _tr("Roadmap for Future Development"), 10, 260, 761, 61, ptsize=12)
         self.plainTextEdit_11 = _pte(
             gb33, 10, 30, 731, 31,
-            _tr("Please visit the Help - Roadmap section of the User Guide:"),
+            _tr("Please visit the following page:"),
             "plainTextEdit_11")
         self.pushButton_30 = _btn(gb33, _tr("User Guide - Roadmap"), 255, 30, 250, 21, _HELP_BTN)
 
