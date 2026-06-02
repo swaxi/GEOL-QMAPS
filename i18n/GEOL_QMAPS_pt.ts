@@ -25,248 +25,258 @@
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.&lt;p&gt;</source>
+        <source>Reformat existing lithological and structural point .shp databases according to the architecture of the GEOL-QMAPS mapping project template.</source>
         <translation>&lt;p&gt;Reformatar bases de dados pontuais .shp litológicas e estruturais existentes de acordo com a arquitetura do modelo de projeto de mapeamento GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).&lt;p&gt;</source>
+        <source>Select the .shp file containing legacy field data (CRS = EPSG4326: WGS 84).</source>
         <translation>&lt;p&gt;Selecionar o arquivo .shp contendo dados de campo legados (SRC = EPSG4326: WGS 84).&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.&lt;p&gt;</source>
+        <source>Review best-match assigned standard values field names, and then lithologies and/or structures, if appropriate.</source>
         <translation>&lt;p&gt;Revisar os nomes de campos de valores padrão atribuídos por melhor correspondência, e depois as litologias e/ou estruturas, se apropriado.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Validate standard field names assigned to legacy database fields.&lt;p&gt;</source>
+        <source>Validate standard field names assigned to legacy database fields.</source>
         <translation>&lt;p&gt;Validar os nomes de campos padrão atribuídos aos campos do banco de dados legado.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Validate standard lithology names assigned to legacy lithologies.&lt;p&gt;</source>
+        <source>Validate standard lithology names assigned to legacy lithologies.</source>
         <translation>&lt;p&gt;Validar os nomes de litologia padrão atribuídos às litologias legadas.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Validate standard structure types assigned to legacy structures.&lt;p&gt;</source>
+        <source>Validate standard structure types assigned to legacy structures.</source>
         <translation>&lt;p&gt;Validar os tipos de estrutura padrão atribuídos às estruturas legadas.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Undo the last edit.&lt;p&gt;</source>
+        <source>Undo the last edit.</source>
         <translation>&lt;p&gt;Desfazer a última edição.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!&lt;p&gt;</source>
+        <source>Generate scratch layers containing standardised lithological and/or structural legacy datapoints. Do not forget to merge them to field data compilation layers (Step 4)!</source>
         <translation>&lt;p&gt;Gerar camadas temporárias contendo pontos de dados legados litológicos e/ou estruturais padronizados. Não se esqueça de mesclá-los nas camadas de compilação de dados de campo (Etapa 4)!&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.&lt;p&gt;</source>
+        <source>Generate GEOL-QMAPS-compatible scratch layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GEOL_QMAPS.py"/>
+        <source>Merge scratch layers containing standardised lithological and/or structural legacy datapoints to field data compilation layers.</source>
         <translation>&lt;p&gt;Mesclar camadas temporárias contendo pontos de dados legados padronizados nas camadas de compilação de dados de campo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.&lt;p&gt;</source>
+        <source>Merge scratch layers into GEOL-QMAPS permanent compilation layers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GEOL_QMAPS.py"/>
+        <source>Convert existing FieldMove project into GEOL-QMAPS compatible files: photos are imported to the project, maps are loaded as temporary files and the lithologies added to Local Lithologies_PT layer.</source>
         <translation>&lt;p&gt;Converter um projeto FieldMove existente em arquivos compatíveis com GEOL-QMAPS: fotos são importadas para o projeto, mapas são carregados como arquivos temporários e as litologias adicionadas à camada Local Lithologies_PT.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.&lt;p&gt;</source>
+        <source>Enter the mapping project name and the targeted field region for the new field campaign, set as default metadata for future field data entries.</source>
         <translation>&lt;p&gt;Inserir o nome do projeto de mapeamento e a região de campo alvo para a nova campanha de campo, definidos como metadados padrão para futuras entradas de dados de campo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Type the updated name of the project, e.g. Mission ID/Year.&lt;/p&gt;</source>
+        <source>Type the updated name of the project, e.g. Mission ID/Year.</source>
         <translation>&lt;p&gt;Digite o nome atualizado do projeto, ex. ID da Missão/Ano.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Type the name of the region the project applies to e.g. Sefwi Belt.&lt;/p&gt;</source>
+        <source>Type the name of the region the project applies to e.g. Sefwi Belt.</source>
         <translation>&lt;p&gt;Digite o nome da região à qual o projeto se aplica, ex. Cinturão de Sefwi.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.&lt;p&gt;</source>
+        <source>Update the GEOL-QMAPS project name as Project ID/Location and related metadata for future field data entry.</source>
         <translation>&lt;p&gt;Atualizar o nome do projeto GEOL-QMAPS como ID do Projeto/Localização e os metadados relacionados para futuras entradas de dados de campo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Assign an existing or new user to be the default for one layer or all field data layers going forward.&lt;p&gt;</source>
+        <source>Assign an existing or new user to be the default for one layer or all field data layers going forward.</source>
         <translation>&lt;p&gt;Atribuir um usuário existente ou novo como padrão para uma camada ou todas as camadas de dados de campo no futuro.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toggled on, select the field data layer to update with a new default value for the User field.&lt;p&gt;</source>
+        <source>If toggled on, select the field data layer to update with a new default value for the User field.</source>
         <translation>&lt;p&gt;Se ativado, selecionar a camada de dados de campo a atualizar com um novo valor padrão para o campo Usuário.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select in the dropdown list the field data layer to update with a new default value for the User field.&lt;p&gt;</source>
+        <source>Select in the dropdown list the field data layer to update with a new default value for the User field.</source>
         <translation>&lt;p&gt;Selecionar na lista suspensa a camada de dados de campo a atualizar com um novo valor padrão para o campo Usuário.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toggled on, all field data layers will be updated with a new default value for the User field.&lt;p&gt;</source>
+        <source>If toggled on, all field data layers will be updated with a new default value for the User field.</source>
         <translation>&lt;p&gt;Se ativado, todas as camadas de dados de campo serão atualizadas com um novo valor padrão para o campo Usuário.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Update the User metadata value for one or all field data layers.&lt;p&gt;</source>
+        <source>Update the User metadata value for one or all field data layers.</source>
         <translation>&lt;p&gt;Atualizar o valor de metadados de Usuário para uma ou todas as camadas de dados de campo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.&lt;p&gt;</source>
+        <source>Select which dictionary to add or delete item to, and type the item to add or select the one to delete. New items become available in the GEOL-QMAPS field data dropdown menus.</source>
         <translation>&lt;p&gt;Selecionar qual dicionário adicionar ou excluir itens, e digitar o item a adicionar ou selecionar o que excluir. Novos itens ficam disponíveis nos menus suspensos de dados de campo do GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select which dictionary to add or delete item to from the dropdown list.&lt;/p&gt;</source>
+        <source>Select which dictionary to add or delete item to from the dropdown list.</source>
         <translation>&lt;p&gt;Selecionar qual dicionário adicionar ou excluir itens da lista suspensa.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Type a new value to add to the selected dictionary. Update the layer&apos;s symbology accordingly to reflect the new items if depends on the modified dictionary.&lt;/p&gt;</source>
+        <source>Type a new value to add to the selected dictionary. Update the layer&apos;s symbology accordingly to reflect the new items if depends on the modified dictionary.</source>
         <translation>&lt;p&gt;Digitar um novo valor para adicionar ao dicionário selecionado. Atualizar a simbologia da camada adequadamente para refletir os novos itens se depender do dicionário modificado.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Add new item to the selected dictionary. Update the layer&apos;s symbology accordingly to reflect the new items if depends on the modified dictionary.&lt;p&gt;</source>
+        <source>Add new item to the selected dictionary. Update the layer&apos;s symbology accordingly to reflect the new items if depends on the modified dictionary.</source>
         <translation>&lt;p&gt;Adicionar novo item ao dicionário selecionado. Atualizar a simbologia da camada adequadamente para refletir os novos itens se depender do dicionário modificado.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select what item to delete from the selected dictionary.&lt;/p&gt;</source>
+        <source>Select what item to delete from the selected dictionary.</source>
         <translation>&lt;p&gt;Selecionar qual item excluir do dicionário selecionado.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Delete the selected item from the related dictionary. Update the layer&apos;s symbology accordingly to remove those referring to deleted items.&lt;p&gt;</source>
+        <source>Delete the selected item from the related dictionary. Update the layer&apos;s symbology accordingly to remove those referring to deleted items.</source>
         <translation>&lt;p&gt;Excluir o item selecionado do dicionário relacionado. Atualizar a simbologia da camada adequadamente para remover as que fazem referência aos itens excluídos.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.&lt;p&gt;</source>
+        <source>Toggle the preferred measurement convention for planar structures to establish it as the default for all layers where planar structural measurements are recorded.</source>
         <translation>&lt;p&gt;Alternar a convenção de medição preferida para estruturas planares para estabelecê-la como padrão para todas as camadas onde as medições estruturais planares são registradas.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toggled on, planar measurements should be then entered as dip/dip direction by default.&lt;p&gt;</source>
+        <source>If toggled on, planar measurements should be then entered as dip/dip direction by default.</source>
         <translation>&lt;p&gt;Se ativado, as medições planares devem ser inseridas como mergulho/direção de mergulho por padrão.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.&lt;p&gt;</source>
+        <source>If toggled on, planar measurements should be then entered as strike (right-hand rule)/dip by default.</source>
         <translation>&lt;p&gt;Se ativado, as medições planares devem ser inseridas como strike (regra da mão direita)/mergulho por padrão.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.&lt;p&gt;</source>
+        <source>Enables to save a new .qlr QGIS layer definition file in a directory to be supplied. This file includes customised styles for empty field data layers and updated dictionaries. It guarantees to keep consistent mapping standards for different projects, which facilitates post-field data compilation and processing.</source>
         <translation>&lt;p&gt;Permite salvar um novo arquivo de definição de camada QGIS .qlr em um diretório a ser fornecido. Este arquivo inclui estilos personalizados para camadas de dados de campo vazias e dicionários atualizados. Garante manter padrões de mapeamento consistentes para diferentes projetos, facilitando a compilação e o processamento de dados pós-campo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Save the updated GEOL-QMAPS layer definition file to the specified folder.&lt;p&gt;</source>
+        <source>Path to the folder where to save the updated GEOL-QMAPS layer definition file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../GEOL_QMAPS.py"/>
+        <source>Save the updated GEOL-QMAPS layer definition file to the specified folder.</source>
         <translation>&lt;p&gt;Salvar o arquivo de definição de camada GEOL-QMAPS atualizado na pasta especificada.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.&lt;p&gt;</source>
+        <source>Clip GEOL-QMAPS-standardised field data layers to current QGIS canvas, or select a polygon shapefile to be the clipping polygon. Define a new directory to export the QGIS project containing the clipped legacy field data.</source>
         <translation>&lt;p&gt;Recortar camadas de dados de campo padronizadas GEOL-QMAPS para o canvas QGIS atual, ou selecionar um shapefile de polígono como polígono de recorte. Definir um novo diretório para exportar o projeto QGIS contendo os dados de campo legados recortados.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Path to new clipped GEOL-QMAPS project directory.&lt;/p&gt;</source>
+        <source>Path to new clipped GEOL-QMAPS project directory.</source>
         <translation>&lt;p&gt;Caminho para o novo diretório do projeto GEOL-QMAPS recortado.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.&lt;/p&gt;</source>
+        <source>Path to clipping polygon shapefile. Leave blank if you want to use the current QGIS Canvas rectangle.</source>
         <translation>&lt;p&gt;Caminho para o shapefile do polígono de recorte. Deixar em branco para usar o retângulo do canvas QGIS atual.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Clip GEOL-QMAPS-standardised field data layers.&lt;p&gt;</source>
+        <source>Clip GEOL-QMAPS-standardised field data layers.</source>
         <translation>&lt;p&gt;Recortar as camadas de dados de campo padronizadas GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.&lt;p&gt;</source>
+        <source>Select an existing GEOL-QMAPS project folder (version≥3.1.0) and convert it to be compatible with the latest release of the GEOL-QMAPS QGIS project template, available via the Zenodo repository.</source>
         <translation>&lt;p&gt;Selecionar uma pasta de projeto GEOL-QMAPS existente (versão ≥ 3.1.0) e convertê-la para ser compatível com a versão mais recente do modelo de projeto QGIS GEOL-QMAPS, disponível via repositório Zenodo.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.&lt;p&gt;</source>
+        <source>Create an updated project folder named OldQGISProjectFolderName_updatedversion at the same directory level as the original project folder.</source>
         <translation>&lt;p&gt;Criar uma pasta de projeto atualizada denominada NomePastaProjeto QGISAntigo_versãoatualizada no mesmo nível de diretório que a pasta do projeto original.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.&lt;p&gt;</source>
+        <source>Overwrite current field data layers updated in QField in the GEOL-QMAPS QGIS master project.</source>
         <translation>&lt;p&gt;Substituir as camadas de dados de campo atuais atualizadas no QField no projeto principal QGIS GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.&lt;p&gt;</source>
+        <source>Synchronise field data from the updated QField package folder to the GEOL-QMAPS QGIS master database.</source>
         <translation>&lt;p&gt;Sincronizar os dados de campo da pasta do pacote QField atualizado com o banco de dados principal QGIS GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.&lt;p&gt;</source>
+        <source>Merge two existing GEOL-QMAPS projects by selecting two existing project files, and a new repository to store newly merged projects, with duplicate layers removed.</source>
         <translation>&lt;p&gt;Mesclar dois projetos GEOL-QMAPS existentes selecionando dois arquivos de projeto existentes e um novo repositório para armazenar os projetos recém-mesclados, com camadas duplicadas removidas.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.&lt;/p&gt;</source>
+        <source>Path to directory of the GEOL-QMAPS QGIS project from which the layer tree architecture will be copied.</source>
         <translation>&lt;p&gt;Caminho para o diretório do projeto QGIS GEOL-QMAPS do qual a arquitetura da árvore de camadas será copiada.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.&lt;/p&gt;</source>
+        <source>Path to directory of the GEOL-QMAPS QGIS project to be merged to the latter. Layers specific to the second project are copied to the merged project folder but are not loaded in the QGIS project.</source>
         <translation>&lt;p&gt;Caminho para o diretório do projeto QGIS GEOL-QMAPS a ser mesclado ao anterior. As camadas específicas do segundo projeto são copiadas para a pasta do projeto mesclado, mas não são carregadas no projeto QGIS.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Path to directory of newly merged GEOL-QMAPS QGIS project.&lt;/p&gt;</source>
+        <source>Path to directory of newly merged GEOL-QMAPS QGIS project.</source>
         <translation>&lt;p&gt;Caminho para o diretório do projeto QGIS GEOL-QMAPS recém-mesclado.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Merge selected GEOL-QMAPS QGIS projects.&lt;p&gt;</source>
+        <source>Merge selected GEOL-QMAPS QGIS projects.</source>
         <translation>&lt;p&gt;Mesclar os projetos QGIS GEOL-QMAPS selecionados.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.&lt;p&gt;</source>
+        <source>Transfer of all field data from the CURRENT_MISSION.gpkg geopackage (stored under the CURRENT MISSION group in the GEOL-QMAPS QGIS project) to the COMPILATION.gpkg geopackage, loaded in the EXISTING FIELD GEODATABASE sub-group in the GEOL-QMAPS QGIS project.</source>
         <translation>&lt;p&gt;Transferência de todos os dados de campo do geopackage CURRENT_MISSION.gpkg (armazenado sob o grupo CURRENT MISSION no projeto QGIS GEOL-QMAPS) para o geopackage COMPILATION.gpkg, carregado no subgrupo EXISTING FIELD GEODATABASE do projeto QGIS GEOL-QMAPS.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.&lt;p&gt;</source>
+        <source>After using the Merge Projects or Archive Current Field Data tools, ensure the integrity of generated field layers by identifying and deleting any duplicate entities with identical UUIDs.</source>
         <translation>&lt;p&gt;Após usar as ferramentas Mesclar Projetos ou Arquivar Dados de Campo Atuais, garantir a integridade das camadas de campo geradas identificando e excluindo quaisquer entidades duplicadas com UUIDs idênticos.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Remove duplicates in current and compilation field data layers.&lt;p&gt;</source>
+        <source>Remove duplicates in current and compilation field data layers.</source>
         <translation>&lt;p&gt;Remover duplicatas nas camadas de dados de campo atuais e de compilação.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).&lt;p&gt;</source>
+        <source>Specify a directory for exporting all point, polygon, and polyline entities of the compilation data layers. These entities will be grouped and combined into different thematic shapefile layers in a geopackage (polygon and line layers are merged by geometry, point layers are divided between lithologies, structures and stops-sampling-photographs-observations).</source>
         <translation>&lt;p&gt;Especificar um diretório para exportar todas as entidades de ponto, polígono e polilinha das camadas de dados de compilação. Essas entidades serão agrupadas e combinadas em diferentes camadas temáticas shapefile em um geopackage (camadas de polígono e linha são mescladas por geometria, camadas de pontos são divididas entre litologias, estruturas e paradas-amostragem-fotografias-observações).&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.&lt;p&gt;</source>
+        <source>Provide an output path to combine similar layers into thematic shapefiles as part of a geopackage.</source>
         <translation>&lt;p&gt;Fornecer um caminho de saída para combinar camadas similares em shapefiles temáticos como parte de um geopackage.&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Export compilation layers to common themes.&lt;p&gt;</source>
-        <translation>&lt;p&gt;Exportar camadas de compilação para temas comuns.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
@@ -275,82 +285,47 @@
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.&lt;p&gt;</source>
+        <source>Define clustering distance to add a cluster code for Virtual Stop ID to all different types of points observations according to locality, using a DBSCAN algorithm. This will create a new layer called Virtual_Stops_datestamp.</source>
         <translation>&lt;p&gt;Definir a distância de agrupamento para adicionar um código de cluster para o ID de parada virtual a todos os tipos de observações de pontos por localidade, usando um algoritmo DBSCAN. Isso criará uma nova camada chamada Virtual_Stops_datestamp.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt; Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.&lt;p&gt;</source>
+        <source>Set the radius of the circle to be created around each data point to check the data density (in metres) for further clustering.</source>
         <translation>&lt;p&gt;Definir o raio do círculo a ser criado ao redor de cada ponto de dados para verificar a densidade dos dados (em metros) para agrupamento posterior.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Create virtual stops.&lt;p&gt;</source>
+        <source>Create virtual stops.</source>
         <translation>&lt;p&gt;Criar paradas virtuais.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Control fork of custom Stereonet plugin display.&lt;p&gt;</source>
-        <translation>&lt;p&gt;Fork de controle da exibição do plugin Estereorrede personalizado.&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to switch to Great Circle Display for Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para alternar para a exibição de Círculos Máximos para o plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to add Contour Display for Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para adicionar a exibição de Contornos para o plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to add kinematics for Lineation Display for Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para adicionar cinemática à exibição de Lineações para o plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to add Associated Great Circles to Lineation Display for Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para adicionar Círculos Máximos Associados à exibição de Lineações para o plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to display rose diagram instead of stereoplot in Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para exibir diagrama de rosa em vez de estereograma no plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Select Checkbox to control Display behaviour for Stereonet Plugin&lt;p&gt;</source>
-        <translation>&lt;p&gt;Marcar para controlar o comportamento de exibição do plugin Estereorrede&lt;p&gt;</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.&lt;p&gt;</source>
+        <source>Allows a new directory to be defined for the storage of field and sampling pictures (to enable the display of Map Tips miniatures for field and sample photographs in QGIS), and retrieve EXIF metadata for image orientation if available.</source>
         <translation>&lt;p&gt;Permite definir um novo diretório para o armazenamento de fotografias de campo e amostragem (para habilitar a exibição de miniaturas de Dicas de Mapa para fotografias de campo e amostras no QGIS), e recuperar metadados EXIF para a orientação da imagem, se disponíveis.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Browse to the folder that contains field and sample photographs.&lt;p&gt;</source>
-        <translation>&lt;p&gt;Navegar até a pasta que contém fotografias de campo e amostras.&lt;p&gt;</translation>
+        <source>Path to the folder that contains field and sample photographs.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toogled on, the filepath of existing photographs will be updated to the selected folder.&lt;p&gt;</source>
+        <source>If toggled on, the filepath of existing photographs will be updated to the selected folder.</source>
         <translation>&lt;p&gt;Se ativado, o caminho de arquivo das fotografias existentes será atualizado para a pasta selecionada.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;If toogled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.&lt;p&gt;</source>
+        <source>If toggled on, the default value for filepath of future photographs loaded in the GEOL-QMAPS project will be updated to the selected folder.</source>
         <translation>&lt;p&gt;Se ativado, o valor padrão do caminho de arquivo de futuras fotografias carregadas no projeto GEOL-QMAPS será atualizado para a pasta selecionada.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Update photograph repository information.&lt;p&gt;</source>
+        <source>Update photograph repository information.</source>
         <translation>&lt;p&gt;Atualizar as informações do repositório de fotografias.&lt;p&gt;</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS.py"/>
-        <source>&lt;p&gt;Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.&lt;p&gt;</source>
+        <source>Once picture filepaths have been updated if required, retrieve image direction from EXIF metadata.</source>
         <translation>&lt;p&gt;Após os caminhos de arquivo das imagens terem sido atualizados, se necessário, recuperar a direção da imagem dos metadados EXIF.&lt;p&gt;</translation>
     </message>
 </context>
@@ -425,11 +400,6 @@
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
         <source>Step 1: Select the Shapefile to Import</source>
         <translation>Etapa 1: Selecionar o Shapefile a Importar</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Choose your Main Project </source>
-        <translation>Escolher seu Projeto Principal </translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
@@ -713,48 +683,8 @@
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Minimal Neighbour Distance (m) :</source>
+        <source>Minimal Neighbour Distance (m):</source>
         <translation>Distância Mínima de Vizinhança (m):</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Stereographic Projection Settings</source>
-        <translation>Configurações de Projeção Estereográfica</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Select Features to Plot (Lower Hemisphere, Equal-Area Stereonet Projection):</source>
-        <translation>Selecionar Entidades a Plotar (Hemisfério Inferior, Projeção Estereográfica Equal-Area):</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Update Settings</source>
-        <translation>Atualizar Configurações</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Contours</source>
-        <translation>Contornos</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Great Circles</source>
-        <translation>Círculos Máximos</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Kinematics</source>
-        <translation>Cinemática</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Rose Diagram</source>
-        <translation>Diagrama de Rosa</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Lineation-bearing Planes</source>
-        <translation>Planos Portadores de Lineações</translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
@@ -780,6 +710,11 @@
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
         <source>Update Repository</source>
         <translation>Atualizar Repositório</translation>
+    </message>
+    <message>
+        <location filename="../GEOL_QMAPS_dockwidget.py"/>
+        <source>Update photograph paths in the project repository.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
@@ -828,7 +763,7 @@
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Old Project Folder ( version must be &gt;v3.1.0):</source>
+        <source>Old Project Folder (version must be &gt;v3.1.0):</source>
         <translation>Pasta do Projeto Antigo (versão deve ser &gt;v3.1.0):</translation>
     </message>
     <message>
@@ -892,24 +827,14 @@
         <translation>Roteiro para Desenvolvimento Futuro</translation>
     </message>
     <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>Please visit the Help - Roadmap section of the User Guide:</source>
-        <translation>Por favor visite a seção Ajuda - Roteiro do Guia do Usuário:</translation>
+        <location filename="../GEOL_QMAPS_dockwidget.py"/>
+        <source>Please visit the following page:</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
         <source>User Guide - Roadmap</source>
         <translation>Guia do Usuário - Roteiro</translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>This tool controls the display of the qgis-stereonet plugin, available here: </source>
-        <translation>Esta ferramenta controla a exibição do plugin qgis-stereonet, disponível aqui: </translation>
-    </message>
-    <message>
-        <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
-        <source>QGIS-stereonet plugin </source>
-        <translation>Plugin QGIS-stereonet </translation>
     </message>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget.py"/>

@@ -334,7 +334,7 @@
         <message>
             <location filename="../GEOL_QMAPS_dockwidget.py" line="234"/>
             <source>Import Field Data</source>
-            <translation>Importation des Données de Terrain</translation>
+            <translation>Importation des Données</translation>
         </message>
         <message>
             <location filename="../GEOL_QMAPS_dockwidget.py" line="235"/>
