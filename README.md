@@ -2,7 +2,7 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.5.1 - May 2026*
+*version 3.1.5.1 - June 2026*
 
 # Changelog 3.1.5.1
 
@@ -14,10 +14,10 @@
       - Harmonised button and tooltip styling.
      
       **Functional Changes**
-       Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **qgis-stereonet** plugin through its embedded control button.
+       Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **Stereoplot** plugin through its embedded control button.
      
       **Documentation**
-     - Updated user documentation and workflow descriptions to reflect the revised stereonet workflow.
+     - Updated user documentation and workflow descriptions to reflect the revised stereoplot workflow.
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
@@ -36,6 +36,12 @@ The plugin allows for a range of actions, from import and harmonisation of exist
 > [!TIP]
 > *Instructional videos are available in a separate [Zenodo repository](https://zenodo.org/uploads/15234743) to support the implementation of the GEOL-QMAPS solution*
 
+Along this solution, we also implemented a new plugin that enables interactive stereographic projection plotting and analysis tool for QGIS. It is compatible with GEOL-QMAPS structural layers, and other shapefile database architecture.
+[Check it out!](https://github.com/swaxi/Stereoplot)
+
+* **GEOL-QMAPS QGIS Template**: latest release available on [Zenodo](https://doi.org/10.5281/zenodo.7834717)
+
+* **GEOL-QMAPS QGIS Plugin**: available on [GitHub](https://github.com/swaxi/WAXI_QF)
 
 
 
@@ -243,7 +249,7 @@ A wide range of mapping preferences can be configured using the custom QGIS plug
 #### 5.2.5. Add QField Compass Plugin
 For instructions on using your device as a geological compass, with autoloading of structural information, visit this [site](https://github.com/swaxi/compass).
 
-#### 5.2.6. Add QField Stereonet Plugin
+#### 5.2.6. Add QField  Plugin
 For instructions on plotting on the fly structural measurements contained in any GEOL-QMAPS structural data layer in a lower-hemisphere stereonet, with symbol colour-filling based on the generation index, visit this [site](https://github.com/swaxi/stereonet).
    
 ### *5.3. Fieldwork: Data Collection* 
@@ -444,9 +450,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 * Add centroids of polygon and line features when creating virtual stop layers
 * Generate default symbols when adding new values to dictionaries if appropriate
 * Enable import of legacy lithology polygons
-
-*Stereonet Plugin:*
-* Enable kinematics plotting on poles to planes when lineation and kinematics indicators are provided
 
 *QField:*
 * Develop a QField plugin that provides a user-friendly, tree-based interface for selecting the type of new data to capture in the field.This tool should allow users to quickly choose the appropriate data from a hierarchical menu (i.e., selection of the STOPS-SAMPLING-OBSERVATIONS-PHOTOGRAPHS..., STRUCTURES or LITHOLOGIES category and then selection of the right layer), automatically activate the corresponding layer, and open the associated field form, bypassing the need to manually navigate through grouped layer tabs
