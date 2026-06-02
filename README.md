@@ -36,12 +36,8 @@ The plugin allows for a range of actions, from import and harmonisation of exist
 > [!TIP]
 > *Instructional videos are available in a separate [Zenodo repository](https://zenodo.org/uploads/15234743) to support the implementation of the GEOL-QMAPS solution*
 
-Along this solution, we also implemented a new plugin that enables interactive stereographic projection plotting and analysis tool for QGIS. It is compatible with GEOL-QMAPS structural layers, and other shapefile database architecture.
+Along this solution, we also implemented a new plugin that enables interactive stereographic projection plotting and analysis tool for QGIS: **Stereoplot**. It is compatible with GEOL-QMAPS structural layers, and other shapefile database architecture.
 [Check it out!](https://github.com/swaxi/Stereoplot)
-
-* **GEOL-QMAPS QGIS Template**: latest release available on [Zenodo](https://doi.org/10.5281/zenodo.7834717)
-
-* **GEOL-QMAPS QGIS Plugin**: available on [GitHub](https://github.com/swaxi/WAXI_QF)
 
 
 
