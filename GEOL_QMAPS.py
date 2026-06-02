@@ -227,6 +227,77 @@ biblio_python_directory = os.path.join(plugin_directory, "biblio_Python")
 sys.path.append(biblio_python_directory)
 
 
+# Robust fuzzy-matching loader.
+# Some QGIS installations may pick up an incomplete vendored fuzzywuzzy package
+# where `from fuzzywuzzy import fuzz` fails even though the package directory exists.
+# Prefer RapidFuzz when available, then fuzzywuzzy.fuzz, and finally use a small
+# difflib-based fallback so the import workflow does not crash.
+_GEOL_QMAPS_FUZZ = None
+
+class _BasicFuzz:
+    """Minimal fallback implementing the token_set_ratio method used below."""
+
+    @staticmethod
+    def token_set_ratio(value_a, value_b):
+        from difflib import SequenceMatcher
+
+        def normalise_tokens(value):
+            return set(str(value).lower().strip().split())
+
+        tokens_a = normalise_tokens(value_a)
+        tokens_b = normalise_tokens(value_b)
+
+        if not tokens_a and not tokens_b:
+            return 100
+        if not tokens_a or not tokens_b:
+            return 0
+
+        intersection = tokens_a & tokens_b
+        diff_a = tokens_a - intersection
+        diff_b = tokens_b - intersection
+
+        sorted_intersection = " ".join(sorted(intersection))
+        combined_a = " ".join(sorted(intersection | diff_a))
+        combined_b = " ".join(sorted(intersection | diff_b))
+
+        comparisons = [
+            (sorted_intersection, combined_a),
+            (sorted_intersection, combined_b),
+            (combined_a, combined_b),
+        ]
+
+        return int(round(max(
+            SequenceMatcher(None, left, right).ratio() * 100
+            for left, right in comparisons
+        )))
+
+
+def _get_fuzz_matcher():
+    """Return an object exposing token_set_ratio without assuming one package layout."""
+    global _GEOL_QMAPS_FUZZ
+
+    if _GEOL_QMAPS_FUZZ is not None:
+        return _GEOL_QMAPS_FUZZ
+
+    try:
+        from rapidfuzz import fuzz as rapidfuzz_fuzz
+        _GEOL_QMAPS_FUZZ = rapidfuzz_fuzz
+        return _GEOL_QMAPS_FUZZ
+    except Exception:
+        pass
+
+    try:
+        import importlib
+        _GEOL_QMAPS_FUZZ = importlib.import_module("fuzzywuzzy.fuzz")
+        return _GEOL_QMAPS_FUZZ
+    except Exception:
+        pass
+
+    _GEOL_QMAPS_FUZZ = _BasicFuzz()
+    return _GEOL_QMAPS_FUZZ
+
+
+
 class GEOL_QMAPS:
     """QGIS Plugin Implementation."""
 
@@ -1132,7 +1203,7 @@ class GEOL_QMAPS:
     ###############################################################################
 
     def export_layer_fill_Table1(self, layer):
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
 
         # 1. Load your input file into a DataFrame
         noms_des_champs = [field.name() for field in layer.fields()]
@@ -1456,7 +1527,7 @@ class GEOL_QMAPS:
 
     #Update assigned value
     def update_assigned_value(self, row, new_alias):
-        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        fuzz = _get_fuzz_matcher()
         legacy_item = self.dlg.tableWidget1.item(row, 0)
         if legacy_item is None:
             return
@@ -1478,7 +1549,7 @@ class GEOL_QMAPS:
         assigned_item.setBackground(new_color)
 
     def update_assigned_value2(self, row, new_alias):
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
         legacy_item = self.dlg.tableWidget2.item(row, 0)
         if legacy_item is None:
             return
@@ -1495,7 +1566,7 @@ class GEOL_QMAPS:
         assigned_item.setBackground(new_color)
 
     def update_assigned_value3(self, row, new_alias):
-        from fuzzywuzzy import fuzz  # ensure fuzz is imported
+        fuzz = _get_fuzz_matcher()
         legacy_item = self.dlg.tableWidget3.item(row, 0)
         if legacy_item is None:
             return
@@ -1646,7 +1717,7 @@ class GEOL_QMAPS:
     def fill_Table2(self, fichier_output):
 
         # from openpyxl import Workbook
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
 
         # If user never mapped “Lithology - Outcrop Lithology,” skip with a warning:
         if "Lithology - Outcrop Lithology" not in fichier_output.columns:
@@ -2025,7 +2096,7 @@ class GEOL_QMAPS:
     ):
 
         # from openpyxl import Workbook
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
 
         # Add lithologies to Excel file
 
@@ -2245,7 +2316,7 @@ class GEOL_QMAPS:
     def fill_Table3(self, fichier_output):
 
         # from openpyxl import Workbook
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
 
         #Check
         if "Structures - Structure Type" not in fichier_output.columns:
@@ -3735,7 +3806,7 @@ class GEOL_QMAPS:
 
     def set_user_by_default(self):
 
-        from fuzzywuzzy import fuzz
+        fuzz = _get_fuzz_matcher()
 
         if self.dlg.lineEdit_39.text():
 
