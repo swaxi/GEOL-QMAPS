@@ -2790,6 +2790,138 @@ class GEOL_QMAPS:
         print(f"Fichier_output_structures with headers, before filling:{fichier_output_structures}")
 
         # 4) Append each row of fichier_output to the appropriate structure-type DataFrame.
+        #    Special handling is required for structure types stored in Lineations_PT
+        #    and Folds_PT because those layers may contain both linear measurements
+        #    (Trend/Plunge) and related planar measurements (DipDir or Strike + Dip).
+        #    The generic alias mapping is not sufficient for all of these fields:
+        #      - Lineations_PT stores the bearing-plane orientation as DipDir_ref,
+        #        Strike_ref and Dip_ref.
+        #      - Folds_PT stores the axial-surface orientation as Dip_Dir,
+        #        Strike_RHR and Dip.
+        planar_dipdir_aliases = [
+            "Structures - Planar Measurements / Dip Direction",
+            "Structures - Planar Measurements / Dip direction",
+            "Structures - Planar Measurements / DipDir",
+            "Structures - Planar Measurements / Dip Dir",
+            "Structures - Planar Measurements / Dip_Dir",
+        ]
+        planar_strike_aliases = [
+            "Structures - Planar Measurements / Strike",
+            "Structures - Planar Measurements / Strike - Right-Hand Rule",
+            "Structures - Planar Measurements / Strike - right-hand rule",
+            "Structures - Planar Measurements / Strike_RHR",
+            "Structures - Planar Measurements / Strike RHR",
+        ]
+        planar_dip_aliases = [
+            "Structures - Planar Measurements / Dip",
+        ]
+        linear_trend_aliases = [
+            "Structures - Linear Measurements / Trend - Plunge Direction",
+            "Structures - Linear Measurements / Trend",
+        ]
+        linear_plunge_aliases = [
+            "Structures - Linear Measurements / Trend - Plunge",
+            "Structures - Linear Measurements / Plunge",
+        ]
+
+        def _first_existing_column(candidate_names, contains_all=None):
+            """Return the first exact or token-matching column name."""
+            for candidate in candidate_names:
+                if candidate in fichier_output.columns:
+                    return candidate
+            if contains_all:
+                tokens = [token.lower() for token in contains_all]
+                for col in fichier_output.columns:
+                    col_l = str(col).lower()
+                    if all(token in col_l for token in tokens):
+                        return col
+            return None
+
+        dipdir_col = _first_existing_column(planar_dipdir_aliases, ["dip", "direction"])
+        strike_col = _first_existing_column(planar_strike_aliases, ["strike"])
+        dip_col = _first_existing_column(planar_dip_aliases, ["planar", "dip"])
+        trend_col = _first_existing_column(linear_trend_aliases, ["trend"])
+        plunge_col = _first_existing_column(linear_plunge_aliases, ["plunge"])
+
+        def _clean_orientation_value(value):
+            """Return blank for null-like values; otherwise preserve the imported value."""
+            if value is None:
+                return ""
+            try:
+                if pd.isna(value):
+                    return ""
+            except Exception:
+                pass
+            text = str(value).strip()
+            if text.lower() in ("", "nan", "none", "null"):
+                return ""
+            return value
+
+        def _as_float_or_none(value):
+            value = _clean_orientation_value(value)
+            if value == "":
+                return None
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+
+        def _normalise_azimuth(value):
+            value = value % 360
+            if value < 0:
+                value += 360
+            return value
+
+        def _format_orientation_number(value):
+            if value is None:
+                return ""
+            value = _normalise_azimuth(float(value))
+            if value.is_integer():
+                return str(int(value))
+            return str(value)
+
+        def _row_value(row_index, column_name):
+            if column_name and column_name in fichier_output.columns:
+                return _clean_orientation_value(fichier_output.at[row_index, column_name])
+            return ""
+
+        def _planar_orientation_for_row(row_index):
+            """Return DipDir, Strike_RHR, Dip and planar Measure values for a row."""
+            dipdir_value = _row_value(row_index, dipdir_col)
+            strike_value = _row_value(row_index, strike_col)
+            dip_value = _row_value(row_index, dip_col)
+
+            dipdir_num = _as_float_or_none(dipdir_value)
+            strike_num = _as_float_or_none(strike_value)
+
+            if dipdir_num is not None and strike_num is None:
+                strike_value = _format_orientation_number(dipdir_num - 90)
+            elif strike_num is not None and dipdir_num is None:
+                dipdir_value = _format_orientation_number(strike_num + 90)
+
+            measure_value = ""
+            if dipdir_value != "" or dip_value != "":
+                measure_value = "Dip - dip direction"
+            elif strike_value != "" or dip_value != "":
+                measure_value = "Strike (right-hand rule) - dip"
+
+            return {
+                "dipdir": dipdir_value,
+                "strike": strike_value,
+                "dip": dip_value,
+                "measure": measure_value,
+            }
+
+        def _linear_measurement_for_row(row_index):
+            trend_value = _row_value(row_index, trend_col)
+            plunge_value = _row_value(row_index, plunge_col)
+            measure_value = "Trend - Plunge" if trend_value != "" or plunge_value != "" else ""
+            return {
+                "trend": trend_value,
+                "plunge": plunge_value,
+                "measure": measure_value,
+            }
+
         for i in range(len(fichier_output)):
             standard_layer = (fichier_output.loc[i, "Standard_Layer"]
             if "Standard_Layer" in fichier_output.columns
@@ -2800,6 +2932,9 @@ class GEOL_QMAPS:
                     continue
                 target_df = fichier_output_structures[df_key]
                 print(f"Targeted dataframe before append:\n{target_df}")  # debug
+
+                planar_orientation = _planar_orientation_for_row(i)
+                linear_measurement = _linear_measurement_for_row(i)
 
                 row_to_append = []
                 for col_reference in target_df.columns:
@@ -2819,6 +2954,25 @@ class GEOL_QMAPS:
                             value = fichier_output.at[i, "Structures - Kinematics"]
                         else:
                             value = ""
+
+                    elif standard_layer == "Lineations_PT" and lc == "dipdir_ref":
+                        value = planar_orientation["dipdir"]
+                    elif standard_layer == "Lineations_PT" and lc == "strike_ref":
+                        value = planar_orientation["strike"]
+                    elif standard_layer == "Lineations_PT" and lc == "dip_ref":
+                        value = planar_orientation["dip"]
+                    elif standard_layer == "Lineations_PT" and lc == "measure":
+                        # The main measurement stored in Lineations_PT remains the lineation.
+                        value = linear_measurement["measure"] or planar_orientation["measure"]
+
+                    elif standard_layer == "Folds_PT" and lc == "dip_dir":
+                        value = planar_orientation["dipdir"]
+                    elif standard_layer == "Folds_PT" and lc == "strike_rhr":
+                        value = planar_orientation["strike"]
+                    elif standard_layer == "Folds_PT" and lc == "dip":
+                        value = planar_orientation["dip"]
+                    elif standard_layer == "Folds_PT" and lc == "measure":
+                        value = planar_orientation["measure"]
 
                     else:
                         # fall back via alias mapping for all other columns
@@ -3027,10 +3181,17 @@ class GEOL_QMAPS:
                                     i, str(hash)
                                 )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
                                 self.sheetHashUUID[str(hash)] = [new_text]
-                            elif (
-                                field_names[i] == "Measure" and ("Lineations_PT" or "Folds_PT") in sheet
-                            ):
-                                feature.setAttribute(i, "Trend - Plunge")
+                            elif field_names[i] == "Measure" and ("Lineations_PT" in sheet or "Folds_PT" in sheet):
+                                # Preserve the layer-specific Measure value prepared during structure_sorting.
+                                # Lineations_PT should normally keep "Trend - Plunge"; Folds_PT should keep
+                                # the axial-surface orientation convention when DipDir/Strike + Dip were imported.
+                                clean_value = str(value).strip()
+                                if clean_value and clean_value.lower() not in ("nan", "none", "null"):
+                                    feature.setAttribute(i, clean_value)
+                                elif "Lineations_PT" in sheet:
+                                    feature.setAttribute(i, "Trend - Plunge")
+                                else:
+                                    feature.setAttribute(i, "")
                             elif field_names[i] == "Existing databases - raw data":
                                 new_text = {}
                                 for pair in value[:-1].split(";"):
