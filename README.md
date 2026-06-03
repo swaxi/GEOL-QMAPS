@@ -71,6 +71,17 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   * a **`.\QGIS_TEMPLATE`** folder with the QGIS mapping project file, relevant field data entry files and database repositories, 
   * a log file (**`List of updates of the different releases.docx`**),
 
+### *4.2. Installing Dependencies with qpip (Recommended)*
+The **GEOL-QMAPS** relies on several Python packages that are not always included in a standard QGIS installation. To simplify dependency management, the plugin supports installation through **qpip**, the QGIS Python package manager.
+
+Before installing **GEOL-QMAPS**, it is recommended to:
+1. Install the **qpip** plugin from the QGIS Plugin Manager.
+2. Allow **qpip** to install any missing dependencies automatically when prompted by the **GEOL-QMAPS** plugin (or any other plugin with depedencies).
+
+Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations.
+
+> **Important:** If the **GEOL-QMAPS** plugin fails to start or reports missing Python modules, first verify that qpip is installed and that all required dependencies have been successfully installed. In most cases, dependency-related issues can be resolved by reinstalling the missing packages through qpip and restarting QGIS.
+
 ### *4.2. GEOL-QMAPS QGIS Plugin* 
 * The current plugin version and further releases will be made avalaible in the QGIS Plugin Manager Repository.
 
