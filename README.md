@@ -2,9 +2,9 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.1.5.1 - June 2026*
+*version 3.2.0 - June 2026*
 
-# Changelog 3.1.5.1
+# Changelog 3.2.0
 
       **GUI Improvements**
       - Replaced the legacy Qt Designer (.ui) interface with a fully Python-generated dock widget.
