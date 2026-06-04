@@ -8,7 +8,7 @@
                               -------------------
         begin                : 2024-11-13
         git sha              : $Format:%H$
-        copyright            : (C) 2025 by GEOL_QMAPS
+        copyright            : (C) 2026 by GEOL_QMAPS
         email                : mark.jessell@uwa.edu.au / julien.perret@uwa.edu.au
  ***************************************************************************/
 
@@ -4172,7 +4172,7 @@ class GEOL_QMAPS:
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
-        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.1.5 at the moment
+        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.2.0 at the moment
         # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
         import socket
         try:
@@ -4189,7 +4189,7 @@ class GEOL_QMAPS:
 
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.1.5.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.parse import urlparse
         from urllib.request import urlopen
         try:
@@ -4228,7 +4228,7 @@ class GEOL_QMAPS:
             zf.extractall(str(parent))
 
         # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
-        template_src = parent / "GEOL-QMAPS_v3.1.5" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+        template_src = parent / "GEOL-QMAPS_v3.2.0" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
 
 
         # 4b) Prepare the destination name and remove any stale copy
