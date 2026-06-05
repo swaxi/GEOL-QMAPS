@@ -4189,7 +4189,7 @@ class GEOL_QMAPS:
 
         # 3b) Attempt download with 60 s timeout
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/17638422/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        url = "https://zenodo.org/records/20549571/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.parse import urlparse
         from urllib.request import urlopen
         try:
