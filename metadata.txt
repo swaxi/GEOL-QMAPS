@@ -34,6 +34,7 @@ changelog=3.2.0
        * Removed the Stereographic Projection Settings tool from the Data Management tab, as this functionality is now handled directly by the latest qgis-stereonet plugin through its embedded control button
        * Updated the Rejig tool to apply layer styles and configuration from the regenerated FIELD_DATA.qlr to the copied project, ensuring template style updates are reflected when opening the rejigged project
        * Preserved the existing project structure, layer hierarchy, layer IDs, loaded layers, and map themes by updating layer styling in-place rather than replacing the FIELD DATA group
+       * Updated the Archive Current Field Data tool for better handling of photographs
        **Documentation**
        * Updated README documentation to reflect the revised plugin architecture and stereonet workflow
     3.1.5 2025-11
