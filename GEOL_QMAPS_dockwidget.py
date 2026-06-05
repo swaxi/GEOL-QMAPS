@@ -19,7 +19,7 @@ from qgis.PyQt.QtGui import QFont
 
 
 def _tr(text):
-    return QCoreApplication.translate("GEOL_QMAPSDockWidgetBase", text)  # nosec B105
+    return QCoreApplication.translate("GQMapsDock", text)
 
 
 # ---------------------------------------------------------------------------

@@ -330,7 +330,7 @@
     </message>
 </context>
 <context>
-    <name>GEOL_QMAPSDockWidgetBase</name>
+    <name>GQMapsDock</name>
     <message>
         <location filename="../GEOL_QMAPS_dockwidget_base.ui"/>
         <source>Import Field Data</source>

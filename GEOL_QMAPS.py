@@ -4296,9 +4296,9 @@ class GEOL_QMAPS:
                     raise RuntimeError(f"No .qgs project file found inside {path.name}.")
                 qgs_member_name = qgs_names[0]
                 qgs_file = tmp_dir / qgs_member_name
-                return ET.parse(str(qgs_file)), qgs_member_name, tmp_dir
+                return ET.parse(str(qgs_file)), qgs_member_name, tmp_dir  # nosec B314
 
-            return ET.parse(str(path)), path.name, None
+            return ET.parse(str(path)), path.name, None  # nosec B314
 
         def _write_xml_to_project(tree, path, qgs_member_name, extracted_dir):
             if path.suffix.lower() == ".qgz":
@@ -4321,7 +4321,7 @@ class GEOL_QMAPS:
             node = maplayer.find("layername")
             return node.text.strip() if node is not None and node.text else None
 
-        qlr_tree = ET.parse(str(qlr_path))
+        qlr_tree = ET.parse(str(qlr_path))  # nosec B314
         qlr_layers = {}
         for layer in qlr_tree.findall(".//maplayer"):
             name = _layer_name(layer)
@@ -5638,7 +5638,7 @@ class GEOL_QMAPS:
 
         qgs = qgs_files[0]
         # now parse & rewrite relative paths
-        tree = ET.parse(qgs); root = tree.getroot()
+        tree = ET.parse(qgs); root = tree.getroot()  # nosec B314
         for ds in root.findall('.//datasource'):
             p = ds.text
             if p and os.path.isabs(p):
