@@ -164,7 +164,7 @@ except ImportError:
 
     except Exception:
         # Fallback if install fails
-        from xml.etree import ElementTree as ET
+        from defusedxml.etree import ElementTree as ET
 from datetime import datetime
 import re
 
@@ -4411,14 +4411,14 @@ class GEOL_QMAPS:
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
         url = "https://zenodo.org/records/20549571/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
         from urllib.parse import urlparse
-        from urllib.request import urlopen
+        from urllib.request import urlopen, Request
         try:
             parsed_url = urlparse(url)
 
             if parsed_url.scheme not in {"https"}:
                 raise ValueError(f"Unsupported URL scheme: {parsed_url.scheme!r}")
 
-            with urlopen(url, timeout=60) as resp:
+            with urlopen(Request(url), timeout=60) as resp:  # nosec B310
                 data = resp.read()
             local_path = str(tmpzip)
             with open(local_path, 'wb') as f:
@@ -5276,7 +5276,7 @@ class GEOL_QMAPS:
 
         def _file_checksum(path):
             """Return an MD5 checksum for copy verification before deleting originals."""
-            hasher = hashlib.md5()
+            hasher = hashlib.md5(usedforsecurity=False)
             with open(self._win_long_path(path), "rb") as file_handle:
                 for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
                     hasher.update(chunk)
