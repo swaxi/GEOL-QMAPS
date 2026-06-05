@@ -5129,6 +5129,20 @@ class GEOL_QMAPS:
 
         print(f"Found {len(source_layers)} layers in source geopackage")
 
+        archive_dcim = os.path.join(main_project_path, self.dir_1, "DCIM")
+        archive_dcim_norm = archive_dcim.replace("\\", "/").rstrip("/")
+
+        def _photo_filename_from_feature(feature):
+            """Return the photograph filename from Photograph or Full_Path."""
+            for field_name in ("Photograph", "Full_Path"):
+                try:
+                    value = feature[field_name]
+                except KeyError:
+                    value = None
+                if value not in (None, ""):
+                    return os.path.basename(str(value).replace("\\", "/"))
+            return ""
+
         # Process each layer
         for source_layer_name in source_layers:
             if source_layer_name in shps.index.tolist():
@@ -5168,10 +5182,21 @@ class GEOL_QMAPS:
 
                         # Set attributes
                         attrs = {}
+                        photo_filename = _photo_filename_from_feature(feature) if source_layer_name == "Photographs_PT" else ""
+
                         for field in compilation_layer.fields():
                             field_name = field.name()
                             if field_name.lower() == "fid":
                                 attrs[field_name] = next_fid
+                            elif source_layer_name == "Photographs_PT" and field_name == "Source":
+                                # Archived photographs are copied to 1_EXISTING_FIELD_DATABASE/DCIM.
+                                # Source must therefore be redirected to that folder, otherwise the
+                                # Full_Path default expression still points to 0_FIELD_DATA/DCIM.
+                                attrs[field_name] = archive_dcim_norm
+                            elif source_layer_name == "Photographs_PT" and field_name == "Full_Path":
+                                # Keep Full_Path immediately valid for already archived features.
+                                # The default value on update can still recompute it from Source + Photograph.
+                                attrs[field_name] = (archive_dcim_norm + "/" + photo_filename) if photo_filename else archive_dcim_norm
                             else:
                                 try:
                                     attrs[field_name] = feature[field_name]
@@ -5242,6 +5267,111 @@ class GEOL_QMAPS:
                     )
                 except Exception as e:
                     print(f"Error processing {source_layer_name}: {str(e)}")
+
+        # Archive current field photographs alongside the GeoPackage data.
+        # The previous implementation only merged CURRENT_MISSION.gpkg into
+        # COMPILATION.gpkg; images stored in 0_FIELD_DATA/DCIM were left in
+        # place and were therefore missing from 1_EXISTING_FIELD_DATABASE/DCIM.
+        current_dcim = os.path.join(main_project_path, self.dir_0, "DCIM")
+
+        def _file_checksum(path):
+            """Return an MD5 checksum for copy verification before deleting originals."""
+            hasher = hashlib.md5()
+            with open(self._win_long_path(path), "rb") as file_handle:
+                for chunk in iter(lambda: file_handle.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+            return hasher.hexdigest()
+
+        def _files_match(src_file, dst_file):
+            """Check that the archived copy exists and matches the original file."""
+            if not os.path.exists(self._win_long_path(dst_file)):
+                return False
+            if os.path.getsize(self._win_long_path(src_file)) != os.path.getsize(self._win_long_path(dst_file)):
+                return False
+            return _file_checksum(src_file) == _file_checksum(dst_file)
+
+        def _delete_successfully_archived_dcim_files(src_dir, dst_dir):
+            """
+            Delete files from 0_FIELD_DATA/DCIM only after confirming that the
+            corresponding archived copy exists in 1_EXISTING_FIELD_DATABASE/DCIM.
+            Empty subfolders are removed, but the root DCIM folder is preserved.
+            """
+            deleted_count = 0
+            retained_count = 0
+
+            for root, dirs, files in os.walk(src_dir, topdown=False):
+                for file_name in files:
+                    src_file = os.path.join(root, file_name)
+                    rel_path = os.path.relpath(src_file, src_dir)
+                    dst_file = os.path.join(dst_dir, rel_path)
+
+                    try:
+                        if _files_match(src_file, dst_file):
+                            os.remove(self._win_long_path(src_file))
+                            deleted_count += 1
+                        else:
+                            retained_count += 1
+                            print(f"Retained current-field photograph because archive verification failed: {src_file}")
+                    except Exception as delete_error:
+                        retained_count += 1
+                        print(f"Could not delete archived current-field photograph {src_file}: {delete_error}")
+
+                # Remove empty child folders, but keep the root DCIM folder in place.
+                if os.path.abspath(root) != os.path.abspath(src_dir):
+                    try:
+                        if not os.listdir(self._win_long_path(root)):
+                            os.rmdir(self._win_long_path(root))
+                    except Exception as cleanup_error:
+                        print(f"Could not remove empty DCIM subfolder {root}: {cleanup_error}")
+
+            return deleted_count, retained_count
+
+        if os.path.isdir(current_dcim):
+            try:
+                self._safe_copy_tree(
+                    current_dcim,
+                    archive_dcim,
+                    dirs_exist_ok=True,
+                    overwrite=True
+                )
+
+                if not self._check_max_filename_length(archive_dcim):
+                    return
+
+                deleted_count, retained_count = _delete_successfully_archived_dcim_files(
+                    current_dcim,
+                    archive_dcim
+                )
+
+                if retained_count:
+                    self.iface.messageBar().pushMessage(
+                        f"Current field photographs archived to 1_EXISTING_FIELD_DATABASE/DCIM; "
+                        f"{deleted_count} originals removed, {retained_count} retained because verification failed.",
+                        level=Qgis.Warning,
+                        duration=15
+                    )
+                else:
+                    self.iface.messageBar().pushMessage(
+                        f"Current field photographs archived to 1_EXISTING_FIELD_DATABASE/DCIM; "
+                        f"{deleted_count} originals removed from 0_FIELD_DATA/DCIM.",
+                        level=Qgis.Success,
+                        duration=8
+                    )
+
+                print(
+                    f"Current DCIM folder archived from {current_dcim} to {archive_dcim}; "
+                    f"{deleted_count} originals removed, {retained_count} retained."
+                )
+
+            except Exception as e:
+                self.iface.messageBar().pushMessage(
+                    f"Field data were archived, but photographs could not be copied to the existing database DCIM folder: {e}",
+                    level=Qgis.Warning,
+                    duration=20
+                )
+                print(f"Error archiving DCIM folder: {e}")
+        else:
+            print(f"No current DCIM folder found at {current_dcim}; no photographs to archive.")
 
     def delete_gpkg_layer(self, geopackage_path, layer_name):
         from osgeo import ogr
