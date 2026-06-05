@@ -3502,17 +3502,100 @@ class GEOL_QMAPS:
     ################            Fieldwork Preparation               ###############
     ###############################################################################
 
-    def safe_copy_file(self, src_path, dst_path):
-        if os.path.exists(src_path):
-            shutil.copyfile(src_path, dst_path)
-        else:
+    @staticmethod
+    def _win_long_path(path):
+        """Return a Windows extended-length path when running on Windows.
+
+        This allows file operations to handle deeply nested GEOL-QMAPS folders
+        in the same spirit as the Merge Projects tool, while remaining a no-op
+        on macOS/Linux.
+        """
+        path = os.fspath(path)
+        if platform.system() != "Windows":
+            return path
+
+        abs_path = os.path.abspath(path)
+        if abs_path.startswith("\\\\?\\"):
+            return abs_path
+        if abs_path.startswith("\\") :
+            return "\\\\?\\UNC\\" + abs_path.lstrip("\\")
+        return "\\\\?\\" + abs_path
+
+    def _safe_remove_tree(self, path):
+        """Remove a directory tree, including read-only and long Windows paths."""
+        if not os.path.exists(path):
+            return
+
+        def _rm_readonly(func, item_path, exc):
+            import stat
+            try:
+                os.chmod(item_path, stat.S_IWRITE)
+            except Exception:
+                pass
+            func(item_path)
+
+        shutil.rmtree(self._win_long_path(path), onerror=_rm_readonly)
+
+    def _safe_copy_file(self, src_path, dst_path, *, overwrite=True):
+        """Copy one file, creating parents and supporting long Windows paths."""
+        if not os.path.exists(src_path):
             print(src_path, "not found")
+            return False
+
+        dst_parent = os.path.dirname(os.path.abspath(os.fspath(dst_path)))
+        os.makedirs(self._win_long_path(dst_parent), exist_ok=True)
+
+        if (not overwrite) and os.path.exists(dst_path):
+            return True
+
+        shutil.copy2(self._win_long_path(src_path), self._win_long_path(dst_path))
+        return True
+
+    def _safe_copy_tree(self, src_path, dst_path, *, dirs_exist_ok=True, ignore_project_files=False, overwrite=True):
+        """Copy a directory tree file-by-file to avoid shutil.copytree long-path failures.
+
+        This mirrors the safer copy strategy used by the Merge Projects tool but
+        is reusable by the Rejig tool as well. It creates each destination
+        directory explicitly and copies files one at a time, using Windows
+        extended-length paths where available.
+        """
+        if not os.path.isdir(src_path):
+            print(src_path, "not found")
+            return False
+
+        if os.path.exists(dst_path) and not dirs_exist_ok:
+            raise FileExistsError(f"Destination already exists: {dst_path}")
+
+        os.makedirs(self._win_long_path(dst_path), exist_ok=True)
+
+        for root, dirs, files in os.walk(src_path):
+            rel = os.path.relpath(root, src_path)
+            target_dir = dst_path if rel == "." else os.path.join(dst_path, rel)
+            os.makedirs(self._win_long_path(target_dir), exist_ok=True)
+
+            for name in files:
+                if ignore_project_files and name.lower().endswith((".qgs", ".qgz", ".bak")):
+                    continue
+
+                src_file = os.path.join(root, name)
+                dst_file = os.path.join(target_dir, name)
+
+                try:
+                    self._safe_copy_file(src_file, dst_file, overwrite=overwrite)
+                except OSError as e:
+                    self.iface.messageBar().pushMessage(
+                        f"Could not copy file:\n{src_file}\n\nError: {e}",
+                        level=Qgis.Warning,
+                        duration=20
+                    )
+
+        return True
+
+    def safe_copy_file(self, src_path, dst_path):
+        self._safe_copy_file(src_path, dst_path)
 
     def safe_copy_tree(self, src_path, dst_path):
-        if os.path.exists(src_path):
-            shutil.copytree(src_path, dst_path)
-        else:
-            print(src_path, "not found")
+        self._safe_copy_tree(src_path, dst_path, dirs_exist_ok=False)
 
     ### Clip to Canvas ###
 
@@ -4137,6 +4220,143 @@ class GEOL_QMAPS:
         if folder:
             self.dlg.lineEdit_15.setText(folder)
 
+    def _apply_qlr_layer_styles_to_project_file(self, project_path, qlr_path):
+        """Apply layer definitions from a QLR file to an existing QGS/QGZ project.
+
+        The Rejig tool intentionally keeps the old project file so that user-specific
+        layer groups, loaded auxiliary layers and map themes are conserved. However,
+        that also means styles embedded in the copied old project override the new
+        FIELD_DATA.qlr stored in 99_COMMAND_FILES_PLUGIN. This helper updates the
+        copied project in place by matching layers by name and replacing only the
+        style/configuration XML blocks, while preserving layer IDs, data sources,
+        layer-tree structure and map-theme references.
+        """
+        from copy import deepcopy
+        import zipfile
+
+        project_path = Path(project_path)
+        qlr_path = Path(qlr_path)
+
+        if not project_path.exists():
+            return 0
+        if not qlr_path.exists():
+            self.iface.messageBar().pushMessage(
+                f"WARNING: Cannot apply updated layer styles because {qlr_path.name} was not found.",
+                level=Qgis.Warning,
+                duration=10,
+            )
+            return 0
+
+        # XML blocks that define layer style and layer-level behaviour in QGIS
+        # projects. Deliberately exclude datasource/provider/id/layername so the
+        # old project remains structurally intact and map themes keep their layer IDs.
+        replace_tags = {
+            "renderer-v2",
+            "labeling",
+            "customproperties",
+            "blendMode",
+            "featureBlendMode",
+            "layerOpacity",
+            "SingleCategoryDiagramRenderer",
+            "DiagramCategory",
+            "diagramOverlay",
+            "map-layer-style-manager",
+            "fieldConfiguration",
+            "aliases",
+            "defaults",
+            "constraints",
+            "constraintExpressions",
+            "attributeactions",
+            "attributetableconfig",
+            "editform",
+            "editforminit",
+            "editforminitcodesource",
+            "editforminitfilepath",
+            "editforminitcode",
+            "featformsuppress",
+            "editorlayout",
+            "editable",
+            "labelOnTop",
+            "reuseLastValue",
+            "dataDefinedFieldProperties",
+            "widgets",
+            "previewExpression",
+            "flags",
+            "temporal",
+        }
+
+        def _read_xml_from_project(path):
+            """Return (xml_tree, qgs_member_name, extracted_dir)."""
+            if path.suffix.lower() == ".qgz":
+                tmp_dir = Path(tempfile.mkdtemp(prefix="geol_qmaps_rejig_qgz_"))
+                with zipfile.ZipFile(str(path), "r") as zf:
+                    zf.extractall(str(tmp_dir))
+                    qgs_names = [n for n in zf.namelist() if n.lower().endswith(".qgs")]
+                if not qgs_names:
+                    raise RuntimeError(f"No .qgs project file found inside {path.name}.")
+                qgs_member_name = qgs_names[0]
+                qgs_file = tmp_dir / qgs_member_name
+                return ET.parse(str(qgs_file)), qgs_member_name, tmp_dir
+
+            return ET.parse(str(path)), path.name, None
+
+        def _write_xml_to_project(tree, path, qgs_member_name, extracted_dir):
+            if path.suffix.lower() == ".qgz":
+                qgs_file = extracted_dir / qgs_member_name
+                tree.write(str(qgs_file), encoding="UTF-8", xml_declaration=True)
+
+                tmp_qgz = path.with_suffix(path.suffix + ".tmp")
+                with zipfile.ZipFile(str(tmp_qgz), "w", compression=zipfile.ZIP_DEFLATED) as zout:
+                    for file_path in extracted_dir.rglob("*"):
+                        if file_path.is_file():
+                            arcname = str(file_path.relative_to(extracted_dir)).replace(os.sep, "/")
+                            zout.write(str(file_path), arcname)
+                os.replace(self._win_long_path(str(tmp_qgz)), self._win_long_path(str(path)))
+                self._safe_remove_tree(str(extracted_dir))
+                return
+
+            tree.write(str(path), encoding="UTF-8", xml_declaration=True)
+
+        def _layer_name(maplayer):
+            node = maplayer.find("layername")
+            return node.text.strip() if node is not None and node.text else None
+
+        qlr_tree = ET.parse(str(qlr_path))
+        qlr_layers = {}
+        for layer in qlr_tree.findall(".//maplayer"):
+            name = _layer_name(layer)
+            if name and name not in qlr_layers:
+                qlr_layers[name] = layer
+
+        project_tree, qgs_member_name, extracted_dir = _read_xml_from_project(project_path)
+        project_root = project_tree.getroot()
+
+        updated = 0
+        for target_layer in project_root.findall(".//maplayer"):
+            name = _layer_name(target_layer)
+            source_layer = qlr_layers.get(name)
+            if source_layer is None:
+                continue
+
+            # Remove outdated style/config blocks from the copied old project layer.
+            for child in list(target_layer):
+                if child.tag in replace_tags:
+                    target_layer.remove(child)
+
+            # Append the corresponding blocks from the new FIELD_DATA.qlr.
+            for child in list(source_layer):
+                if child.tag in replace_tags:
+                    target_layer.append(deepcopy(child))
+
+            updated += 1
+
+        if updated:
+            _write_xml_to_project(project_tree, project_path, qgs_member_name, extracted_dir)
+        elif extracted_dir is not None:
+            self._safe_remove_tree(str(extracted_dir))
+
+        return updated
+
     def rejig_project(self):
         """Main entry – validate old project, fetch template, assemble updated copy."""
         old = Path(self.dlg.lineEdit_15.text().strip())
@@ -4234,20 +4454,43 @@ class GEOL_QMAPS:
         # 4b) Prepare the destination name and remove any stale copy
         rejigged = parent / f"{old.name}_updatedversion"
         if rejigged.exists():
-            shutil.rmtree(str(rejigged))
+            self._safe_remove_tree(str(rejigged))
 
-        # PRE-FLIGHT: simulate all future dest paths and catch any >256 chars
+        # PRE-FLIGHT: simulate all future destination paths and catch any >256 chars.
+        # This must include both the downloaded template and the legacy folders
+        # copied back into the rejigged project; otherwise shutil can still fail
+        # later on deeply nested folders.
         max_len = 256
         bad = []
-        for root, dirs, files in os.walk(str(template_src)):
-            for name in dirs + files:
-                # path in the template
-                src_path = os.path.join(root, name)
-                # corresponding dest path under `rejigged`
-                rel = os.path.relpath(src_path, str(template_src))
-                dest_full = os.path.abspath(os.path.join(str(rejigged), rel))
-                if len(dest_full) > max_len:
-                    bad.append(dest_full)
+
+        def _collect_rejig_bad_paths(src_root, dst_root, *, ignore_project_files=False):
+            if not os.path.exists(src_root):
+                return
+            for root, dirs, files in os.walk(str(src_root)):
+                for name in dirs + files:
+                    if ignore_project_files and name.lower().endswith((".qgs", ".qgz", ".bak")):
+                        continue
+                    src_path = os.path.join(root, name)
+                    rel = os.path.relpath(src_path, str(src_root))
+                    dest_full = os.path.abspath(os.path.join(str(dst_root), rel))
+                    if len(dest_full) > max_len:
+                        bad.append(dest_full)
+
+        _collect_rejig_bad_paths(str(template_src), str(rejigged))
+
+        old_qgz_preflight = next(old.glob("*.qgz"), None)
+        if old_qgz_preflight is not None:
+            qgz_dst = os.path.abspath(str(rejigged / old_qgz_preflight.name))
+            if len(qgz_dst) > max_len:
+                bad.append(qgz_dst)
+
+        exclude = {"0_FIELD_DATA", "1_EXISTING_FIELD_DATABASE", "99_COMMAND_FILES_PLUGIN"}
+        for src_path in old.iterdir():
+            if src_path.is_dir() and src_path.name not in exclude:
+                _collect_rejig_bad_paths(str(src_path), str(rejigged / src_path.name))
+
+        for branch in ["0_FIELD_DATA/DCIM", "1_EXISTING_FIELD_DATABASE/DCIM"]:
+            _collect_rejig_bad_paths(str(old / Path(branch)), str(rejigged / Path(branch)))
 
         if bad:
             # write the list to temp for download
@@ -4271,7 +4514,7 @@ class GEOL_QMAPS:
             return
 
         # 5. Copy the template into projects folder and rename in one go
-        shutil.copytree(str(template_src), str(rejigged))
+        self._safe_copy_tree(str(template_src), str(rejigged), dirs_exist_ok=False)
         # ————— Validate all new paths —————
         if not self._check_max_filename_length(str(rejigged)):
             return
@@ -4287,7 +4530,7 @@ class GEOL_QMAPS:
             f.unlink()
         old_qgz = next(old.glob("*.qgz"), None)
         if old_qgz:
-            shutil.copy2(str(old_qgz), str(rejigged))
+            self._safe_copy_file(str(old_qgz), str(rejigged / old_qgz.name))
         # ————— Re-validate after .qgz copy —————
         if not self._check_max_filename_length(str(rejigged)):
             return
@@ -4300,7 +4543,7 @@ class GEOL_QMAPS:
                 continue
 
             dst_path = rejigged / src_path.name
-            shutil.copytree(str(src_path), str(dst_path), dirs_exist_ok=True)
+            self._safe_copy_tree(str(src_path), str(dst_path), dirs_exist_ok=True)
         # ————— Validate again after subfolder copies —————
         if not self._check_max_filename_length(str(rejigged)):
             return
@@ -4311,9 +4554,9 @@ class GEOL_QMAPS:
             src = old / Path(branch)
             dst = rejigged / Path(branch)
             if dst.exists():
-                shutil.rmtree(str(dst))
+                self._safe_remove_tree(str(dst))
             if src.exists():
-                shutil.copytree(str(src), str(dst), dirs_exist_ok=True)
+                self._safe_copy_tree(str(src), str(dst), dirs_exist_ok=True)
         # ————— Final DCIM check —————
         if not self._check_max_filename_length(str(rejigged)):
             return
@@ -4385,6 +4628,26 @@ class GEOL_QMAPS:
             # explicitly close datasets to release file locks
             src_ds = None
             dst_ds = None
+
+        # 9. Apply the updated FIELD_DATA.qlr styling to the copied old project.
+        # This preserves user layer groups, map themes and loaded layers from the
+        # old .qgz, while refreshing symbology/forms/defaults from the new template.
+        project_to_update = rejigged / old_qgz.name if old_qgz else None
+        qlr_to_apply = rejigged / "99_COMMAND_FILES_PLUGIN" / "FIELD_DATA.qlr"
+        if project_to_update is not None:
+            try:
+                updated_layers = self._apply_qlr_layer_styles_to_project_file(project_to_update, qlr_to_apply)
+                self.iface.messageBar().pushMessage(
+                    f"Updated layer styles applied to {updated_layers} layers from FIELD_DATA.qlr.",
+                    level=Qgis.Success if updated_layers else Qgis.Warning,
+                    duration=10,
+                )
+            except Exception as e:
+                self.iface.messageBar().pushMessage(
+                    f"WARNING: The updated project was created, but FIELD_DATA.qlr styles could not be applied automatically:\n{e}",
+                    level=Qgis.Warning,
+                    duration=20,
+                )
 
         self.iface.messageBar().pushMessage(
             f"Version update complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
