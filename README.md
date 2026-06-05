@@ -14,9 +14,10 @@
       - Harmonised button and tooltip styling.
      
       **Functional Changes**
-       Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **Stereoplot** plugin through its embedded control button.
-       Updated the Rejig tool to apply layer styles and configuration from the regenerated FIELD_DATA.qlr to the copied project, ensuring template style updates are reflected when opening the rejigged project.
-       Preserved the existing project structure, layer hierarchy, layer IDs, loaded layers, and map themes by updating layer styling in-place rather than replacing the FIELD DATA group.
+       - Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **Stereoplot** plugin through its embedded control button.
+       - Updated the Rejig tool to apply layer styles and configuration from the regenerated FIELD_DATA.qlr to the copied project, ensuring template style updates are reflected when opening the rejigged project.
+       - Preserved the existing project structure, layer hierarchy, layer IDs, loaded layers, and map themes by updating layer styling in-place rather than replacing the FIELD DATA group.
+       - Updated the Archive Current Field Data tool for better handling of photographs
      
       **Documentation**
      - Updated user documentation and workflow descriptions to reflect the revised stereoplot workflow.
