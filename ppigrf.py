@@ -184,10 +184,10 @@ def get_legendre(theta, keys):
     # initialize the functions:
     for n in range(nmax +1):
         for m in range(nmax + 1):
-            P[n, m] = np.zeros_like(theta, dtype = np.float64)
-            dP[n, m] = np.zeros_like(theta, dtype = np.float64)
+            P[n, m] = np.zeros_like(theta, dtype = float64)
+            dP[n, m] = np.zeros_like(theta, dtype = float64)
 
-    P[0, 0] = np.ones_like(theta, dtype = np.float64)
+    P[0, 0] = np.ones_like(theta, dtype = float64)
     for n in range(1, nmax +1):
         for m in range(0, min([n + 1, mmax + 1])):
             # do the legendre polynomials and derivatives
