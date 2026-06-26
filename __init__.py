@@ -24,6 +24,48 @@
 """
 
 
+def _check_dependencies():
+    """Upgrade scipy if it is too old to work with NumPy 1.24+ (np.long removed)."""
+    import importlib
+    import subprocess
+    import sys
+    import os
+
+    needs_upgrade = False
+    try:
+        import scipy
+        from packaging.version import Version
+        if Version(scipy.__version__) < Version("1.11.0"):
+            needs_upgrade = True
+    except ImportError:
+        needs_upgrade = True
+    except Exception:
+        # packaging not available — fall back to a tuple comparison
+        try:
+            import scipy
+            parts = tuple(int(x) for x in scipy.__version__.split(".")[:2])
+            if parts < (1, 11):
+                needs_upgrade = True
+        except Exception:
+            needs_upgrade = True
+
+    if needs_upgrade:
+        requirements = os.path.join(os.path.dirname(__file__), "requirements.txt")
+        subprocess.call(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "-r", requirements],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        # Upgraded packages are not reloaded until QGIS restarts.
+        from qgis.PyQt.QtWidgets import QMessageBox
+        QMessageBox.information(
+            None,
+            "GEOL-QMAPS: Dependencies updated",
+            "Python dependencies were upgraded to fix a NumPy compatibility issue.\n\n"
+            "Please restart QGIS to complete the update.",
+        )
+
+
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load GEOL_QMAPS class from file GEOL_QMAPS.
@@ -32,5 +74,6 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :type iface: QgsInterface
     """
     #
+    _check_dependencies()
     from .GEOL_QMAPS import GEOL_QMAPS
     return GEOL_QMAPS(iface)
