@@ -3875,6 +3875,14 @@ class GEOL_QMAPS:
         layer_csv.updateFields()
         layer_csv.triggerRepaint()
 
+    def _resolve_dictionary_layer(self, layer_key):
+        """Resolve the QGIS layer object for a dictionary CSV given its Group__Name-style key."""
+        if layer_key.startswith("General__"):
+            matches = QgsProject.instance().mapLayersByName(layer_key.replace("__", " // "))
+        else:
+            matches = QgsProject.instance().mapLayersByName(layer_key.replace("__", "/"))
+        return matches[0] if matches else None
+
     ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
     def addCsvItem(self):
         """
@@ -3904,6 +3912,8 @@ class GEOL_QMAPS:
         # Add the new row to the currently selected CSV layer
         self.add_row_to_csv_layer(self.dictionaries_path, current_layer, new_row)
 
+        affected_layer_keys = [current_layer]
+
         # If the dictionary is related to lithologies, update the two general dictionaries
         if "List of lithologies" in current_layer:
             self.add_row_to_csv_layer(self.dictionaries_path, "General__List of all lithologies", new_row)
@@ -3912,24 +3922,23 @@ class GEOL_QMAPS:
             self.add_row_to_csv_layer(self.dictionaries_path,
                                       "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
                                       rock_row)
+            affected_layer_keys.append("General__List of all lithologies")
+            affected_layer_keys.append("General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table")
 
-        # Reload CSV layer based on naming conventions
-        if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
-        else:
-            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
+        # Reload every dictionary layer that was actually changed, so the running
+        # QGIS session reflects the edits without needing a project reload
+        layer_csv = None
+        for layer_key in affected_layer_keys:
+            layer = self._resolve_dictionary_layer(layer_key)
+            if layer is not None and layer.isValid():
+                self.reload_csv(self.dictionaries_path, layer, layer_key)
+                if layer_key == current_layer:
+                    layer_csv = layer
+            else:
+                print(f"Could not reload the csv file: layer not found for '{layer_key}'")
 
-
-        if layer_csv.isValid():
-            self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
-            if "List of lithologies" in current_layer:
-                self.reload_csv(self.dictionaries_path, layer_csv, "General__List of all lithologies")
-                self.reload_csv(self.dictionaries_path, layer_csv,
-                                "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table")
-        else:
-            print("Could not reload the csv file: error related to retrieving of the name of the csv dictionary layer")
-
-        layer_csv.triggerRepaint()
+        if layer_csv is not None:
+            layer_csv.triggerRepaint()
         self.iface.messageBar().pushMessage(
             "Item '{}' added to {} dictionary. Update symbology if needed.".format(new_value, current_layer),
             level=Qgis.Success, duration=45
@@ -3950,6 +3959,8 @@ class GEOL_QMAPS:
         # Delete the row from the currently selected CSV layer
         self.delete_row_from_csv_layer(self.dictionaries_path, current_layer, "Valeur", delete_item)
 
+        affected_layer_keys = [current_layer]
+
         if "List of lithologies" in current_layer:
             print("list of lithologies dictionary? YES")
             self.delete_row_from_csv_layer(self.dictionaries_path, "General__List of all lithologies", "Valeur",
@@ -3957,13 +3968,17 @@ class GEOL_QMAPS:
             self.delete_row_from_csv_layer(self.dictionaries_path,
                                            "General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table",
                                            "Value", delete_item)
+            affected_layer_keys.append("General__List of all lithologies")
+            affected_layer_keys.append("General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table")
 
-        if current_layer.startswith("General__"):
-            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", " // "))[0]
-        else:
-            layer_csv = QgsProject.instance().mapLayersByName(current_layer.replace("__", "/"))[0]
-
-        self.reload_csv(self.dictionaries_path, layer_csv, current_layer)
+        # Reload every dictionary layer that was actually changed, so the running
+        # QGIS session reflects the edits without needing a project reload
+        for layer_key in affected_layer_keys:
+            layer = self._resolve_dictionary_layer(layer_key)
+            if layer is not None and layer.isValid():
+                self.reload_csv(self.dictionaries_path, layer, layer_key)
+            else:
+                print(f"Could not reload the csv file: layer not found for '{layer_key}'")
 
         self.iface.messageBar().pushMessage(
             "Item '{}' removed from {} dictionary. Update symbology if needed.".format(delete_item, current_layer),

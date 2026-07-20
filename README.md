@@ -7,7 +7,8 @@
 # Changelog 3.2.0.1
 
       * Updated Requirements.txt
-      * Optimisation of the Set User By default tool
+      * Optimisation of the Set User By Default tool
+      * Fixed the Edit Dictionaries tool
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
