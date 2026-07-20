@@ -383,13 +383,13 @@ class GEOL_QMAPSDockWidget(QDockWidget):
                                 _tr("Type the name of an existing or new user"))
         self.pushButton_user_default = _btn(self.groupBox_18, _tr("  Set User by Default "),
                                              471, 30, 280, 21)
-        self.radioButton_Some = QRadioButton(_tr(" Change for One Layer:"), self.groupBox_18)
+        self.radioButton_Some = QRadioButton(_tr("Change for One Layer:"), self.groupBox_18)
         self.radioButton_Some.setGeometry(10, 60, 151, 21)
         self.radioButton_Some.setStyleSheet(_LBL)
         self.comboBox_layers_user = _cb(self.groupBox_18, 160, 60, 291, 21,
                                          _tr("Select the layer to update"))
         self.radioButton_All = QRadioButton(
-            _tr(" Change for All Layers (1-2 min-long processing)"), self.groupBox_18)
+            _tr("Change for All Layers"), self.groupBox_18)
         self.radioButton_All.setGeometry(470, 60, 281, 21)
         self.radioButton_All.setChecked(True)
         self.radioButton_All.setStyleSheet(_LBL)

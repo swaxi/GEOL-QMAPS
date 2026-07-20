@@ -3864,55 +3864,16 @@ class GEOL_QMAPS:
             print(f"Error processing the GeoPackage layer: {e}")
 
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        '''#Clear all features in the existing layer
-        layer_csv.startEditing()
-        layer_csv.dataProvider().truncate()  # Deletes all features efficiently
-        layer_csv.commitChanges()
-        print(layer_csv, ' is cleared of all existing values')'''
-
-        # Load new data from the CSV file
-        new_table = QgsVectorLayer(
-            f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
-        )
-
-        if new_table.featureCount() == 0:
-            print('New table is empty, issue!')
-
-        if new_table.isValid():
-            # Ensure the schema matches (field names and types)
-            new_fields = new_table.fields()
-            existing_fields = layer_csv.fields()
-
-            if new_fields.names() != existing_fields.names() and current_layer!='General__Rock Type (Supergene, Sedimentary, Volcanoclastic,...)-Lithologies Table':
-                print(
-                    "The schema of the new data does not match the existing layer. Update failed."
-                )
-            else:
-                # Add new features to the existing layer
-                layer_csv.startEditing()
-                features = new_table.getFeatures()
-
-                # Retrieve and print the header (field names) --> For checking
-                headers = [field.name() for field in new_table.fields()]
-                print(" | ".join(headers))
-
-                # Iterate over each feature and print the attribute values --> For checking
-                for feature in features:
-                    # Convert each attribute to string and join using a separator
-                    values = [str(feature[field]) for field in headers]
-                    print(" | ".join(values))
-
-                for feature in features:
-                    # Dealing with fid for new entries
-                    if feature.attribute(0) >= -1:
-                        feature.setAttribute(0, None)
-
-                    layer_csv.dataProvider().addFeatures([feature])
-
-                layer_csv.commitChanges()
-
-        else:
-            print(f"Failed to load new data from {dictionaries_path}.")
+        # layer_csv is a QGIS layer object that is already open on the same
+        # underlying GeoPackage table that was just rewritten on disk (e.g. by
+        # add_row_to_csv_layer/delete_row_from_csv_layer via fiona). Since that
+        # file already holds the complete, correct set of rows, all we need to
+        # do is make the already-open layer re-read it - no manual copying of
+        # features between layer instances (they share the same backing store,
+        # so mutating one via dataProvider() also mutates what the other sees).
+        layer_csv.dataProvider().reloadData()
+        layer_csv.updateFields()
+        layer_csv.triggerRepaint()
 
     ### Option 1 :  ADD a single value/description pair to any CSV file in the WAXI QFIELD template
     def addCsvItem(self):
@@ -4050,8 +4011,6 @@ class GEOL_QMAPS:
 
     def set_user_by_default(self):
 
-        fuzz = _get_fuzz_matcher()
-
         if self.dlg.lineEdit_39.text():
 
             default_value_user_csv = str(self.dlg.lineEdit_39.text())
@@ -4064,15 +4023,23 @@ class GEOL_QMAPS:
             # user_file = pd.read_csv(emplacement_User_file, sep=";", encoding="latin-1")
 
             ## Test if the user name is already present in the User.csv file
-            list_score = []
             # liste_users = list(user_file["Valeur"])
-
-            for test in liste_users:
-                new_score = fuzz.token_set_ratio(str(test), default_value_user_csv)
-                list_score.append(new_score)
+            # Exact match (case/whitespace-insensitive) rather than fuzzy token
+            # matching: token_set_ratio scores 100 whenever one name's words are
+            # a subset of another's (e.g. "Julien" vs "Julien P"), which would
+            # wrongly treat distinct multi-word names as the same existing user.
+            normalized_input = default_value_user_csv.strip().casefold()
+            matched_user = next(
+                (
+                    test
+                    for test in liste_users
+                    if str(test).strip().casefold() == normalized_input
+                ),
+                None,
+            )
 
             # If the user name is not in the CSV file, we add it:
-            if 100 not in list_score:
+            if matched_user is None:
                 new_row = {
                     "Valeur": default_value_user_csv,
                     "Description": default_value_user_csv,
@@ -4095,11 +4062,7 @@ class GEOL_QMAPS:
 
             # If the user name is in the CSV file, we choose it:
             else:
-                for test in liste_users:
-                    new_score = fuzz.token_set_ratio(str(test), default_value_user_csv)
-                    if new_score == 100:
-                        default_value_user = "'" + test + "'"
-                        break
+                default_value_user = "'" + matched_user + "'"
 
             ## Modification of the User field in QGIS template layers
             self.dlg.button_group = QButtonGroup()
@@ -4134,6 +4097,7 @@ class GEOL_QMAPS:
             if self.dlg.radioButton_All.isChecked():
 
                 layers = QgsProject.instance().mapLayers()
+                default_value = QgsDefaultValue(default_value_user)
 
                 for layerId, layer in layers.items():
 
@@ -4146,13 +4110,14 @@ class GEOL_QMAPS:
 
                         # Find 'User' field index
                         field_index = layer.fields().indexFromName("User")
-
-                        # Create default value
-                        default_value = QgsDefaultValue(default_value_user)
+                        if field_index == -1:
+                            continue
 
                         # Update default field value
                         layer.setDefaultValueDefinition(field_index, default_value)
-                        QgsProject.instance().write()
+
+                # Write the project to disk once, after all layers are updated
+                QgsProject.instance().write()
 
                 self.iface.messageBar().pushMessage(
                     str(default_value_user)

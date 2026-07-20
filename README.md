@@ -2,25 +2,12 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.0 - June 2026*
+*version 3.2.0.1 - July 2026*
 
-# Changelog 3.2.0
+# Changelog 3.2.0.1
 
-      **GUI Improvements**
-      - Replaced the legacy Qt Designer (.ui) interface with a fully Python-generated dock widget.
-      - Improved compatibility with Qt6 and future QGIS releases.
-      - Corrected multiple widget alignment and display issues.
-      - Improved layout consistency across plugin tabs.
-      - Harmonised button and tooltip styling.
-     
-      **Functional Changes**
-       - Removed the **Stereographic Projection Settings** tool from the Data Management tab, as stereonet projection control is now handled directly by the latest version of the **Stereoplot** plugin through its embedded control button.
-       - Updated the Rejig tool to apply layer styles and configuration from the regenerated FIELD_DATA.qlr to the copied project, ensuring template style updates are reflected when opening the rejigged project.
-       - Preserved the existing project structure, layer hierarchy, layer IDs, loaded layers, and map themes by updating layer styling in-place rather than replacing the FIELD DATA group.
-       - Updated the Archive Current Field Data tool for better handling of photographs
-     
-      **Documentation**
-     - Updated user documentation and workflow descriptions to reflect the revised stereoplot workflow.
+      * Updated Requirements.txt
+      * Optimisation of the Set User By default tool
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
