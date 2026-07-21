@@ -151,14 +151,10 @@ try:
 
 except ImportError:
     try:
-        if platform.system() == "Windows":
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "defusedxml"]
-            )
-        else:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", "defusedxml"]
-            )
+        # Fixed, hardcoded argv (no shell, no user input) - safe despite Bandit's generic warning
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", "defusedxml"]
+        )  # nosec B603
 
         import defusedxml.ElementTree as ET
 
@@ -283,14 +279,14 @@ def _get_fuzz_matcher():
         from rapidfuzz import fuzz as rapidfuzz_fuzz
         _GEOL_QMAPS_FUZZ = rapidfuzz_fuzz
         return _GEOL_QMAPS_FUZZ
-    except Exception:
+    except ImportError:
         pass
 
     try:
         import importlib
         _GEOL_QMAPS_FUZZ = importlib.import_module("fuzzywuzzy.fuzz")
         return _GEOL_QMAPS_FUZZ
-    except Exception:
+    except ImportError:
         pass
 
     _GEOL_QMAPS_FUZZ = _BasicFuzz()
@@ -351,14 +347,12 @@ class GEOL_QMAPS:
         ## Python library integration
         def install_library(library_name):
             try:
-                if platform.system() == "Windows":
-                    subprocess.check_call(
-                        ["python", "-m", "pip", "install", library_name]
-                    )
-                else:
-                    subprocess.check_call(
-                        ["python3", "-m", "pip3", "install", library_name]
-                    )
+                # sys.executable is the running interpreter's full path (not a bare
+                # command looked up on PATH), and library_name is always one of the
+                # fixed literals passed below - safe despite Bandit's generic warning
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", library_name]
+                )  # nosec B603
                 print(f"Successfully installed {library_name}")
             except subprocess.CalledProcessError as e:
                 print(f"Error installing {library_name}: {e}")
@@ -1185,8 +1179,10 @@ class GEOL_QMAPS:
             g2 = QgsGeometry(g)  # copy before transforming
             try:
                 g2.transform(xform)
-            except Exception as err:
-                # If a single feature fails to transform, skip it rather than aborting the whole run
+            except Exception as err:  # nosec B112 - deliberately broad: one bad
+                # feature (invalid geometry, projection edge case, etc.) must not
+                # abort the whole run; skip it and keep going.
+                print(f"Skipping feature {f.id()}: geometry transform failed: {err}")
                 continue
             f.setAttribute(fld_idx, g2.asWkt())
             layer.updateFeature(f)
@@ -2850,7 +2846,7 @@ class GEOL_QMAPS:
             try:
                 if pd.isna(value):
                     return ""
-            except Exception:
+            except (TypeError, ValueError):
                 pass
             text = str(value).strip()
             if text.lower() in ("", "nan", "none", "null"):
@@ -3530,7 +3526,7 @@ class GEOL_QMAPS:
             import stat
             try:
                 os.chmod(item_path, stat.S_IWRITE)
-            except Exception:
+            except OSError:
                 pass
             func(item_path)
 
@@ -5451,7 +5447,7 @@ class GEOL_QMAPS:
         try:
             from osgeo import gdal
             if hasattr(gdal, 'GDALFlushCache'): gdal.GDALFlushCache()
-        except:
+        except Exception:  # nosec B110 - best-effort flush, must never block cleanup
             pass
         import gc; gc.collect()
 
@@ -5634,7 +5630,8 @@ class GEOL_QMAPS:
         try:
             from osgeo import gdal
             if hasattr(gdal,'GDALFlushCache'): gdal.GDALFlushCache()
-        except: pass
+        except Exception:  # nosec B110 - best-effort flush, must never block cleanup
+            pass
         import gc; gc.collect()
 
         # Clear input fields for next operation

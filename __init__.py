@@ -51,11 +51,13 @@ def _check_dependencies():
 
     if needs_upgrade:
         requirements = os.path.join(os.path.dirname(__file__), "requirements.txt")
+        # sys.executable is the running interpreter's full path, and requirements
+        # is derived from this plugin's own install location, not external input
         subprocess.call(
             [sys.executable, "-m", "pip", "install", "--upgrade", "-r", requirements],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-        )
+        )  # nosec B603
         # Upgraded packages are not reloaded until QGIS restarts.
         from qgis.PyQt.QtWidgets import QMessageBox
         QMessageBox.information(
