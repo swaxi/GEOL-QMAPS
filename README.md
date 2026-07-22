@@ -6,9 +6,10 @@
 
 # Changelog 3.2.0.1
 
-      * Updated Requirements.txt
-      * Optimisation of the Set User By Default tool
+      * Updated and completed Requirements.txt
+      * Optimisation and bug fixes for the Set User By Default tool
       * Fixed the Edit Dictionaries tool
+      * General code security and robustness improvements
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 

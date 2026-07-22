@@ -1,7 +1,7 @@
 # Copyright (c) 2010-2023 openpyxl
 
 
-def hash_password(plaintext_password=''):
+def hash_password(plaintext_password=''):  # nosec B107 - optional worksheet-protection password, empty means "none"
     """
     Create a password hash from a given string for protecting a worksheet
     only. This will not work for encrypting a workbook.

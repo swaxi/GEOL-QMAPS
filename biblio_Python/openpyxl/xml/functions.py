@@ -25,11 +25,11 @@ if LXML is True:
     fromstring = partial(fromstring, parser=safe_parser)
 
 else:
-    from xml.etree.ElementTree import (
-    Element,
-    SubElement,
-    fromstring,
-    tostring,
+    from xml.etree.ElementTree import (  # nosec B313 - fromstring/iterparse below are
+    Element,                            # overridden with the defusedxml equivalents
+    SubElement,                         # whenever DEFUSEDXML is available; Element,
+    fromstring,                         # SubElement, QName and register_namespace are
+    tostring,                           # builders, not parsers of untrusted XML.
     QName,
     register_namespace
     )
@@ -37,7 +37,7 @@ else:
     if DEFUSEDXML is True:
         from defusedxml.ElementTree import fromstring
 
-from xml.etree.ElementTree import iterparse
+from xml.etree.ElementTree import iterparse  # nosec B313 - overridden below when DEFUSEDXML is available
 if DEFUSEDXML is True:
     from defusedxml.ElementTree import iterparse
 

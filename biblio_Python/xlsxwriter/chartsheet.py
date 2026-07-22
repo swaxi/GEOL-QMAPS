@@ -53,7 +53,7 @@ class Chartsheet(worksheet.Worksheet):
         self.charts.append([0, 0, chart, 0, 0, 1, 1])
         return chart
 
-    def protect(self, password="", options=None):
+    def protect(self, password="", options=None):  # nosec B107 - optional worksheet-protection password, empty means "none"
         """
         Set the password and protection options of the worksheet.
 
@@ -89,7 +89,7 @@ class Chartsheet(worksheet.Worksheet):
 
         # If objects and content are both off then the chartsheet isn't
         # protected, unless it has a password.
-        if password == "" and copy["objects"] and not copy["content"]:
+        if password == "" and copy["objects"] and not copy["content"]:  # nosec B105 - comparing to "no password set", not a secret
             return
 
         if self.chart:

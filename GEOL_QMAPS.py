@@ -146,6 +146,13 @@ import sys
 import numpy as np
 import shutil
 import json
+
+# Make the bundled biblio_Python dependencies (incl. vendored defusedxml) importable
+# before attempting to import any of them below.
+plugin_directory = os.path.dirname(__file__)
+biblio_python_directory = os.path.join(plugin_directory, "biblio_Python")
+sys.path.append(biblio_python_directory)
+
 try:
     import defusedxml.ElementTree as ET
 
@@ -216,12 +223,6 @@ from pathlib import Path
 from .FieldMove_Import import FM_Import
 from .GEOL_QMAPS_dockwidget import GEOL_QMAPSDockWidget
 from .ppigrf import igrf, get_inclination_declination
-
-# Importation des bibliothèques situées dans le dossier du plugin
-plugin_directory = os.path.dirname(__file__)
-biblio_python_directory = os.path.join(plugin_directory, "biblio_Python")
-sys.path.append(biblio_python_directory)
-
 
 # Robust fuzzy-matching loader.
 # Some QGIS installations may pick up an incomplete vendored fuzzywuzzy package

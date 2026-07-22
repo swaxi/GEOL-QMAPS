@@ -424,7 +424,7 @@ class Worksheet(xmlwriter.XMLwriter):
     # Utility function for writing different types of strings.
     def _write_token_as_string(self, token, row, col, *args):
         # Map the data to the appropriate write_*() method.
-        if token == "":
+        if token == "":  # nosec B105 - cell value check, not a password
             return self._write_blank(row, col, *args)
 
         if self.strings_to_formulas and token.startswith("="):
@@ -1358,7 +1358,7 @@ class Worksheet(xmlwriter.XMLwriter):
                     # If previous token was a format just add the string.
                     fragments.append(token)
 
-                if token == "":
+                if token == "":  # nosec B105 - rich-string fragment check, not a password
                     warn(
                         "Excel doesn't allow empty strings in rich strings. "
                         "Ignoring input in write_rich_string()."
@@ -3878,7 +3878,7 @@ class Worksheet(xmlwriter.XMLwriter):
         """
         self.tab_color = xl_color(color)
 
-    def protect(self, password="", options=None):
+    def protect(self, password="", options=None):  # nosec B107 - optional worksheet-protection password, empty means "none"
         """
         Set the password and protection options of the worksheet.
 
@@ -3890,7 +3890,7 @@ class Worksheet(xmlwriter.XMLwriter):
             Nothing.
 
         """
-        if password != "":
+        if password != "":  # nosec B105 - comparing to "no password set", not a secret
             password = self._encode_password(password)
 
         if not options:
@@ -4919,7 +4919,7 @@ class Worksheet(xmlwriter.XMLwriter):
 
             token = token.lower()
 
-            if token != "items" and token != "%":
+            if token != "items" and token != "%":  # nosec B105 - filter expression token, not a password
                 warn(
                     "The type '%s' in expression '%s' "
                     "must be either 'items' or '%%'" % (token, expression)
@@ -4955,16 +4955,16 @@ class Worksheet(xmlwriter.XMLwriter):
 
             # The operator should always be 2 (=) to flag a "simple" equality
             # in the binary record. Therefore we convert <> to =.
-            if token == "blanks":
+            if token == "blanks":  # nosec B105 - filter expression token, not a password
                 if operator == 5:
-                    token = " "
+                    token = " "  # nosec B105 - filter expression token, not a password
             else:
                 if operator == 5:
                     operator = 2
-                    token = "blanks"
+                    token = "blanks"  # nosec B105 - filter expression token, not a password
                 else:
                     operator = 5
-                    token = " "
+                    token = " "  # nosec B105 - filter expression token, not a password
 
         # if the string token contains an Excel match character then change the
         # operator type to indicate a non "simple" equality.

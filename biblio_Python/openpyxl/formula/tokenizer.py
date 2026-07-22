@@ -40,7 +40,8 @@ class Tokenizer(object):
     }
     ERROR_CODES = ("#NULL!", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?",
                    "#NUM!", "#N/A", "#GETTING_DATA")
-    TOKEN_ENDERS = ',;}) +-*/^&=><%'  # Each of these characters, marks the
+    TOKEN_ENDERS = ',;}) +-*/^&=><%'  # nosec B105 - tokenizer delimiter chars, not a password
+                                       # Each of these characters, marks the
                                        # end of an operand token
 
     def __init__(self, formula):

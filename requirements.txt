@@ -1,4 +1,11 @@
 scipy >= 1.17.0
 pandas >= 1.3.0
+numpy
 defusedxml
 fiona
+Pillow
+packaging
+fuzzywuzzy
+# Note: GDAL/OGR (osgeo) is intentionally not listed - it ships with QGIS's own
+# Python environment and must match QGIS's bundled native GDAL library exactly;
+# installing a separate copy via pip/qpip can break the QGIS install.

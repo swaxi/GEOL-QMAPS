@@ -6,7 +6,7 @@ from __future__ import absolute_import
 
 from contextlib import contextmanager
 
-from xml.etree.ElementTree import Element, tostring
+from xml.etree.ElementTree import Element, tostring  # nosec B313 - builds/serializes output only, never parses external XML
 
 
 class LxmlSyntaxError(Exception):
