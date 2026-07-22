@@ -16,7 +16,8 @@ def validate(formula):
     """
     Utility function for checking whether a formula is syntactically correct
     """
-    assert formula.startswith("=")
+    if not formula.startswith("="):
+        raise ValueError(f"Formula {formula!r} does not start with '='")
     formula = Tokenizer(formula)
     for t in formula.items:
         if t.type == "FUNC" and t.subtype == "OPEN":

@@ -279,7 +279,7 @@ def read_shc(filename = shc_fn):
         h[key] = 0
 
     # this must be true:
-    assert len(g.keys()) == len(h.keys())
+    assert len(g.keys()) == len(h.keys())  # nosec - sanity check on the bundled IGRF .shc coefficient file, not external input
 
     gdf = pd.DataFrame(g, index = times)
     hdf = pd.DataFrame(h, index = times)

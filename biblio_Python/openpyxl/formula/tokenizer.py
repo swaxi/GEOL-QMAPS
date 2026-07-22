@@ -108,7 +108,7 @@ class Tokenizer(object):
         """
         self.assert_empty_token(can_follow=':')
         delim = self.formula[self.offset]
-        assert delim in ('"', "'")
+        assert delim in ('"', "'")  # nosec - only called via dispatcher keyed on these exact chars
         regex = self.STRING_REGEXES[delim]
         match = regex.match(self.formula[self.offset:])
         if match is None:
@@ -129,7 +129,7 @@ class Tokenizer(object):
         self.offset)
 
         """
-        assert self.formula[self.offset] == '['
+        assert self.formula[self.offset] == '['  # nosec - only called via dispatcher keyed on this exact char
         lefts = [(t.start(), 1) for t in
                  re.finditer(r"\[", self.formula[self.offset:])]
         rights = [(t.start(), -1) for t in
@@ -155,7 +155,7 @@ class Tokenizer(object):
 
         """
         self.assert_empty_token(can_follow='!')
-        assert self.formula[self.offset] == '#'
+        assert self.formula[self.offset] == '#'  # nosec - only called via dispatcher keyed on this exact char
         subformula = self.formula[self.offset:]
         for err in self.ERROR_CODES:
             if subformula.startswith(err):
@@ -171,7 +171,7 @@ class Tokenizer(object):
         Returns the number of spaces found. (Does not update self.offset).
 
         """
-        assert self.formula[self.offset] in (' ', '\n')
+        assert self.formula[self.offset] in (' ', '\n')  # nosec - only called via dispatcher keyed on these exact chars
         self.items.append(Token(self.formula[self.offset], Token.WSPACE))
         return self.WSPACE_RE.match(self.formula[self.offset:]).end()
 
@@ -190,7 +190,7 @@ class Tokenizer(object):
             ))
             return 2
         curr_char = self.formula[self.offset]  # guaranteed to be 1 char
-        assert curr_char in '%*/^&=><+-'
+        assert curr_char in '%*/^&=><+-'  # nosec - only called via dispatcher keyed on these exact chars
         if curr_char == '%':
             token = Token('%', Token.OP_POST)
         elif curr_char in "*/^&=><":
@@ -221,7 +221,7 @@ class Tokenizer(object):
         self.offset)
 
         """
-        assert self.formula[self.offset] in ('(', '{')
+        assert self.formula[self.offset] in ('(', '{')  # nosec - only called via dispatcher keyed on these exact chars
         if self.formula[self.offset] == '{':
             self.assert_empty_token()
             token = Token.make_subexp("{")
@@ -243,7 +243,7 @@ class Tokenizer(object):
         self.offset)
 
         """
-        assert self.formula[self.offset] in (')', '}')
+        assert self.formula[self.offset] in (')', '}')  # nosec - only called via dispatcher keyed on these exact chars
         token = self.token_stack.pop().get_closer()
         if token.value != self.formula[self.offset]:
             raise TokenizerError(
@@ -260,7 +260,7 @@ class Tokenizer(object):
 
         """
         curr_char = self.formula[self.offset]
-        assert curr_char in (';', ',')
+        assert curr_char in (';', ',')  # nosec - only called via dispatcher keyed on these exact chars
         if curr_char == ';':
             token = Token.make_separator(";")
         else:
@@ -408,9 +408,9 @@ class Token(object):
         `func`: If True, force the token to be of type FUNC
 
         """
-        assert value[-1] in ('{', '}', '(', ')')
+        assert value[-1] in ('{', '}', '(', ')')  # nosec - only called internally with fixed literal values
         if func:
-            assert re.match('.+\\(|\\)', value)
+            assert re.match('.+\\(|\\)', value)  # nosec - only called internally with fixed literal values
             type_ = Token.FUNC
         elif value in '{}':
             type_ = Token.ARRAY
@@ -423,8 +423,8 @@ class Token(object):
 
     def get_closer(self):
         """Return a closing token that matches this token's type."""
-        assert self.type in (self.FUNC, self.ARRAY, self.PAREN)
-        assert self.subtype == self.OPEN
+        assert self.type in (self.FUNC, self.ARRAY, self.PAREN)  # nosec - only called internally on well-formed tokens
+        assert self.subtype == self.OPEN  # nosec - only called internally on well-formed tokens
         value = "}" if self.type == self.ARRAY else ")"
         return self.make_subexp(value, func=self.type == self.FUNC)
 
@@ -442,6 +442,6 @@ class Token(object):
     @classmethod
     def make_separator(cls, value):
         """Create a separator token"""
-        assert value in (',', ';')
+        assert value in (',', ';')  # nosec - only called internally with fixed literal values
         subtype = cls.ARG if value == ',' else cls.ROW
         return cls(value, cls.SEP, subtype)
