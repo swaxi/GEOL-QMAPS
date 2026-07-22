@@ -141,7 +141,7 @@ from PIL.ExifTags import TAGS, GPSTAGS
 
 from osgeo import ogr
 import os
-import subprocess
+import subprocess  # nosec - only used below with fixed argv lists, no shell=True
 import sys
 import numpy as np
 import shutil

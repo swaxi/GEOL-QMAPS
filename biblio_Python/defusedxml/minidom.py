@@ -7,7 +7,9 @@
 """
 from __future__ import print_function, absolute_import
 
-from xml.dom.minidom import _do_pulldom_parse
+# This module IS the safe replacement: parse()/parseString() below always route
+# through the defused expatbuilder/pulldom wrappers, so importing this helper is safe.
+from xml.dom.minidom import _do_pulldom_parse  # nosec
 from . import expatbuilder as _expatbuilder
 from . import pulldom as _pulldom
 

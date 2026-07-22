@@ -9,18 +9,20 @@ from __future__ import print_function, absolute_import
 
 import sys
 import warnings
-from xml.etree.ElementTree import ParseError
-from xml.etree.ElementTree import TreeBuilder as _TreeBuilder
-from xml.etree.ElementTree import parse as _parse
-from xml.etree.ElementTree import tostring
+# This module IS the safe replacement: it wraps these raw stdlib parsers
+# with entity/DTD-forbidding handlers below, so importing them here is required.
+from xml.etree.ElementTree import ParseError  # nosec
+from xml.etree.ElementTree import TreeBuilder as _TreeBuilder  # nosec
+from xml.etree.ElementTree import parse as _parse  # nosec
+from xml.etree.ElementTree import tostring  # nosec
 
 from .common import PY3
 
 if PY3:
     import importlib
 else:
-    from xml.etree.ElementTree import XMLParser as _XMLParser
-    from xml.etree.ElementTree import iterparse as _iterparse
+    from xml.etree.ElementTree import XMLParser as _XMLParser  # nosec
+    from xml.etree.ElementTree import iterparse as _iterparse  # nosec
 
 
 from .common import (

@@ -13,21 +13,24 @@ import io
 
 from .common import DTDForbidden, EntitiesForbidden, ExternalReferenceForbidden, PY3
 
+# This module IS the safe replacement: monkey_patch() below replaces xmlrpc_client's
+# FastParser/GzipDecodedResponse/gzip_decode with the defused versions defined in
+# this file, so importing the originals here (to wrap/restore them) is required.
 if PY3:
     __origin__ = "xmlrpc.client"
-    from xmlrpc.client import ExpatParser
-    from xmlrpc import client as xmlrpc_client
-    from xmlrpc import server as xmlrpc_server
-    from xmlrpc.client import gzip_decode as _orig_gzip_decode
-    from xmlrpc.client import GzipDecodedResponse as _OrigGzipDecodedResponse
+    from xmlrpc.client import ExpatParser  # nosec
+    from xmlrpc import client as xmlrpc_client  # nosec
+    from xmlrpc import server as xmlrpc_server  # nosec
+    from xmlrpc.client import gzip_decode as _orig_gzip_decode  # nosec
+    from xmlrpc.client import GzipDecodedResponse as _OrigGzipDecodedResponse  # nosec
 else:
     __origin__ = "xmlrpclib"
-    from xmlrpclib import ExpatParser
-    import xmlrpclib as xmlrpc_client
+    from xmlrpclib import ExpatParser  # nosec
+    import xmlrpclib as xmlrpc_client  # nosec
 
     xmlrpc_server = None
-    from xmlrpclib import gzip_decode as _orig_gzip_decode
-    from xmlrpclib import GzipDecodedResponse as _OrigGzipDecodedResponse
+    from xmlrpclib import gzip_decode as _orig_gzip_decode  # nosec
+    from xmlrpclib import GzipDecodedResponse as _OrigGzipDecodedResponse  # nosec
 
 try:
     import gzip

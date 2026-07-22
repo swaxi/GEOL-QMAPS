@@ -7,8 +7,10 @@
 """
 from __future__ import print_function, absolute_import
 
-from xml.dom.expatbuilder import ExpatBuilder as _ExpatBuilder
-from xml.dom.expatbuilder import Namespaces as _Namespaces
+# This module IS the safe replacement: it wraps these raw stdlib builders
+# with entity/DTD-forbidding handlers below, so importing them here is required.
+from xml.dom.expatbuilder import ExpatBuilder as _ExpatBuilder  # nosec
+from xml.dom.expatbuilder import Namespaces as _Namespaces  # nosec
 
 from .common import DTDForbidden, EntitiesForbidden, ExternalReferenceForbidden
 

@@ -73,7 +73,7 @@ class NotSupportedError(DefusedXmlException):
 
 
 def _apply_defusing(defused_mod):
-    assert defused_mod is sys.modules[defused_mod.__name__]
+    assert defused_mod is sys.modules[defused_mod.__name__]  # nosec - internal invariant check, not input validation
     stdlib_name = defused_mod.__origin__
     __import__(stdlib_name, {}, {}, ["*"])
     stdlib_mod = sys.modules[stdlib_name]

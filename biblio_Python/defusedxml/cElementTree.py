@@ -11,12 +11,14 @@ import warnings
 
 from .common import _generate_etree_functions
 
-from xml.etree.cElementTree import TreeBuilder as _TreeBuilder
-from xml.etree.cElementTree import parse as _parse
-from xml.etree.cElementTree import tostring
+# This module IS the safe replacement: it wraps these raw stdlib parsers
+# with entity/DTD-forbidding handlers below, so importing them here is required.
+from xml.etree.cElementTree import TreeBuilder as _TreeBuilder  # nosec
+from xml.etree.cElementTree import parse as _parse  # nosec
+from xml.etree.cElementTree import tostring  # nosec
 
 # iterparse from ElementTree!
-from xml.etree.ElementTree import iterparse as _iterparse
+from xml.etree.ElementTree import iterparse as _iterparse  # nosec
 
 # This module is an alias for ElementTree just like xml.etree.cElementTree
 from .ElementTree import (

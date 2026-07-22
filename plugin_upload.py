@@ -11,10 +11,8 @@ from defusedxml.xmlrpc import monkey_patch
 
 monkey_patch()
 
-import xmlrpc.client
+import xmlrpc.client  # nosec - defused via monkey_patch() above
 from optparse import OptionParser
-
-standard_library.install_aliases()
 
 # Configuration
 PROTOCOL = 'https'

@@ -7,8 +7,10 @@
 """
 from __future__ import print_function, absolute_import
 
-from xml.dom.pulldom import parse as _parse
-from xml.dom.pulldom import parseString as _parseString
+# This module IS the safe replacement: parse()/parseString() below always pass a
+# defused SAX parser (see .sax.make_parser) into these raw functions, so this is safe.
+from xml.dom.pulldom import parse as _parse  # nosec
+from xml.dom.pulldom import parseString as _parseString  # nosec
 from .sax import make_parser
 
 __origin__ = "xml.dom.pulldom"
@@ -27,7 +29,7 @@ def parse(
         parser.forbid_dtd = forbid_dtd
         parser.forbid_entities = forbid_entities
         parser.forbid_external = forbid_external
-    return _parse(stream_or_string, parser, bufsize)
+    return _parse(stream_or_string, parser, bufsize)  # nosec - parser is always the defused SAX parser above
 
 
 def parseString(
@@ -38,4 +40,4 @@ def parseString(
         parser.forbid_dtd = forbid_dtd
         parser.forbid_entities = forbid_entities
         parser.forbid_external = forbid_external
-    return _parseString(string, parser)
+    return _parseString(string, parser)  # nosec - parser is always the defused SAX parser above

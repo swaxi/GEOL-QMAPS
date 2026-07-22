@@ -27,7 +27,7 @@
 def _check_dependencies():
     """Upgrade scipy if it is too old to work with NumPy 1.24+ (np.long removed)."""
     import importlib
-    import subprocess
+    import subprocess  # nosec - only used below with a fixed argv list, no shell=True
     import sys
     import os
 

@@ -7,7 +7,9 @@
 """
 from __future__ import print_function, absolute_import
 
-from xml.sax.expatreader import ExpatParser as _ExpatParser
+# This module IS the safe replacement: it wraps this raw stdlib parser
+# with entity/DTD-forbidding handlers below, so importing it here is required.
+from xml.sax.expatreader import ExpatParser as _ExpatParser  # nosec
 
 from .common import DTDForbidden, EntitiesForbidden, ExternalReferenceForbidden
 

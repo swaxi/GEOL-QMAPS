@@ -7,8 +7,10 @@
 """
 from __future__ import print_function, absolute_import
 
-from xml.sax import InputSource as _InputSource
-from xml.sax import ErrorHandler as _ErrorHandler
+# InputSource/ErrorHandler are data containers, not parsers; the actual parser
+# used below is the defused expatreader.DefusedExpatParser.
+from xml.sax import InputSource as _InputSource  # nosec
+from xml.sax import ErrorHandler as _ErrorHandler  # nosec
 
 from . import expatreader
 
