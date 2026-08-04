@@ -647,7 +647,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.pushButton_update_source_photo = _btn(
             self.groupBox_16,
             _tr("Update CURRENT MISSION"),
-            531, 96, 220, 21,
+            531, 74, 220, 21,
             _BTN,
             _tr("Update photograph paths in the CURRENT_MISSION layers (Photographs_PT and Sampling_PT).")
         )
@@ -655,7 +655,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.pushButton_update_source_photo_compilation = _btn(
             self.groupBox_16,
             _tr("Update EXISTING FIELD DATABASE"),
-            531, 117, 220, 21,
+            531, 95, 220, 21,
             _BTN,
             _tr("Update photograph paths in the compilation layers (Compilation_Photographs_PT and Compilation_Sampling_PT).")
         )
