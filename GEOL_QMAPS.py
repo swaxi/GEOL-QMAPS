@@ -223,7 +223,7 @@ from pathlib import Path
 from .FieldMove_Import import FM_Import
 from .GEOL_QMAPS_dockwidget import GEOL_QMAPSDockWidget
 from .ppigrf import igrf, get_inclination_declination
-from photo_path_utils import build_updated_photo_path
+from .photo_path_utils import build_updated_photo_path
 
 # Robust fuzzy-matching loader.
 # Some QGIS installations may pick up an incomplete vendored fuzzywuzzy package
