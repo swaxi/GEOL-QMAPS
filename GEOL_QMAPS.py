@@ -994,7 +994,8 @@ class GEOL_QMAPS:
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
                     #Picture Management
-                    self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo)
+                    self.dlg.pushButton_update_source_photo.clicked.connect(lambda: self.update_source_photo(target_scope="current"))
+                    self.dlg.pushButton_update_source_photo_compilation.clicked.connect(lambda: self.update_source_photo(target_scope="compilation"))
 
                     # HELP
                     # Send email to Mark Jessell and Julien Perret
@@ -6604,7 +6605,7 @@ class GEOL_QMAPS:
 
         return success
 
-    def update_source_photo(self):  # ADD
+    def update_source_photo(self, target_scope="current"):  # ADD
 
         new_source_path = self.mynormpath(self.dlg.lineEdit_14.text())
 
@@ -6620,9 +6621,10 @@ class GEOL_QMAPS:
             )
             return
 
-        layer_names = ["Photographs_PT", "Sampling_PT"]
-        if self.dlg.option3_ckeckbox.isChecked():
-            layer_names.extend(["Compilation_Photographs_PT", "Compilation_Sampling_PT"])
+        if target_scope == "compilation":
+            layer_names = ["Compilation_Photographs_PT", "Compilation_Sampling_PT"]
+        else:
+            layer_names = ["Photographs_PT", "Sampling_PT"]
 
         updated_layers = []
         for layer_name in layer_names:

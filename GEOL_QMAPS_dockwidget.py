@@ -644,18 +644,20 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         )
         self.option2_ckeckbox.setGeometry(10, 96, 511, 21)
 
-        self.option3_ckeckbox = QCheckBox(
-            _tr("Also update the equivalent layers in the Existing Field Database (Compilation_Photographs_PT and Compilation_Sampling_PT)"),
-            self.groupBox_16
-        )
-        self.option3_ckeckbox.setGeometry(10, 117, 741, 21)
-
         self.pushButton_update_source_photo = _btn(
             self.groupBox_16,
-            _tr("Update Repository"),
+            _tr("Update CURRENT MISSION"),
             531, 96, 220, 21,
             _BTN,
-            _tr("Update photograph paths in the project repository.")
+            _tr("Update photograph paths in the CURRENT_MISSION layers (Photographs_PT and Sampling_PT).")
+        )
+
+        self.pushButton_update_source_photo_compilation = _btn(
+            self.groupBox_16,
+            _tr("Update EXISTING FIELD DATABASE"),
+            531, 117, 220, 21,
+            _BTN,
+            _tr("Update photograph paths in the compilation layers (Compilation_Photographs_PT and Compilation_Sampling_PT).")
         )
 
         _lbl(
