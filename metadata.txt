@@ -7,7 +7,7 @@ name=geol_qmaps
 qgisMinimumVersion=3.30.0
 qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
-version=3.2.0.1
+version=3.2.0.2
 supportsQt6=True
 author=Mark Jessell, Julien Perret and Eliott Betend (University of Western Australia)
 email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
@@ -22,7 +22,11 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=3.2.0.1
+changelog=3.2.0.2
+     3.2.0.2 2026-08
+       * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
+       * Improved robustness of QField package sync validation on macOS and Windows.
+       * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
      3.2.0.1 2026-07
        * Updated and completed Requirements.txt
        * Optimisation and bug fixes for the Set User By Default tool

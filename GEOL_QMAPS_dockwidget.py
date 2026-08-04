@@ -609,7 +609,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.groupBox_16 = _gb(
             W,
             _tr("Picture Management"),
-            10, 610, 761, 150,
+            10, 610, 761, 180,
             ptsize=12
         )
 
@@ -644,6 +644,12 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         )
         self.option2_ckeckbox.setGeometry(10, 96, 511, 21)
 
+        self.option3_ckeckbox = QCheckBox(
+            _tr("Also update the equivalent layers in the Existing Field Database (Compilation_Photographs_PT and Compilation_Sampling_PT)"),
+            self.groupBox_16
+        )
+        self.option3_ckeckbox.setGeometry(10, 117, 741, 21)
+
         self.pushButton_update_source_photo = _btn(
             self.groupBox_16,
             _tr("Update Repository"),
@@ -655,13 +661,13 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         _lbl(
             self.groupBox_16,
             _tr("Use Photograph EXIF Metadata to Retrieve Image Direction:"),
-            10, 121, 381, 21
+            10, 142, 381, 21
         )
 
         self.pushButton_use_exif_azimuth = _btn(
             self.groupBox_16,
             _tr("Update Image Direction from Metadata"),
-            391, 121, 360, 21
+            391, 142, 360, 21
         )
 
         # Bottom bar — RESET widened 141→215, moved left; y shifted +80

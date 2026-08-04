@@ -2,14 +2,13 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.0.1 - July 2026*
+*version 3.2.0.2 - August 2026*
 
-# Changelog 3.2.0.1
+# Changelog 3.2.0.2
 
-      * Updated and completed Requirements.txt
-      * Optimisation and bug fixes for the Set User By Default tool
-      * Fixed the Edit Dictionaries tool
-      * General code security and robustness improvements
+      * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
+      * Improved robustness of QField package sync validation on macOS and Windows.
+      * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
