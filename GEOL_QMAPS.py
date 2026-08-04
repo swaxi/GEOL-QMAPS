@@ -6502,6 +6502,25 @@ class GEOL_QMAPS:
 
     ### Update the source path of pictures in Photographs_PT and Sampling_PT layers ###
 
+    def _set_photo_layer_map_tip_template(self, layer):
+        if layer is None or not hasattr(layer, "setMapTipTemplate"):
+            return False
+
+        template = """
+<div style="max-width: 500px;">
+  <div style="margin-bottom: 0px;">[% "Comments" %]</div>
+  <div style="text-align: center; margin-bottom: 0px;">
+    <img src="[% if( "Full_Path" IS NULL OR "Full_Path" = '', concat('file:///', replace("Source", '\\\\', '/')), concat('file:///', replace("Full_Path", '\\\\', '/')) ) %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
+  </div>
+  <div>[% "Date" %]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "Azimut" %]</div>
+</div>
+"""
+        layer.setMapTipTemplate(template)
+        if hasattr(layer, "setMapTipsEnabled"):
+            layer.setMapTipsEnabled(True)
+        layer.triggerRepaint()
+        return True
+
     def _get_photo_target_layer(self, layer_name):
         loaded_layers = QgsProject.instance().mapLayersByName(layer_name)
         if loaded_layers:
@@ -6634,10 +6653,12 @@ class GEOL_QMAPS:
 
             if self.dlg.option1_ckeckbox.isChecked():
                 if self._update_photo_layer_paths(layer, new_source_path):
+                    self._set_photo_layer_map_tip_template(layer)
                     updated_layers.append(layer_name)
 
             if self.dlg.option2_ckeckbox.isChecked():
                 if self._set_photo_layer_default_value(layer, new_source_path):
+                    self._set_photo_layer_map_tip_template(layer)
                     updated_layers.append(layer_name)
 
         if updated_layers:
