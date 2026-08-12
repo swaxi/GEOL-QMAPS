@@ -42,8 +42,12 @@ from qgis.PyQt.QtGui import (
     QStandardItem,
 )
 from qgis.PyQt import QtWidgets
+# Qt5/Qt6 compatibility: QAction moved from QtWidgets to QtGui in Qt6.
+try:
+    from qgis.PyQt.QtWidgets import QAction  # Qt5
+except ImportError:
+    from qgis.PyQt.QtGui import QAction  # Qt6
 from qgis.PyQt.QtWidgets import (
-    QAction,
     QFileDialog,
     QDialog,
     QProgressBar,
@@ -106,7 +110,7 @@ except AttributeError:
     _QVAR_DOUBLE = _QMT.Type.Double
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
-from qgis.PyQt.QtWidgets import QAction, QToolBar
+from qgis.PyQt.QtWidgets import QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
@@ -166,8 +170,9 @@ except ImportError:
         import defusedxml.ElementTree as ET
 
     except Exception:
-        # Fallback if install fails
-        from defusedxml.etree import ElementTree as ET
+        # Fallback if install fails: use the bundled biblio_Python/defusedxml copy
+        # (already on sys.path, see above), same module used on the success paths.
+        import defusedxml.ElementTree as ET
 from datetime import datetime
 import re
 

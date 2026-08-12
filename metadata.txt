@@ -27,6 +27,13 @@ changelog=3.2.0.2
        * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
        * Improved robustness of QField package sync validation on macOS and Windows.
        * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
+       **Dependency Harmonisation & Qt6 Fixes**
+       * Harmonised numpy/scipy/pandas version constraints in Requirements.txt with the Stereoplot and Geochemistry Plotting Tools plugins, so installing all three on the same QGIS Python environment converges on one mutually compatible dependency set instead of drifting on install order (scipy>=1.17.0,<1.18 ; pandas>=1.5.0,<3.0 ; numpy>=1.26.4,<2.0)
+       * Declared the previously undeclared rapidfuzz dependency (used as the preferred fuzzy-matching backend, with an existing fallback to fuzzywuzzy/difflib)
+       * Fixed a NameError crash in ppigrf.py's get_legendre() caused by an undefined float64 reference
+       * Fixed a broken defusedxml fallback path that referenced a non-existent module and would have raised ModuleNotFoundError if the primary import and the pip-install-then-reimport attempt both failed
+       * Aligned the internal scipy auto-upgrade version check with the new Requirements.txt floor (was checking against an older, inconsistent floor)
+       * Fixed a Qt6/QGIS4 compatibility bug: QAction is now imported with a Qt5/Qt6-safe fallback (previously imported only from QtWidgets, which raises ImportError under Qt6 since QAction moved to QtGui)
      3.2.0.1 2026-07
        * Updated and completed Requirements.txt
        * Optimisation and bug fixes for the Set User By Default tool
