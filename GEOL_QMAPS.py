@@ -223,7 +223,11 @@ from pathlib import Path
 from .FieldMove_Import import FM_Import
 from .GEOL_QMAPS_dockwidget import GEOL_QMAPSDockWidget
 from .ppigrf import igrf, get_inclination_declination
-from .photo_path_utils import build_updated_photo_path
+from .photo_path_utils import (
+    build_map_tip_image_expression,
+    build_updated_photo_path,
+    select_photo_path_field_name,
+)
 
 # Robust fuzzy-matching loader.
 # Some QGIS installations may pick up an incomplete vendored fuzzywuzzy package
@@ -6506,11 +6510,19 @@ class GEOL_QMAPS:
         if layer is None or not hasattr(layer, "setMapTipTemplate"):
             return False
 
-        template = """
+        field_names = [field.name() for field in layer.fields()]
+        source_field_name = "Source" if "Source" in field_names else None
+        photo_field_name = select_photo_path_field_name(field_names)
+
+        if not source_field_name or not photo_field_name:
+            return False
+
+        image_expression = build_map_tip_image_expression(source_field_name, photo_field_name)
+        template = f"""
 <div style="max-width: 500px;">
   <div style="margin-bottom: 0px;">[% "Comments" %]</div>
   <div style="text-align: center; margin-bottom: 0px;">
-    <img src="[% if( "Full_Path" IS NULL OR "Full_Path" = '', concat('file:///', replace("Source", '\\\\', '/')), concat('file:///', replace("Full_Path", '\\\\', '/')) ) %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
+    <img src="[% {image_expression} %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
   </div>
   <div>[% "Date" %]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "Azimut" %]</div>
 </div>
@@ -6551,10 +6563,11 @@ class GEOL_QMAPS:
             return False
 
         source_field_index = layer.fields().indexFromName("Source")
-        full_path_field_index = layer.fields().indexFromName("Full_Path")
-        photograph_field_index = layer.fields().indexFromName("Photograph")
+        field_names = [field.name() for field in layer.fields()]
+        photo_field_name = select_photo_path_field_name(field_names)
+        photo_field_index = layer.fields().indexFromName(photo_field_name) if photo_field_name else -1
 
-        if source_field_index == -1 and full_path_field_index == -1:
+        if source_field_index == -1 and photo_field_index == -1:
             return False
 
         if not layer.startEditing():
@@ -6565,21 +6578,23 @@ class GEOL_QMAPS:
                 if source_field_index != -1:
                     feature.setAttribute(source_field_index, new_source_path)
 
-                if full_path_field_index != -1:
+                if photo_field_index != -1:
                     existing_photo_value = None
                     try:
-                        existing_photo_value = feature["Full_Path"]
+                        existing_photo_value = feature[photo_field_name]
                     except KeyError:
                         existing_photo_value = None
 
-                    if existing_photo_value in (None, "") and photograph_field_index != -1:
-                        try:
-                            existing_photo_value = feature["Photograph"]
-                        except KeyError:
-                            existing_photo_value = None
+                    if existing_photo_value in (None, ""):
+                        fallback_photo_field_index = layer.fields().indexFromName("Photograph")
+                        if fallback_photo_field_index != -1:
+                            try:
+                                existing_photo_value = feature["Photograph"]
+                            except KeyError:
+                                existing_photo_value = None
 
                     feature.setAttribute(
-                        full_path_field_index,
+                        photo_field_index,
                         build_updated_photo_path(new_source_path, existing_photo_value),
                     )
 
@@ -6607,15 +6622,19 @@ class GEOL_QMAPS:
             )
             success = True
 
-        full_path_field_index = layer.fields().indexFromName("Full_Path")
-        if full_path_field_index != -1:
-            full_path_expression = (
-                f"CASE WHEN \"Photograph\" IS NULL OR \"Photograph\" = '' "
-                f"THEN '{escaped_path}' ELSE concat('{escaped_path}', '/', \"Photograph\") END"
+        photo_field_name = select_photo_path_field_name([field.name() for field in layer.fields()])
+        photo_field_index = layer.fields().indexFromName(photo_field_name) if photo_field_name else -1
+        if photo_field_index != -1:
+            photo_reference_field = "Photograph"
+            if photo_field_name in ("Photo", "Sample Photograph"):
+                photo_reference_field = photo_field_name
+            photo_expression = (
+                f"CASE WHEN \"{photo_reference_field}\" IS NULL OR \"{photo_reference_field}\" = '' "
+                f"THEN '{escaped_path}' ELSE concat('{escaped_path}', '/', \"{photo_reference_field}\") END"
             )
             layer.setDefaultValueDefinition(
-                full_path_field_index,
-                QgsDefaultValue(full_path_expression),
+                photo_field_index,
+                QgsDefaultValue(photo_expression),
             )
             success = True
 
