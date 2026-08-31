@@ -713,7 +713,7 @@ class GEOL_QMAPS:
         ):
             self.iface.messageBar().pushMessage(
                 "ERROR: Template {} newer than Plugin {}, please update plugin NOW!".format(pv, tv),
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=45,
             )
 
@@ -730,7 +730,7 @@ class GEOL_QMAPS:
                 f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
                 "Please consider reimplementing a GEOL-QMAPS project manually from the "
                 "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a>",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=45,
             )
 
@@ -747,7 +747,7 @@ class GEOL_QMAPS:
                 "latest template available on <a href='https://doi.org/10.5281/zenodo.7834717'>here</a> "
                 "or using the Update Template Version tool in the Database Management tab of the plugin "
                 "(Compilation_Deformation zones_PG layer not handled though).",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=45,
             )
 
@@ -769,7 +769,7 @@ class GEOL_QMAPS:
                 f"Plugin {pv} newer than Template {tv}, uncertain behaviour! "
                 "Please consider using the Update Template Version tool in the Database Management "
                 "tab of the plugin.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=45,
             )
 
@@ -778,7 +778,7 @@ class GEOL_QMAPS:
             print("Plugin and Template - same version")
             self.iface.messageBar().pushMessage(
                 "SUCCESS: Plugin {} and Template {} are compatible.".format(pv, tv),
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=15,
             )
 
@@ -842,7 +842,7 @@ class GEOL_QMAPS:
             )
             self.iface.messageBar().pushMessage(
                 msg,
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=0  # stays until dismissed
             )
             return False
@@ -853,7 +853,7 @@ class GEOL_QMAPS:
         if len(os.path.abspath(temp_dir)) > 100:
             self.iface.messageBar().pushMessage(
                 "Warning: Windows TEMP directory path is already long and may contribute to merge failures.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=15
             )
         return True
@@ -1617,7 +1617,7 @@ class GEOL_QMAPS:
 
         else:
             self.iface.messageBar().pushMessage(
-                "No previous action !", level=Qgis.Warning, duration=45
+                "No previous action !", level=Qgis.MessageLevel.Warning, duration=45
             )
 
     # Content retrieval of QTableWidget 1 : COLUMNS NAMES CHECK  ##
@@ -1656,7 +1656,7 @@ class GEOL_QMAPS:
             if alias in new_values_count:
                 self.iface.messageBar().pushMessage(
                     f"Error: The value '{alias}' is entered multiple times!",
-                    level=Qgis.Warning,
+                    level=Qgis.MessageLevel.Warning,
                     duration=45,
                 )
                 return
@@ -1731,7 +1731,7 @@ class GEOL_QMAPS:
         if "Lithology - Outcrop Lithology" not in fichier_output.columns:
             self.iface.messageBar().pushMessage(
                 "No column named 'Lithology - Outcrop Lithology' found in your data. Lithology Names table will be empty.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=10
             )
             return
@@ -2047,7 +2047,7 @@ class GEOL_QMAPS:
 
         else:
             self.iface.messageBar().pushMessage(
-                "No previous action !", level=Qgis.Warning, duration=45
+                "No previous action !", level=Qgis.MessageLevel.Warning, duration=45
             )
 
 
@@ -2330,7 +2330,7 @@ class GEOL_QMAPS:
         if "Structures - Structure Type" not in fichier_output.columns:
             self.iface.messageBar().pushMessage(
                 "No column named 'Structures - Structure Type' found in your data. Structure Types table will be empty.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=10
             )
             return
@@ -2350,7 +2350,7 @@ class GEOL_QMAPS:
         columns_csv = os.path.join(self.plugin_dir, "columns_types_structures.csv")
         if not os.path.isfile(columns_csv):
             self.iface.messageBar().pushMessage(
-                f"ERROR: Cannot find {columns_csv}", level=Qgis.Critical, duration=10
+                f"ERROR: Cannot find {columns_csv}", level=Qgis.MessageLevel.Critical, duration=10
             )
             return
         Dataframe = pd.read_csv(columns_csv)
@@ -2599,7 +2599,7 @@ class GEOL_QMAPS:
 
         else:
             self.iface.messageBar().pushMessage(
-                "No previous action !", level=Qgis.Warning, duration=45
+                "No previous action !", level=Qgis.MessageLevel.Warning, duration=45
             )
 
 
@@ -3256,7 +3256,7 @@ class GEOL_QMAPS:
             if layer.isValid():
                 pass
             else:
-                self.iface.messageBar().pushMessage("Error", "Unable to load selected layer !", level=Qgis.Critical)
+                self.iface.messageBar().pushMessage("Error", "Unable to load selected layer !", level=Qgis.MessageLevel.Critical)
 
             # Step 1 : Check layer coordinates + Create the Geometry column
             self.convert_coordinates_WGS84(layer)
@@ -3265,7 +3265,7 @@ class GEOL_QMAPS:
             fichier_input = self.export_layer_fill_Table1(layer)
 
             self.iface.messageBar().pushMessage(
-                "Selected File loaded: Please proceed further with Step 2 (Database Fields table)", level=Qgis.Success, duration=45
+                "Selected File loaded: Please proceed further with Step 2 (Database Fields table)", level=Qgis.MessageLevel.Success, duration=45
             )
 
             return fichier_input, name_layer_to_import
@@ -3273,7 +3273,7 @@ class GEOL_QMAPS:
         else:
             self.iface.messageBar().pushMessage(
                 "Directory not found: " + self.dlg.lineEdit_13.text(),
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=45,
             )
 
@@ -3294,7 +3294,7 @@ class GEOL_QMAPS:
             self.fill_Table3(fichier_output)
 
         self.iface.messageBar().pushMessage(
-            "Names of columns checked: Please proceed further with Step 2 (Lithology Names and/or Structure Types tables)", level=Qgis.Success, duration=45
+            "Names of columns checked: Please proceed further with Step 2 (Lithology Names and/or Structure Types tables)", level=Qgis.MessageLevel.Success, duration=45
         )
 
         # If "Structures - Structure Type" is selected in Table1, display a warning about how to handle linear and planar measurements separately in case their measurements are not in distinct fields.        # but only once per plugin instance.
@@ -3353,7 +3353,7 @@ class GEOL_QMAPS:
         '''Import the Excel file into QGIS and create different QGIS files'''
         self.import_Excel_create_QGISfile(fichier_output_lithology, fichier_output_structures, self.name_layer_to_import)
         self.iface.messageBar().pushMessage(
-            "Data imported in the QGIS project as scratch layers: please proceed further with Step 4.", level=Qgis.Success, duration=45
+            "Data imported in the QGIS project as scratch layers: please proceed further with Step 4.", level=Qgis.MessageLevel.Success, duration=45
         )
 
     ###############################################################################
@@ -3370,7 +3370,7 @@ class GEOL_QMAPS:
         if hasattr(self, 'fichier_input') and hasattr(self, 'name_layer_to_import'):
             self.click_columns_check_OK(self.fichier_input, self.name_layer_to_import)
         else:
-            self.iface.messageBar().pushMessage( "Please import the data first!", level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage( "Please import the data first!", level=Qgis.MessageLevel.Warning, duration=45)
 
 
     def click_columns_check_OK(self, fichier_input, name_layer_to_import):
@@ -3414,7 +3414,7 @@ class GEOL_QMAPS:
         self.iface.messageBar().pushMessage(
             "Names of lithologies have been successfully assigned. "
             "You can now proceed further in Step 2 ((Structure Types table if needed) or move to Step 3 (Generate Standardised Legacy Data).",
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=45,
         )
 
@@ -3439,7 +3439,7 @@ class GEOL_QMAPS:
         self.iface.messageBar().pushMessage(
             "Types of structures have been successfully assigned. "
             "You can now proceed further in Step 2 (Lithologies table if needed) or move to Step 3 (Generate Standardised Legacy Data).",
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=45,
         )
 
@@ -3461,7 +3461,7 @@ class GEOL_QMAPS:
             # Both lithology and structure DataFrames exist
             self.iface.messageBar().pushMessage(
                 "Generating lithologies and structures layers...",
-                level=Qgis.Info, duration=10
+                level=Qgis.MessageLevel.Info, duration=10
             )
             self.method_import_data_as_layers(
                 self.fichier_output_lithology,
@@ -3472,7 +3472,7 @@ class GEOL_QMAPS:
             # Only lithology DataFrame exists
             self.iface.messageBar().pushMessage(
                 "Generating lithologies layers...",
-                level=Qgis.Info, duration=10
+                level=Qgis.MessageLevel.Info, duration=10
             )
             self.method_import_data_as_layers(
                 self.fichier_output_lithology,
@@ -3483,7 +3483,7 @@ class GEOL_QMAPS:
             # Only structure DataFrame exists
             self.iface.messageBar().pushMessage(
                 "Generating structures layers...",
-                level=Qgis.Info, duration=10
+                level=Qgis.MessageLevel.Info, duration=10
             )
             self.method_import_data_as_layers(
                 None,
@@ -3494,7 +3494,7 @@ class GEOL_QMAPS:
             # Neither was validated
             self.iface.messageBar().pushMessage(
                 "Please validate lithologies and/or structures before creating layers.",
-                level=Qgis.Warning, duration=45
+                level=Qgis.MessageLevel.Warning, duration=45
             )
 
         # Reset flags and clear input
@@ -3593,7 +3593,7 @@ class GEOL_QMAPS:
                 except OSError as e:
                     self.iface.messageBar().pushMessage(
                         f"Could not copy file:\n{src_file}\n\nError: {e}",
-                        level=Qgis.Warning,
+                        level=Qgis.MessageLevel.Warning,
                         duration=20
                     )
 
@@ -3613,7 +3613,7 @@ class GEOL_QMAPS:
         out_dir = self.dlg.lineEdit_3.text().strip()
         if not out_dir:
             self.iface.messageBar().pushMessage(
-                "Please provide an output directory for clipping.", level=Qgis.Warning, duration=10
+                "Please provide an output directory for clipping.", level=Qgis.MessageLevel.Warning, duration=10
             )
             return
 
@@ -3633,7 +3633,7 @@ class GEOL_QMAPS:
             if len(full) > 256:
                 self.iface.messageBar().pushMessage(
                     f"ERROR: Output path too long ({len(full)} chars): {full}. Select another repository with a shorter filepath to the current project.",
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     duration=15
                 )
                 # Clear directory field for next operation
@@ -3688,7 +3688,7 @@ class GEOL_QMAPS:
         if len(full_path) > 256:
             self.iface.messageBar().pushMessage(
                 f"ERROR: Output file path too long ({len(full_path)} chars): {full_path}. Select another repository with a shorter filepath to the current project.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=15
             )
             # Clear directory field for next operation
@@ -3724,7 +3724,7 @@ class GEOL_QMAPS:
         self.dlg.lineEdit_8.clear()
 
         self.iface.messageBar().pushMessage(
-            f"Project with field data clipped to selected extent saved in {new_proj}", level=Qgis.Success, duration=15
+            f"Project with field data clipped to selected extent saved in {new_proj}", level=Qgis.MessageLevel.Success, duration=15
         )
 
     ### CSV TOOLS ###
@@ -3902,7 +3902,7 @@ class GEOL_QMAPS:
         current_layer = self.dlg.comboBox.currentText()
         new_value = str(self.dlg.lineEdit_38.text()).strip()
         if new_value == "":
-            self.iface.messageBar().pushMessage("Error: No value provided", level=Qgis.Warning, duration=45)
+            self.iface.messageBar().pushMessage("Error: No value provided", level=Qgis.MessageLevel.Warning, duration=45)
             self.dlg.lineEdit_38.clear()
             return
 
@@ -3911,7 +3911,7 @@ class GEOL_QMAPS:
         if new_value in existing_items:
             self.iface.messageBar().pushMessage(
                 "Duplicate entry: '{}' already exists in {} dictionary.".format(new_value, current_layer),
-                level=Qgis.Warning, duration=45)
+                level=Qgis.MessageLevel.Warning, duration=45)
             self.dlg.lineEdit_38.clear()
             return
 
@@ -3949,7 +3949,7 @@ class GEOL_QMAPS:
             layer_csv.triggerRepaint()
         self.iface.messageBar().pushMessage(
             "Item '{}' added to {} dictionary. Update symbology if needed.".format(new_value, current_layer),
-            level=Qgis.Success, duration=45
+            level=Qgis.MessageLevel.Success, duration=45
         )
         self.dlg.lineEdit_38.clear()
         self.update_combobox_delete()
@@ -3990,7 +3990,7 @@ class GEOL_QMAPS:
 
         self.iface.messageBar().pushMessage(
             "Item '{}' removed from {} dictionary. Update symbology if needed.".format(delete_item, current_layer),
-            level=Qgis.Success, duration=15
+            level=Qgis.MessageLevel.Success, duration=15
         )
         self.update_combobox_delete()
 
@@ -4002,7 +4002,7 @@ class GEOL_QMAPS:
             project.setTitle(new_title)
             project.write()
             self.iface.messageBar().pushMessage(
-                "Project title updated to " + new_title, level=Qgis.Success, duration=45
+                "Project title updated to " + new_title, level=Qgis.MessageLevel.Success, duration=45
             )
 
     def apply_qml_style(self, layer, qml_path):
@@ -4112,7 +4112,7 @@ class GEOL_QMAPS:
                     str(default_value_user)
                     + " is now the default user for "
                     + str(self.dlg.comboBox_layers_user.currentText()),
-                    level=Qgis.Success,
+                    level=Qgis.MessageLevel.Success,
                     duration=15,
                 )
 
@@ -4145,7 +4145,7 @@ class GEOL_QMAPS:
                 self.iface.messageBar().pushMessage(
                     str(default_value_user)
                     + " is now the default user for ALL the layers in the project",
-                    level=Qgis.Success,
+                    level=Qgis.MessageLevel.Success,
                     duration=15,
                 )
 
@@ -4191,7 +4191,7 @@ class GEOL_QMAPS:
 
         self.iface.messageBar().pushMessage(
             str(value) + " is now the default structural style ",
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=15,
         )
 
@@ -4230,7 +4230,7 @@ class GEOL_QMAPS:
         if not qlr_path.exists():
             self.iface.messageBar().pushMessage(
                 f"WARNING: Cannot apply updated layer styles because {qlr_path.name} was not found.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=10,
             )
             return 0
@@ -4356,7 +4356,7 @@ class GEOL_QMAPS:
         if not gpkg.exists() or not ver_txt.exists():
             self.iface.messageBar().pushMessage(
                 "ERROR: Selected folder is either not a valid GEOL-QMAPS project, or too old to be automatically updated to the latest version (version < 3.1.0).",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             # Clear the input field once done
             self.dlg.lineEdit_15.clear()
@@ -4372,7 +4372,7 @@ class GEOL_QMAPS:
         if parts < [3, 1, 0]:
             self.iface.messageBar().pushMessage(
                 f"ERROR: Project version {raw} is older than 3.1.0; cannot be updated to the latest version automatically.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             # Clear the input field once done
             self.dlg.lineEdit_15.clear()
@@ -4389,7 +4389,7 @@ class GEOL_QMAPS:
             #No internet connection
             self.iface.messageBar().pushMessage(
                 "No internet connection detected. Please check your network and try again.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             # Clear the input field once done
             self.dlg.lineEdit_15.clear()
@@ -4415,7 +4415,7 @@ class GEOL_QMAPS:
         except socket.timeout:
             self.iface.messageBar().pushMessage(
                 "Download timed out after 60 seconds. Please try again later with a more stable connection.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             # Clear the input field once done
             self.dlg.lineEdit_15.clear()
@@ -4424,7 +4424,7 @@ class GEOL_QMAPS:
         except Exception as e:
             self.iface.messageBar().pushMessage(
                 f"An unexpected error occurred while downloading:\n{e}",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             # Clear the input field once done
             self.dlg.lineEdit_15.clear()
@@ -4494,7 +4494,7 @@ class GEOL_QMAPS:
             self.iface.messageBar().pushMessage(
                 f"{len(bad)} paths would exceed {max_len} chars. "
                 f"<a href='file://{url}'>Download list</a>. Shorten filepaths to proceed further.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=0
             )
             # Clear the input field once done
@@ -4508,7 +4508,7 @@ class GEOL_QMAPS:
             return
         self.iface.messageBar().pushMessage(
             f"Template unpacked and renamed → '{rejigged.name}'",
-            level=Qgis.Success, duration=6
+            level=Qgis.MessageLevel.Success, duration=6
         )
         print(f"QGIS_TEMPLATE renamed and copied at {rejigged}")
 
@@ -4566,7 +4566,7 @@ class GEOL_QMAPS:
             dst_ds = ogr.Open(new_pkg, 1)
             if src_ds is None or dst_ds is None:
                 self.iface.messageBar().pushMessage(
-                    f"WARNING: Could not open {pkg_rel} for copying.", level=Qgis.Warning, duration=5
+                    f"WARNING: Could not open {pkg_rel} for copying.", level=Qgis.MessageLevel.Warning, duration=5
                 )
                 continue
 
@@ -4627,18 +4627,18 @@ class GEOL_QMAPS:
                 updated_layers = self._apply_qlr_layer_styles_to_project_file(project_to_update, qlr_to_apply)
                 self.iface.messageBar().pushMessage(
                     f"Updated layer styles applied to {updated_layers} layers from FIELD_DATA.qlr.",
-                    level=Qgis.Success if updated_layers else Qgis.Warning,
+                    level=Qgis.MessageLevel.Success if updated_layers else Qgis.MessageLevel.Warning,
                     duration=10,
                 )
             except Exception as e:
                 self.iface.messageBar().pushMessage(
                     f"WARNING: The updated project was created, but FIELD_DATA.qlr styles could not be applied automatically:\n{e}",
-                    level=Qgis.Warning,
+                    level=Qgis.MessageLevel.Warning,
                     duration=20,
                 )
 
         self.iface.messageBar().pushMessage(
-            f"Version update complete: '{rejigged.name}' created.", level=Qgis.Success, duration=10
+            f"Version update complete: '{rejigged.name}' created.", level=Qgis.MessageLevel.Success, duration=10
         )
 
         # Clear the input field once done
@@ -4705,7 +4705,7 @@ class GEOL_QMAPS:
         if not qfield_path or not qgis_folder:
             self.iface.messageBar().pushMessage(
                 "Please select both a QField package and a GEOL-QMAPS QGIS project folder.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=10
             )
             return
@@ -4729,7 +4729,7 @@ class GEOL_QMAPS:
         if drive.upper().startswith('\\') or not drive:
             self.iface.messageBar().pushMessage(
                 "Please place the QField package on a local or fixed external drive.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=10
             )
             if temp_dir:
@@ -4754,7 +4754,7 @@ class GEOL_QMAPS:
         if not qgs_files:
             self.iface.messageBar().pushMessage(
                 "No .qgs project file found in the QField package: may be corrupted.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=5
             )
             if temp_dir:
@@ -4768,7 +4768,7 @@ class GEOL_QMAPS:
         if not os.path.isfile(qfield_pkg):
             self.iface.messageBar().pushMessage(
                 "No CURRENT_MISSION.gpkg found in the QField package: corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=10
             )
             if temp_dir:
@@ -4779,7 +4779,7 @@ class GEOL_QMAPS:
         if not self.is_valid_geol_qmaps_project(qgis_folder):
             self.iface.messageBar().pushMessage(
                 "Selected QGIS folder is not a valid GEOL‑QMAPS project.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=10
             )
             if temp_dir:
@@ -4823,7 +4823,7 @@ class GEOL_QMAPS:
 
         self.iface.messageBar().pushMessage(
             f"Synchronisation complete: '{dest_folder}' created.",
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=5
         )
 
@@ -4904,7 +4904,7 @@ class GEOL_QMAPS:
 
             self.iface.messageBar().pushMessage(
                 "Duplicate UUIDs removed, saved in current project",
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=5,
             )
 
@@ -5335,14 +5335,14 @@ class GEOL_QMAPS:
                     self.iface.messageBar().pushMessage(
                         f"Current field photographs archived to 1_EXISTING_FIELD_DATABASE/DCIM; "
                         f"{deleted_count} originals removed, {retained_count} retained because verification failed.",
-                        level=Qgis.Warning,
+                        level=Qgis.MessageLevel.Warning,
                         duration=15
                     )
                 else:
                     self.iface.messageBar().pushMessage(
                         f"Current field photographs archived to 1_EXISTING_FIELD_DATABASE/DCIM; "
                         f"{deleted_count} originals removed from 0_FIELD_DATA/DCIM.",
-                        level=Qgis.Success,
+                        level=Qgis.MessageLevel.Success,
                         duration=8
                     )
 
@@ -5354,7 +5354,7 @@ class GEOL_QMAPS:
             except Exception as e:
                 self.iface.messageBar().pushMessage(
                     f"Field data were archived, but photographs could not be copied to the existing database DCIM folder: {e}",
-                    level=Qgis.Warning,
+                    level=Qgis.MessageLevel.Warning,
                     duration=20
                 )
                 print(f"Error archiving DCIM folder: {e}")
@@ -5401,7 +5401,7 @@ class GEOL_QMAPS:
         if not all([main_qgz, sub_qgz, out_dir]):
             self.iface.messageBar().pushMessage(
                 "Please specify main project, sub project, and output directory.",
-                level=Qgis.Warning, duration=10
+                level=Qgis.MessageLevel.Warning, duration=10
             )
             return
 
@@ -5440,7 +5440,7 @@ class GEOL_QMAPS:
             self.iface.messageBar().pushMessage(
                 f"{len(bad)} paths would exceed {max_len} chars. "
                 f"<a href='file://{url}'>Download full list</a>. Shorten folders and/or file paths before proceeding further.",
-                level=Qgis.Critical,
+                level=Qgis.MessageLevel.Critical,
                 duration=0
             )
             # Clear input fields for next operation
@@ -5501,7 +5501,7 @@ class GEOL_QMAPS:
                     except OSError as e:
                         self.iface.messageBar().pushMessage(
                             f"Could not copy file:\n{src_file}\n\nError: {e}",
-                            level=Qgis.Warning,
+                            level=Qgis.MessageLevel.Warning,
                             duration=20
                         )
 
@@ -5615,7 +5615,7 @@ class GEOL_QMAPS:
         if not qgs_files:
             self.iface.messageBar().pushMessage(
                 "Could not find the embedded .qgs inside the merged QGZ.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             shutil.rmtree(tmp)
             # Clear input fields for next operation
@@ -5652,7 +5652,7 @@ class GEOL_QMAPS:
         self.dlg.lineEdit_37.clear()
 
         self.iface.messageBar().pushMessage(
-            f"Projects merged into {merged_path}", level=Qgis.Success, duration=15
+            f"Projects merged into {merged_path}", level=Qgis.MessageLevel.Success, duration=15
         )
 
     ### Export Data ###
@@ -5710,7 +5710,7 @@ class GEOL_QMAPS:
             if len(full_gpkg) > 256:
                 self.iface.messageBar().pushMessage(
                     f"ERROR: Export GeoPackage path too long ({len(full_gpkg)} chars): {full_gpkg}",
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     duration=10
                 )
                 self.dlg.lineEdit_7.clear()
@@ -5962,7 +5962,7 @@ class GEOL_QMAPS:
             if len(full_path) > 256:
                 self.iface.messageBar().pushMessage(
                     f"ERROR: Export geopackage path too long ({len(full_path)} chars): {full_path}",
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     duration=10
                 )
                 self.dlg.lineEdit_7.clear()
@@ -5970,7 +5970,7 @@ class GEOL_QMAPS:
 
             self.iface.messageBar().pushMessage(
                 f"Data successfully exported to {newGeopackagePath}",
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=10
             )
 
@@ -5978,7 +5978,7 @@ class GEOL_QMAPS:
         else:
             self.iface.messageBar().pushMessage(
                 "Directory not found: " + self.dlg.lineEdit_7.text(),
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=45,
             )
 
@@ -5993,7 +5993,7 @@ class GEOL_QMAPS:
 
             if not self.dlg.lineEdit_53.text():
                 self.iface.messageBar().pushMessage(
-                    "Please enter a distance value", level=Qgis.Warning, duration=5
+                    "Please enter a distance value", level=Qgis.MessageLevel.Warning, duration=5
                 )
                 return
 
@@ -6064,7 +6064,7 @@ class GEOL_QMAPS:
 
             if not all_points:
                 self.iface.messageBar().pushMessage(
-                    "No points found", level=Qgis.Warning, duration=45
+                    "No points found", level=Qgis.MessageLevel.Warning, duration=45
                 )
                 return
 
@@ -6191,13 +6191,13 @@ class GEOL_QMAPS:
             )
             self.iface.addVectorLayer(virtual_path, "Virtual_Stops_" + datestamp, "ogr")
             self.iface.messageBar().pushMessage(
-                "Virtual Stop layer created", level=Qgis.Success, duration=5
+                "Virtual Stop layer created", level=Qgis.MessageLevel.Success, duration=5
             )
 
         except Exception as e:
             print(f"General error: {str(e)}")
             self.iface.messageBar().pushMessage(
-                f"General error: {str(e)}", level=Qgis.Critical, duration=5
+                f"General error: {str(e)}", level=Qgis.MessageLevel.Critical, duration=5
             )
 
     def virtualStops_old(self):
@@ -6374,11 +6374,11 @@ class GEOL_QMAPS:
                     )
                     self.iface.addVectorLayer(virtual_path, "", "ogr")
                     self.iface.messageBar().pushMessage(
-                        "Virtual Stop layer created", level=Qgis.Success, duration=5
+                        "Virtual Stop layer created", level=Qgis.MessageLevel.Success, duration=5
                     )
             else:
                 self.iface.messageBar().pushMessage(
-                    "No points found", level=Qgis.Warning, duration=45
+                    "No points found", level=Qgis.MessageLevel.Warning, duration=45
                 )
 
     def rmvLyr(lyrname):
@@ -6394,7 +6394,7 @@ class GEOL_QMAPS:
         if not list1 or not list2:
             self.iface.messageBar().pushMessage(
                 "ERROR: Could not find one of the selected layers.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             return
 
@@ -6404,7 +6404,7 @@ class GEOL_QMAPS:
         if src == dst:
             self.iface.messageBar().pushMessage(
                 "Please select two different layers.",
-                level=Qgis.Warning, duration=10
+                level=Qgis.MessageLevel.Warning, duration=10
             )
             return
 
@@ -6439,7 +6439,7 @@ class GEOL_QMAPS:
             dst.rollBack()
             self.iface.messageBar().pushMessage(
                 "ERROR: Failed to merge features.",
-                level=Qgis.Critical, duration=10
+                level=Qgis.MessageLevel.Critical, duration=10
             )
             return
 
@@ -6448,7 +6448,7 @@ class GEOL_QMAPS:
             dst.rollBack()
             self.iface.messageBar().pushMessage(
                 f"ERROR committing merge: {dst.commitErrors()}",
-                level=Qgis.Critical, duration=15
+                level=Qgis.MessageLevel.Critical, duration=15
             )
             return
 
@@ -6457,7 +6457,7 @@ class GEOL_QMAPS:
         QgsProject.instance().removeMapLayer(src.id())
         self.iface.messageBar().pushMessage(
             f"Merged {len(new_feats)} features into '{dst.name()}'",
-            level=Qgis.Success, duration=5
+            level=Qgis.MessageLevel.Success, duration=5
         )
 
     # Delete contents of a geopackage layer
@@ -6654,13 +6654,13 @@ class GEOL_QMAPS:
 
         if not os.path.exists(new_source_path):
             self.iface.messageBar().pushMessage(
-                "The path doesn't exist", level=Qgis.Warning, duration=45
+                "The path doesn't exist", level=Qgis.MessageLevel.Warning, duration=45
             )
             return
 
         if not self.dlg.option1_ckeckbox.isChecked() and not self.dlg.option2_ckeckbox.isChecked():
             self.iface.messageBar().pushMessage(
-                "Please select at least one update action.", level=Qgis.Warning, duration=20
+                "Please select at least one update action.", level=Qgis.MessageLevel.Warning, duration=20
             )
             return
 
@@ -6688,13 +6688,13 @@ class GEOL_QMAPS:
         if updated_layers:
             self.iface.messageBar().pushMessage(
                 (new_source_path + " is now the repository directory for the selected photograph layers"),
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=15,
             )
         else:
             self.iface.messageBar().pushMessage(
                 "No matching photograph layers were found in the current project.",
-                level=Qgis.Warning,
+                level=Qgis.MessageLevel.Warning,
                 duration=20,
             )
 
@@ -6756,7 +6756,7 @@ class GEOL_QMAPS:
 
         self.iface.messageBar().pushMessage(
             f"Layer Definition style file exported as {qlr_path}",
-            level=Qgis.Success,
+            level=Qgis.MessageLevel.Success,
             duration=45,
         )
 
@@ -6872,14 +6872,14 @@ class GEOL_QMAPS:
 
             self.iface.messageBar().pushMessage(
                 "FieldMove project imported",
-                level=Qgis.Success,
+                level=Qgis.MessageLevel.Success,
                 duration=45,
             )
         else:
             if projectDirectoryPath != "":
                 self.iface.messageBar().pushMessage(
                     "FieldMove project path incorrect",
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     duration=45,
                 )
 
@@ -7265,7 +7265,7 @@ class GEOL_QMAPS:
             if not layers:
                 self.iface.messageBar().pushMessage(
                     f"Layer '{layer_name}' not found or invalid.",
-                    level=Qgis.Warning,
+                    level=Qgis.MessageLevel.Warning,
                     duration=15
                 )
                 continue
@@ -7287,7 +7287,7 @@ class GEOL_QMAPS:
             if idx_full < 0 or idx_exif < 0 or idx_az < 0:
                 self.iface.messageBar().pushMessage(
                     f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimut attributes.",
-                    level=Qgis.Critical, duration=10
+                    level=Qgis.MessageLevel.Critical, duration=10
                 )
                 layer.rollback()
                 continue
@@ -7307,7 +7307,7 @@ class GEOL_QMAPS:
                         self.iface.messageBar().pushMessage(
                             "Warning",
                             f"Feature {fid}: cannot read EXIF from '{full_path}'; Entered image direction (0, by default) retained.",
-                            level=Qgis.Warning, duration=5
+                            level=Qgis.MessageLevel.Warning, duration=5
                         )
                         continue
                     exif_val = new_exif
@@ -7349,13 +7349,13 @@ class GEOL_QMAPS:
             if not layer.commitChanges():
                 self.iface.messageBar().pushMessage(
                     f"Failed to commit Image Direction updates on '{layer_name}'.",
-                    level=Qgis.Critical,
+                    level=Qgis.MessageLevel.Critical,
                     duration=10
                 )
             else:
                 self.iface.messageBar().pushMessage(
                     f"Layer '{layer_name}': Image directions updated from EXIF and corrected from declination.",
-                    level=Qgis.Success,
+                    level=Qgis.MessageLevel.Success,
                     duration=5
                 )
 

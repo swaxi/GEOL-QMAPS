@@ -39,14 +39,14 @@ class WAXI_QFDialogTest(unittest.TestCase):
         button = self.dialog.button_box.button(QDialogButtonBox.Ok)
         button.click()
         result = self.dialog.result()
-        self.assertEqual(result, QDialog.Accepted)
+        self.assertEqual(result, QDialog.DialogCode.Accepted)
 
     def test_dialog_cancel(self):
         """Test we can click cancel."""
         button = self.dialog.button_box.button(QDialogButtonBox.Cancel)
         button.click()
         result = self.dialog.result()
-        self.assertEqual(result, QDialog.Rejected)
+        self.assertEqual(result, QDialog.DialogCode.Rejected)
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(WAXI_QFDialogTest)
