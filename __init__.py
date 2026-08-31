@@ -25,7 +25,7 @@
 
 
 def _check_dependencies():
-    """Upgrade scipy if it is too old to work with NumPy 1.24+ (np.long removed)."""
+    """Upgrade scipy if it doesn't satisfy requirements.txt's floor (>= 1.17.0)."""
     import importlib
     import subprocess  # nosec - only used below with a fixed argv list, no shell=True
     import sys
@@ -35,7 +35,7 @@ def _check_dependencies():
     try:
         import scipy
         from packaging.version import Version
-        if Version(scipy.__version__) < Version("1.11.0"):
+        if Version(scipy.__version__) < Version("1.17.0"):
             needs_upgrade = True
     except ImportError:
         needs_upgrade = True
@@ -44,7 +44,7 @@ def _check_dependencies():
         try:
             import scipy
             parts = tuple(int(x) for x in scipy.__version__.split(".")[:2])
-            if parts < (1, 11):
+            if parts < (1, 17):
                 needs_upgrade = True
         except Exception:
             needs_upgrade = True

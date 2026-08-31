@@ -42,8 +42,12 @@ from qgis.PyQt.QtGui import (
     QStandardItem,
 )
 from qgis.PyQt import QtWidgets
+# Qt5/Qt6 compatibility: QAction moved from QtWidgets to QtGui in Qt6.
+try:
+    from qgis.PyQt.QtWidgets import QAction  # Qt5
+except ImportError:
+    from qgis.PyQt.QtGui import QAction  # Qt6
 from qgis.PyQt.QtWidgets import (
-    QAction,
     QFileDialog,
     QDialog,
     QProgressBar,
@@ -106,7 +110,7 @@ except AttributeError:
     _QVAR_DOUBLE = _QMT.Type.Double
 from qgis.utils import plugins, iface
 from qgis.utils import qgsfunction
-from qgis.PyQt.QtWidgets import QAction, QToolBar
+from qgis.PyQt.QtWidgets import QToolBar
 from qgis.core import QgsProject, QgsLayerTreeGroup, QgsLayerDefinition
 from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtCore import Qt
@@ -166,8 +170,9 @@ except ImportError:
         import defusedxml.ElementTree as ET
 
     except Exception:
-        # Fallback if install fails
-        from defusedxml.etree import ElementTree as ET
+        # Fallback if install fails: use the bundled biblio_Python/defusedxml copy
+        # (already on sys.path, see above), same module used on the success paths.
+        import defusedxml.ElementTree as ET
 from datetime import datetime
 import re
 
@@ -223,6 +228,11 @@ from pathlib import Path
 from .FieldMove_Import import FM_Import
 from .GEOL_QMAPS_dockwidget import GEOL_QMAPSDockWidget
 from .ppigrf import igrf, get_inclination_declination
+from .photo_path_utils import (
+    build_map_tip_image_expression,
+    build_updated_photo_path,
+    select_photo_path_field_name,
+)
 
 # Robust fuzzy-matching loader.
 # Some QGIS installations may pick up an incomplete vendored fuzzywuzzy package
@@ -993,7 +1003,8 @@ class GEOL_QMAPS:
                     self.dlg.csv_pushButton_2.clicked.connect(self.deleteCsvItem)
 
                     #Picture Management
-                    self.dlg.pushButton_update_source_photo.clicked.connect(self.update_source_photo)
+                    self.dlg.pushButton_update_source_photo.clicked.connect(lambda: self.update_source_photo(target_scope="current"))
+                    self.dlg.pushButton_update_source_photo_compilation.clicked.connect(lambda: self.update_source_photo(target_scope="compilation"))
 
                     # HELP
                     # Send email to Mark Jessell and Julien Perret
@@ -4713,6 +4724,7 @@ class GEOL_QMAPS:
             return
 
         # Drive check (C: or other non-removable)
+        temp_dir = None
         drive = os.path.splitdrive(qfield_path)[0]
         if drive.upper().startswith('\\') or not drive:
             self.iface.messageBar().pushMessage(
@@ -4725,7 +4737,6 @@ class GEOL_QMAPS:
             return
 
         # Step 1: Handle QField package (ZIP or folder)
-        temp_dir = None
         if qfield_path.lower().endswith('.zip'):
             temp_dir = tempfile.TemporaryDirectory()
             with zipfile.ZipFile(qfield_path, 'r') as zf:
@@ -6500,70 +6511,191 @@ class GEOL_QMAPS:
 
     ### Update the source path of pictures in Photographs_PT and Sampling_PT layers ###
 
-    def update_source_photo(self):  # ADD
+    def _set_photo_layer_map_tip_template(self, layer):
+        if layer is None or not hasattr(layer, "setMapTipTemplate"):
+            return False
 
-        new_source_path = str(self.dlg.lineEdit_14.text())
+        field_names = [field.name() for field in layer.fields()]
+        source_field_name = "Source" if "Source" in field_names else None
+        photo_field_name = select_photo_path_field_name(field_names)
 
-        if os.path.exists(self.mynormpath(new_source_path)):
+        if not source_field_name or not photo_field_name:
+            return False
 
-            layer_photographs_PT = QgsProject.instance().mapLayersByName(
-                "Photographs_PT"
-            )[0]
-            layer_sampling_PT = QgsProject.instance().mapLayersByName("Sampling_PT")[0]
-            source_field_index_photo = layer_photographs_PT.fields().indexFromName(
-                "Source"
+        image_expression = build_map_tip_image_expression(source_field_name, photo_field_name)
+        template = f"""
+<div style="max-width: 500px;">
+  <div style="margin-bottom: 0px;">[% "Comments" %]</div>
+  <div style="text-align: center; margin-bottom: 0px;">
+    <img src="[% {image_expression} %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
+  </div>
+  <div>[% "Date" %]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "Azimut" %]</div>
+</div>
+"""
+        layer.setMapTipTemplate(template)
+        if hasattr(layer, "setMapTipsEnabled"):
+            layer.setMapTipsEnabled(True)
+        layer.triggerRepaint()
+        return True
+
+    def _get_photo_target_layer(self, layer_name):
+        loaded_layers = QgsProject.instance().mapLayersByName(layer_name)
+        if loaded_layers:
+            return loaded_layers[0]
+
+        project_file = QgsProject.instance().fileName()
+        if not project_file:
+            return None
+
+        project_dir = os.path.dirname(project_file)
+        if layer_name in ("Photographs_PT", "Sampling_PT"):
+            gpkg_path = os.path.join(project_dir, self.dir_0, "CURRENT_MISSION.gpkg")
+        elif layer_name in ("Compilation_Photographs_PT", "Compilation_Sampling_PT"):
+            gpkg_path = os.path.join(project_dir, self.dir_1, "COMPILATION.gpkg")
+        else:
+            return None
+
+        gpkg_path = self.mynormpath(gpkg_path)
+        if not os.path.exists(gpkg_path):
+            return None
+
+        uri = f"{gpkg_path}|layername={layer_name}"
+        layer = QgsVectorLayer(uri, layer_name, "ogr")
+        return layer if layer.isValid() else None
+
+    def _update_photo_layer_paths(self, layer, new_source_path):
+        if layer is None:
+            return False
+
+        source_field_index = layer.fields().indexFromName("Source")
+        field_names = [field.name() for field in layer.fields()]
+        photo_field_name = select_photo_path_field_name(field_names)
+        photo_field_index = layer.fields().indexFromName(photo_field_name) if photo_field_name else -1
+
+        if source_field_index == -1 and photo_field_index == -1:
+            return False
+
+        if not layer.startEditing():
+            return False
+
+        try:
+            for feature in layer.getFeatures():
+                if source_field_index != -1:
+                    feature.setAttribute(source_field_index, new_source_path)
+
+                if photo_field_index != -1:
+                    existing_photo_value = None
+                    try:
+                        existing_photo_value = feature[photo_field_name]
+                    except KeyError:
+                        existing_photo_value = None
+
+                    if existing_photo_value in (None, ""):
+                        fallback_photo_field_index = layer.fields().indexFromName("Photograph")
+                        if fallback_photo_field_index != -1:
+                            try:
+                                existing_photo_value = feature["Photograph"]
+                            except KeyError:
+                                existing_photo_value = None
+
+                    feature.setAttribute(
+                        photo_field_index,
+                        build_updated_photo_path(new_source_path, existing_photo_value),
+                    )
+
+                layer.updateFeature(feature)
+
+            layer.commitChanges()
+            return True
+        except Exception as exc:
+            layer.rollBack()
+            print(f"Could not update photo paths for layer '{layer.name()}': {exc}")
+            return False
+
+    def _set_photo_layer_default_value(self, layer, new_source_path):
+        if layer is None:
+            return False
+
+        escaped_path = new_source_path.replace("'", "''")
+        success = False
+
+        source_field_index = layer.fields().indexFromName("Source")
+        if source_field_index != -1:
+            layer.setDefaultValueDefinition(
+                source_field_index,
+                QgsDefaultValue(f"'{escaped_path}'"),
             )
-            source_field_index_sampling = layer_sampling_PT.fields().indexFromName(
-                "Source"
+            success = True
+
+        photo_field_name = select_photo_path_field_name([field.name() for field in layer.fields()])
+        photo_field_index = layer.fields().indexFromName(photo_field_name) if photo_field_name else -1
+        if photo_field_index != -1:
+            photo_reference_field = "Photograph"
+            if photo_field_name in ("Photo", "Sample Photograph"):
+                photo_reference_field = photo_field_name
+            photo_expression = (
+                f"CASE WHEN \"{photo_reference_field}\" IS NULL OR \"{photo_reference_field}\" = '' "
+                f"THEN '{escaped_path}' ELSE concat('{escaped_path}', '/', \"{photo_reference_field}\") END"
             )
+            layer.setDefaultValueDefinition(
+                photo_field_index,
+                QgsDefaultValue(photo_expression),
+            )
+            success = True
 
-            ## Option 1
-            if self.dlg.option1_ckeckbox.isChecked():
+        if success:
+            QgsProject.instance().write()
 
-                layer_photographs_PT.startEditing()
+        return success
 
-                for feature in layer_photographs_PT.getFeatures():
-                    feature.setAttribute(source_field_index_photo, new_source_path)
-                    layer_photographs_PT.updateFeature(feature)
+    def update_source_photo(self, target_scope="current"):  # ADD
 
-                layer_photographs_PT.commitChanges()
+        new_source_path = self.mynormpath(self.dlg.lineEdit_14.text())
 
-                layer_sampling_PT.startEditing()
-
-                for feature in layer_sampling_PT.getFeatures():
-                    feature.setAttribute(source_field_index_sampling, new_source_path)
-                    layer_sampling_PT.updateFeature(feature)
-
-                layer_sampling_PT.commitChanges()
-
-            ## Option 2
-            if self.dlg.option2_ckeckbox.isChecked():
-
-                # Create default value
-                new_source_path_default = "'" + str(new_source_path) + "'"
-                default_value = QgsDefaultValue(new_source_path_default)
-
-                # Update default field value
-                layer_photographs_PT.setDefaultValueDefinition(
-                    source_field_index_photo, default_value
-                )
-                QgsProject.instance().write()
-
-                # Update default field value
-                layer_sampling_PT.setDefaultValueDefinition(
-                    source_field_index_sampling, default_value
-                )
-                QgsProject.instance().write()
-
+        if not os.path.exists(new_source_path):
             self.iface.messageBar().pushMessage(
-                (new_source_path + " is now the default directory for pictures"),
+                "The path doesn't exist", level=Qgis.Warning, duration=45
+            )
+            return
+
+        if not self.dlg.option1_ckeckbox.isChecked() and not self.dlg.option2_ckeckbox.isChecked():
+            self.iface.messageBar().pushMessage(
+                "Please select at least one update action.", level=Qgis.Warning, duration=20
+            )
+            return
+
+        if target_scope == "compilation":
+            layer_names = ["Compilation_Photographs_PT", "Compilation_Sampling_PT"]
+        else:
+            layer_names = ["Photographs_PT", "Sampling_PT"]
+
+        updated_layers = []
+        for layer_name in layer_names:
+            layer = self._get_photo_target_layer(layer_name)
+            if layer is None:
+                continue
+
+            if self.dlg.option1_ckeckbox.isChecked():
+                if self._update_photo_layer_paths(layer, new_source_path):
+                    self._set_photo_layer_map_tip_template(layer)
+                    updated_layers.append(layer_name)
+
+            if self.dlg.option2_ckeckbox.isChecked():
+                if self._set_photo_layer_default_value(layer, new_source_path):
+                    self._set_photo_layer_map_tip_template(layer)
+                    updated_layers.append(layer_name)
+
+        if updated_layers:
+            self.iface.messageBar().pushMessage(
+                (new_source_path + " is now the repository directory for the selected photograph layers"),
                 level=Qgis.Success,
                 duration=15,
             )
-
         else:
             self.iface.messageBar().pushMessage(
-                "The path doesn't exist", level=Qgis.Warning, duration=45
+                "No matching photograph layers were found in the current project.",
+                level=Qgis.Warning,
+                duration=20,
             )
 
     def get_value_default(self, layer, field):  # ADD

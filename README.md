@@ -2,14 +2,16 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.0.1 - July 2026*
+*version 3.2.0.2 - August 2026*
 
-# Changelog 3.2.0.1
+# Changelog 3.2.0.2
 
-      * Updated and completed Requirements.txt
-      * Optimisation and bug fixes for the Set User By Default tool
-      * Fixed the Edit Dictionaries tool
-      * General code security and robustness improvements
+      * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
+      * Improved robustness of QField package sync validation on macOS and Windows.
+      * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
+      * Harmonised numpy/scipy/pandas version constraints in Requirements.txt with the Stereoplot and Geochemistry Plotting Tools plugins, so installing all three on the same QGIS Python environment converges on one mutually compatible dependency set.
+      * Fixed a NameError crash in ppigrf.py and a broken defusedxml fallback path.
+      * Fixed a Qt6/QGIS4 compatibility bug affecting QAction, which moved from QtWidgets to QtGui in Qt6.
   
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
@@ -70,7 +72,7 @@ Before installing **GEOL-QMAPS**, it is recommended to:
 1. Install the **qpip** plugin from the QGIS Plugin Manager.
 2. Allow **qpip** to install any missing dependencies automatically when prompted by the **GEOL-QMAPS** plugin (or any other plugin with depedencies).
 
-Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations.
+Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations. The declared `numpy` and `scipy` version ranges (`numpy>=1.26.4,<2.0`, `scipy>=1.17.0,<1.18`) match those used by the other `swaxi` QGIS plugins (Stereoplot, Geochemistry Plotting Tools), so installing several of them together converges on one consistent set of package versions instead of each plugin pulling in a different one.
 
 > **Important:** If the **GEOL-QMAPS** plugin fails to start or reports missing Python modules, first verify that qpip is installed and that all required dependencies have been successfully installed. In most cases, dependency-related issues can be resolved by reinstalling the missing packages through qpip and restarting QGIS.
 
