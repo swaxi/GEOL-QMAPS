@@ -76,7 +76,10 @@ _CPR = "font-family: Arial; font-size: 11px; font-style: italic;"
 _HELP_BTN = ("font-family: Arial; font-size: 12px; font-style: italic;"
              "background-color: rgb(220,220,220); font-weight: bold;")
 
-_COPYRIGHT = "© 2025 West African Exploration Initiative. All Rights Reserved."
+_COPYRIGHT = (
+    "© 2026 Centre for Exploration Targeting, School of Earth and Oceans,\n"
+    "University of Western Australia. All Rights Reserved."
+)
 
 _PANEL_W = 760
 _GROUP_W = 741
@@ -323,7 +326,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.legendbox_3.setStyleSheet("font-family: Arial; font-size: 8pt;")
         self.pushButton_9  = _btn(step2, _tr("Fields OK"), 590, 360, 101, 21)
         self.pushButton_11 = _btn(step2, _tr("Undo"),      470, 360, 101, 21)
-        self.label_33 = _lbl(step2, _COPYRIGHT, 10, 360, 311, 21, _CPR)
+        self.label_33 = _lbl(step2, _COPYRIGHT, 10, 360, 450, 32, _CPR)
         self.tabWidget_Step2_3.addTab(step2, _tr("Database Fields"))
 
         # Sub-tab: Lithology Names
@@ -333,7 +336,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.legendbox.setStyleSheet("font-family: Arial; font-size: 8pt;")
         self.pushButton_10 = _btn(step3, _tr("Lithologies OK"), 590, 360, 101, 21)
         self.pushButton_12 = _btn(step3, _tr("Undo"),           470, 360, 101, 21)
-        self.label_38 = _lbl(step3, _COPYRIGHT, 10, 360, 311, 21, _CPR)
+        self.label_38 = _lbl(step3, _COPYRIGHT, 10, 360, 450, 32, _CPR)
         self.tabWidget_Step2_3.addTab(step3, _tr("Lithology Names"))
 
         # Sub-tab: Structure Types
@@ -343,7 +346,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.legendbox_2.setStyleSheet("font-family: Arial; font-size: 8pt;")
         self.pushButton_25 = _btn(step4, _tr("Undo"),          470, 360, 101, 21)
         self.pushButton_26 = _btn(step4, _tr("Structures OK"), 590, 360, 101, 21)
-        self.label_34 = _lbl(step4, _COPYRIGHT, 10, 360, 311, 21, _CPR)
+        self.label_34 = _lbl(step4, _COPYRIGHT, 10, 360, 450, 32, _CPR)
         self.tabWidget_Step2_3.addTab(step4, _tr("Structure Types"))
 
         return W
@@ -485,7 +488,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
 
         # Bottom bar — RESET widened 141→215, moved left
         self.pushButton_19 = _btn(W, _tr("RESET THE WINDOW"), 565, 669, 215, 21)
-        self.label_31 = _lbl(W, _COPYRIGHT, 10, 669, 311, 21, _CPR)
+        self.label_31 = _lbl(W, _COPYRIGHT, 10, 669, 450, 32, _CPR)
 
         return W
 
@@ -674,7 +677,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
 
         # Bottom bar — RESET widened 141→215, moved left; y shifted +80
         self.pushButton_22 = _btn(W, _tr("RESET THE WINDOW"), 565, 790, 215, 21)
-        self.label_32 = _lbl(W, _COPYRIGHT, 10, 790, 611, 21, _CPR)
+        self.label_32 = _lbl(W, _COPYRIGHT, 10, 790, 611, 32, _CPR)
 
         return W
 
@@ -718,7 +721,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         gb13 = _gb(W, _tr("Need Some Help? Contact Us!"), 10, 90, 381, 151, ptsize=12)
         self.plainTextEdit_8 = _pte(
             gb13, 10, 30, 741, 111,
-            "M.W. Jessell*, J. Perret* and E. Bétend - Developers of the Plugin\n\n"
+            "J. Perret*, M.W. Jessell* and E. Bétend - Developers of the Plugin\n\n"
             "J. Perret* - Developer of the GEOL-QMAPS QGIS Mapping Template \n\n"
             "*Contact Us:\n\nOnline Documentation:",
             "plainTextEdit_8")
@@ -759,7 +762,7 @@ class GEOL_QMAPSDockWidget(QDockWidget):
         self.pushButton_40 = _btn(gb31, _tr("AMIRA website"), 380, 70, 165, 21, _HELP_BTN)
 
         # Copyright
-        self.label_37 = _lbl(W, _COPYRIGHT, 10, 710, 311, 21, _CPR)
+        self.label_37 = _lbl(W, _COPYRIGHT, 10, 710, 450, 32, _CPR)
 
         return W
 

@@ -397,7 +397,7 @@ class FM_Import:
         layer.dataProvider().addAttributes([
             QgsField('id', _QVAR_DOUBLE),
             QgsField('Photo ID', _QVAR_STRING),
-            QgsField('Azimut', _QVAR_DOUBLE),
+            QgsField('Azimuth', _QVAR_DOUBLE),
             QgsField('Photo', _QVAR_STRING),
             QgsField('Date', _QVAR_STRING),
             QgsField('Mission', _QVAR_STRING),

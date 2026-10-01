@@ -304,6 +304,54 @@ def _get_fuzz_matcher():
     return _GEOL_QMAPS_FUZZ
 
 
+# Known historical field renames across GEOL-QMAPS template releases. Shared by
+# every tool that copies feature data between a project built on an older
+# template version and one built on the current/latest schema (Rejig, Merge
+# Projects, ...), so a field's value still carries over even though the field
+# is no longer looked up under its old name -- without this, the value would
+# either be silently dropped (name-based copy) or, worse, land in the wrong
+# field entirely (position-based copy, if the column layout also drifted).
+# Each rule is (candidate old names, tried in order; current field name; the
+# set of layer names -CURRENT_MISSION.gpkg spelling, without any
+# "Compilation_" prefix- it applies to, or None for every layer that has that
+# field). As introduced by template v3.2.1:
+FIELD_RENAME_RULES = [
+    (["Azimut"], "Azimuth", None),
+    (["Existing d"], "Existing databases - raw data", None),  # pre-fix truncated column name
+    (["Reliabilit"], "Reliability", {"Lithological contacts_LN"}),
+    (["Reliabilit"], "Confidence_Index", None),
+    (["Metamorphi"], "Index_Minerals", None),
+    (["Deformatio"], "Strain_Intensity", {"Dikes-Sills_PT"}),
+    (["Stratigrap"], "Stratigraphic_Unit", {"Density_PT"}),
+    (["DipDir"], "Dip_Dir", {"Lithological contacts_LN"}),
+    (["Width_mm"], "Width_m", {"Dikes-Sills_PT"}),
+    # "Texture" is only a historical alias of Strain_Pattern on these two
+    # layers; elsewhere (e.g. Igneous extrusive lithologies_PT) "Texture" is a
+    # distinct, still-current field with an unrelated meaning and must NOT be
+    # remapped.
+    (["Texture"], "Strain_Pattern", {"Dikes-Sills_PT", "Metamorphic lithologies_PT"}),
+    (["Struct_Tec", "Struc_Tect"], "Strain_Pattern", None),
+]
+
+
+def _field_rename_candidates(layer_name, dst_field_names):
+    """Map each current field name on this layer to the historical name(s)
+    (in priority order) that may hold its data in an older project, restricted
+    to fields that actually exist on the destination layer."""
+    dst_field_names = set(dst_field_names)
+    layer_stem = layer_name[len("Compilation_"):] if layer_name.startswith("Compilation_") else layer_name
+    candidates = {}
+    for old_names, new_field, layers in FIELD_RENAME_RULES:
+        if layers is not None and layer_stem not in layers:
+            continue
+        if new_field not in dst_field_names:
+            continue
+        bucket = candidates.setdefault(new_field, [])
+        for old_name in old_names:
+            if old_name not in bucket:
+                bucket.append(old_name)
+    return candidates
+
 
 class GEOL_QMAPS:
     """QGIS Plugin Implementation."""
@@ -3062,6 +3110,7 @@ class GEOL_QMAPS:
                 measure_idx = headers.index("Measure") if "Measure" in headers else None
                 trend_idx = headers.index("Trend") if "Trend" in headers else None
                 younging_idx = headers.index("Younging") if "Younging" in headers else None
+                existing_db_idx = headers.index("Existing databases - raw data") if "Existing databases - raw data" in headers else None
 
                 # Retrieve geometry column index
                 if "Geometry" not in headers:
@@ -3175,20 +3224,35 @@ class GEOL_QMAPS:
                     feature = QgsFeature(layer.fields())
                     geometry_wkt = row.iloc[geometry_column_index]
                     feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
-                    
+
+                    # Precompute the UUID hash and parsed "Existing databases - raw
+                    # data" dict from the row directly (by column index), rather
+                    # than relying on encountering that column before "UUID" while
+                    # iterating fields below. The template's actual field order has
+                    # "UUID" *before* "Existing databases - raw data" on every
+                    # layer, so computing these lazily during the loop raised a
+                    # NameError on every row (UUID was always processed first),
+                    # silently dropping every feature and leaving scratch layers
+                    # with 0 features.
+                    row_hash = ""
+                    row_existing_db_dict = {}
+                    if existing_db_idx is not None:
+                        existing_db_value = row.iloc[existing_db_idx]
+                        row_hash = hashlib.sha256(str(existing_db_value).encode()).hexdigest()
+                        for pair in str(existing_db_value)[:-1].split(";"):
+                            if ":" in pair:
+                                key = pair.split(":")[0]
+                                entry = pair.split(":")[1]
+                                row_existing_db_dict[key] = entry
+
                     # Other fields of the attribute table by looping through sheet columns
                     for i, value in enumerate(row):
-
-                        if field_names[i] == "Existing databases - raw data":
-                            hash = hashlib.sha256(value.encode()).hexdigest()
 
                         type_donnee = type_field_data[i]
                         if type_donnee == "String" or type_donnee == "JSON":
                             if field_names[i] == "UUID":
-                                feature.setAttribute(
-                                    i, str(hash)
-                                )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
-                                self.sheetHashUUID[str(hash)] = [new_text]
+                                feature.setAttribute(i, str(row_hash))
+                                self.sheetHashUUID[str(row_hash)] = [row_existing_db_dict]
                             elif field_names[i] == "Measure" and ("Lineations_PT" in sheet or "Folds_PT" in sheet):
                                 # Preserve the layer-specific Measure value prepared during structure_sorting.
                                 # Lineations_PT should normally keep "Trend - Plunge"; Folds_PT should keep
@@ -3201,13 +3265,7 @@ class GEOL_QMAPS:
                                 else:
                                     feature.setAttribute(i, "")
                             elif field_names[i] == "Existing databases - raw data":
-                                new_text = {}
-                                for pair in value[:-1].split(";"):
-                                    if ":" in pair:
-                                        key = pair.split(":")[0]
-                                        entry = pair.split(":")[1]
-                                        new_text[key] = entry
-                                feature.setAttribute(i, str(new_text))
+                                feature.setAttribute(i, str(row_existing_db_dict))
 
                             else:
                                 feature.setAttribute(i, str(value))
@@ -4380,7 +4438,7 @@ class GEOL_QMAPS:
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
-        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.2.0 at the moment
+        # 3. Download + unpack latest template.
         # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
         import socket
         try:
@@ -4395,11 +4453,39 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.clear()
             return
 
-        # 3b) Attempt download with 60 s timeout
+        # 3b) Resolve the latest template release from Zenodo and download it.
+        # GEOL-QMAPS' Zenodo "concept" record id (7834717) always identifies the
+        # record family; querying it follows Zenodo's redirect to whichever
+        # version is currently the latest, so this automatically picks up every
+        # future template release without any hardcoded version/URL/filename
+        # here (no more "update this at every release" maintenance).
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/20549571/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        concept_record_api_url = "https://zenodo.org/api/records/7834717"
         from urllib.parse import urlparse
         from urllib.request import urlopen, Request
+        import json as _json
+        try:
+            with urlopen(Request(concept_record_api_url), timeout=30) as resp:  # nosec B310
+                latest_record = _json.loads(resp.read().decode("utf-8"))
+            zip_entry = next(
+                (f for f in latest_record.get("files", [])
+                 if str(f.get("key", "")).lower().endswith(".zip")),
+                None,
+            )
+            if zip_entry is None:
+                raise ValueError("No .zip file found in the latest GEOL-QMAPS Zenodo record.")
+            url = zip_entry["links"]["self"]
+            latest_version = latest_record.get("metadata", {}).get("version", "unknown")
+            print(f"Resolved latest GEOL-QMAPS template release from Zenodo: v{latest_version} ({url})")
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                f"Could not resolve the latest GEOL-QMAPS template release from Zenodo:\n{e}",
+                level=Qgis.MessageLevel.Critical, duration=10
+            )
+            self.dlg.lineEdit_15.clear()
+            return
+
+        # 3c) Attempt download with 60 s timeout
         try:
             parsed_url = urlparse(url)
 
@@ -4430,13 +4516,32 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.clear()
             return
 
-        # 3c) Unzip the downloaded archive into the parent folder
+        # 3d) Unzip the downloaded archive into the parent folder, tracking what's
+        # newly added so the extracted release folder can be found regardless of
+        # its exact name.
         import zipfile
+        existing_entries_before = set(os.listdir(str(parent))) if parent.exists() else set()
         with zipfile.ZipFile(local_path, 'r') as zf:
             zf.extractall(str(parent))
 
-        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
-        template_src = parent / "GEOL-QMAPS_v3.2.0" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the newly
+        # extracted release. Resolved dynamically (rather than a hardcoded
+        # "GEOL-QMAPS_vX.Y.Z" folder name) so this keeps working for every future
+        # template release without code changes.
+        new_entries = sorted(set(os.listdir(str(parent))) - existing_entries_before)
+        template_src = None
+        for entry in new_entries:
+            candidate = parent / entry / "QGIS_TEMPLATE"
+            if candidate.is_dir():
+                template_src = candidate
+                break
+        if template_src is None:
+            self.iface.messageBar().pushMessage(
+                "ERROR: Could not locate a QGIS_TEMPLATE folder inside the downloaded template archive.",
+                level=Qgis.MessageLevel.Critical, duration=10
+            )
+            self.dlg.lineEdit_15.clear()
+            return
 
 
         # 4b) Prepare the destination name and remove any stale copy
@@ -4556,6 +4661,11 @@ class GEOL_QMAPS:
         driver = ogr.GetDriverByName("GPKG")
         raw_version = raw  # the version string you read earlier, e.g. "3.1.0"
 
+        # Field-rename-aware copy: without this, a project created before a
+        # rename would silently lose that column's data, since the old feature
+        # has no field under the new name. See FIELD_RENAME_RULES/
+        # _field_rename_candidates() near the top of this module.
+
         for pkg_rel in ["0_FIELD_DATA/CURRENT_MISSION.gpkg",
                         "1_EXISTING_FIELD_DATABASE/COMPILATION.gpkg"]:
             old_pkg = str(old / pkg_rel)
@@ -4589,6 +4699,8 @@ class GEOL_QMAPS:
                     continue
 
                 dst_def = dst_layer.GetLayerDefn()
+                dst_field_names = [dst_def.GetFieldDefn(fi).GetName() for fi in range(dst_def.GetFieldCount())]
+                rename_candidates = _field_rename_candidates(new_name, dst_field_names)
                 # start transaction for speed
                 dst_layer.StartTransaction()
                 src_layer.ResetReading()
@@ -4602,6 +4714,16 @@ class GEOL_QMAPS:
                         fld_name = fld_def.GetName()
                         if feat.GetFieldIndex(fld_name) != -1:
                             out_feat.SetField(fld_name, feat.GetField(fld_name))
+                        else:
+                            # Field doesn't exist under its current name on this
+                            # older feature; see if it was collected under a
+                            # historical name instead, so the value still carries
+                            # over rather than being silently dropped.
+                            for old_field_name in rename_candidates.get(fld_name, ()):
+                                src_idx = feat.GetFieldIndex(old_field_name)
+                                if src_idx != -1:
+                                    out_feat.SetField(fld_name, feat.GetField(src_idx))
+                                    break
                     # copy geometry
                     geom = feat.GetGeometryRef()
                     if geom:
@@ -5521,7 +5643,11 @@ class GEOL_QMAPS:
                     if not os.path.exists(df): shutil.copy2(sf, df)
 
         def append_gpkg(src_gpkg, dst_gpkg):
-            # Append features from src_gpkg into dst_gpkg without editing layer state
+            # Append features from src_gpkg into dst_gpkg without editing layer state.
+            # Sub-project and main/merged project may come from different template
+            # versions with different field orders (or renamed fields), so
+            # attributes are matched by NAME (with a rename-aware fallback via
+            # _field_rename_candidates), never copied by position.
             ds_src = ogr.Open(src_gpkg)
             ds_dst = ogr.Open(dst_gpkg, 1)  # open for update
             if not ds_src or not ds_dst:
@@ -5534,17 +5660,29 @@ class GEOL_QMAPS:
                 src_uri = f"{src_gpkg}|layername={name}"
                 dst_vl = QgsVectorLayer(dst_uri, name, 'ogr')
                 src_vl = QgsVectorLayer(src_uri, name, 'ogr')
-                # Identify PK fields to null out
-                pk_indices = dst_vl.dataProvider().pkAttributeIndexes()
+                if not dst_vl.isValid() or not src_vl.isValid():
+                    continue
+                dst_fields = dst_vl.fields()
+                # Identify PK fields to leave null (so the destination auto-assigns new ones)
+                pk_indices = set(dst_vl.dataProvider().pkAttributeIndexes())
+                rename_candidates = _field_rename_candidates(name, [f.name() for f in dst_fields])
                 to_add = []
                 for feat in src_vl.getFeatures():
-                    new_feat = QgsFeature(dst_vl.fields())
+                    new_feat = QgsFeature(dst_fields)
                     new_feat.setGeometry(feat.geometry())
-                    attrs = feat.attributes()
-                    for idx in pk_indices:
-                        if 0 <= idx < len(attrs):
-                            attrs[idx] = None
-                    new_feat.setAttributes(attrs)
+                    for dst_idx in range(dst_fields.count()):
+                        if dst_idx in pk_indices:
+                            continue
+                        fld_name = dst_fields.at(dst_idx).name()
+                        src_idx = feat.fields().indexFromName(fld_name)
+                        if src_idx != -1:
+                            new_feat.setAttribute(dst_idx, feat.attribute(src_idx))
+                        else:
+                            for old_name in rename_candidates.get(fld_name, ()):
+                                old_idx = feat.fields().indexFromName(old_name)
+                                if old_idx != -1:
+                                    new_feat.setAttribute(dst_idx, feat.attribute(old_idx))
+                                    break
                     new_feat.setId(-1)
                     to_add.append(new_feat)
                 if to_add:
@@ -6523,13 +6661,21 @@ class GEOL_QMAPS:
             return False
 
         image_expression = build_map_tip_image_expression(source_field_name, photo_field_name)
+        # Azimuth (image direction) only exists on the Photographs layers, not on
+        # Sampling_PT/Compilation_Sampling_PT, which also use this map tip template.
+        # Detect it dynamically so this keeps working regardless of layer/version.
+        azimuth_field_name = "Azimuth" if "Azimuth" in field_names else None
+        azimuth_line = (
+            f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "{azimuth_field_name}" %]'
+            if azimuth_field_name else ""
+        )
         template = f"""
 <div style="max-width: 500px;">
   <div style="margin-bottom: 0px;">[% "Comments" %]</div>
   <div style="text-align: center; margin-bottom: 0px;">
     <img src="[% {image_expression} %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
   </div>
-  <div>[% "Date" %]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "Azimut" %]</div>
+  <div>[% "Date" %]{azimuth_line}</div>
 </div>
 """
         layer.setMapTipTemplate(template)
@@ -7283,10 +7429,10 @@ class GEOL_QMAPS:
             # Field indices
             idx_full = layer.fields().indexFromName("Full_Path")
             idx_exif = layer.fields().indexFromName("EXIF_Azimuth")
-            idx_az = layer.fields().indexFromName("Azimut")
+            idx_az = layer.fields().indexFromName("Azimuth")
             if idx_full < 0 or idx_exif < 0 or idx_az < 0:
                 self.iface.messageBar().pushMessage(
-                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimut attributes.",
+                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimuth attributes.",
                     level=Qgis.MessageLevel.Critical, duration=10
                 )
                 layer.rollback()
@@ -7297,7 +7443,7 @@ class GEOL_QMAPS:
                 fid = feat.id()
                 full_path = feat["Full_Path"]
                 exif_val = feat["EXIF_Azimuth"]
-                az_val = feat["Azimut"]
+                az_val = feat["Azimuth"]
                 new_exif = None
 
                 # If EXIF_Azimuth is null/empty, try to compute it

@@ -2,17 +2,17 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.0.2 - August 2026*
+*version 3.2.1 - October 2026*
 
-# Changelog 3.2.0.2
+# Changelog 3.2.1
 
-      * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
-      * Improved robustness of QField package sync validation on macOS and Windows.
-      * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
-      * Harmonised numpy/scipy/pandas version constraints in Requirements.txt with the Stereoplot and Geochemistry Plotting Tools plugins, so installing all three on the same QGIS Python environment converges on one mutually compatible dependency set.
-      * Fixed a NameError crash in ppigrf.py and a broken defusedxml fallback path.
-      * Fixed a Qt6/QGIS4 compatibility bug affecting QAction, which moved from QtWidgets to QtGui in Qt6.
-  
+      * Updated the plugin to match the GEOL-QMAPS QGIS template v3.2.1: renamed the Photographs_PT / Compilation_Photographs_PT "Azimut" field references to "Azimuth" (image-direction map tip and EXIF-to-Azimuth tool) and made the map tip detect that field dynamically, since it is also used on Sampling_PT/Compilation_Sampling_PT, which has no Azimuth field.
+      * The Rejig tool now resolves the latest template release from Zenodo dynamically (via GEOL-QMAPS' stable Zenodo record) instead of a hard-coded version/URL, so it stays current with every future template release (and continues to support past ones, ≥3.1.0) without needing a plugin update each time.
+      * **Rejig** and **Merge Projects** now carry a field's data across a template-version field rename instead of losing it (Rejig) or risking it landing in the wrong field (Merge Projects, which previously copied attributes by column position rather than by name). Both tools share one documented table of known historical renames.
+      * Reviewed the full v3.2.1 template field/layer schema against the plugin's code; confirmed the other template field renames (Reliabilit, Metamorphi, Deformatio, Stratigrap, Struct_Tec/Struc_Tect/Texture, DipDir, Width_mm on Dikes-Sills_PT) are handled by the above and need no further changes.
+      * Fixed Step 3 (Generate QGIS Layers) of the Import Legacy Field Data tool producing no scratch layers at all: a UUID-hashing step assumed a field order that no longer matches the template's actual schema, so it failed on every row; it now computes the hash directly from the right column regardless of field order.
+      * Updated the copyright notice shown across the plugin windows.
+
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
 ## 1. Description
@@ -57,7 +57,7 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
 
 ## 4. Installation
 ### *4.1. GEOL-QMAPS QGIS Template* 
-* Visit [the Zenodo repository of the QGIS template](https://zenodo.org/records/13374088)
+* Visit [the Zenodo repository of the QGIS template](https://zenodo.org/records/7834717)
 
 * Save the latest version of the QGIS mapping project template to disk as a zip file
 
@@ -99,7 +99,7 @@ The figure below, adapted from Perret et al. ([2024](https://doi.org/10.1016/j.a
 
 ### *5.1. Architecture of the QGIS Mapping Template* 
 #### 5.1.1. Repository Content
-Open the unzipped `GEOL_QMAPS_vX.X.X`, downloaded on [Zenodo](https://zenodo.org/records/13374088) (version X.X.X).
+Open the unzipped `GEOL_QMAPS_vX.X.X`, downloaded on [Zenodo](https://zenodo.org/records/7834717) (version X.X.X).
 
 The `.\QGIS_TEMPLATE` repository contains several sub-folders where relevant geodata can be sorted by theme. 
 
@@ -137,7 +137,7 @@ The figure below summarises the different field data that can be collected using
 
 ![Field_Layers](Field_Layers.png) 
 
-A detailed description of the attributes and the design of attribute forms for each field data layer is ![attached](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf).
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.1_data_dictionary.xlsx).
 
 #### 5.1.3. Coordinate Reference System
 By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojected CRS, enabling compatibility with global datasets.
@@ -255,7 +255,7 @@ For instructions on plotting on the fly structural measurements contained in any
    
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
-A detailed description of the attributes and the design of attribute forms for each field data layer is provided in the following ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf)
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.1_data_dictionary.xlsx).
 
 To activate tracking, ensure that positioning is enabled in QField. <br>
 Next, open the side dashboard, long-press on the **GPS Tracks_PT** where you want to save your tracks, and select the *Setup Tracking* button to configure the tracking session.
@@ -295,7 +295,7 @@ Modifications made by distributed field teams can be then compiled using the cus
 ### *6.1. Open and Navigate the Plugin*
 > [!CAUTION]
 > *Make sure the GEOL-QMAPS plugin is installed* (see subsection 4.2.). <br>
-> *Also, an existing GEOL-QMAPS QGIS project compatible with the plugin version installed must be open to run this plugin, otherwise the Dialog will not display. In other words, make sure to download the [latest GEOL-QMAPS QGIS template](https://zenodo.org/records/13374088) if the updated version of the plugin is installed.*
+> *Also, an existing GEOL-QMAPS QGIS project compatible with the plugin version installed must be open to run this plugin, otherwise the Dialog will not display. In other words, make sure to download the [latest GEOL-QMAPS QGIS template](https://zenodo.org/records/7834717) if the updated version of the plugin is installed.*
 
 Make sure to activate the GEOL-QMAPS plugin in the QGIS Plugin Repository Manager, and click on the plugin icon ![WAXI icon](icon.png) to display the plugin window, docked to the QGIS window.<br>
 
@@ -457,6 +457,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
-* GEOL-QMAPS Custom QGIS Plugin - [M.W. Jessell](mark.jessell@uwa.edu.au), [J. Perret](julien.perret@uwa.edu.au), E. Bétend
+* GEOL-QMAPS Custom QGIS Plugin - [J. Perret](julien.perret@uwa.edu.au), [M.W. Jessell](mark.jessell@uwa.edu.au), E. Bétend
 * User Guide-README - [J. Perret](julien.perret@uwa.edu.au), [M.W. Jessell](mark.jessell@uwa.edu.au)
  

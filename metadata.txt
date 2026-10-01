@@ -7,9 +7,9 @@ name=geol_qmaps
 qgisMinimumVersion=3.30.0
 qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
-version=3.2.0.2
-author=Mark Jessell, Julien Perret and Eliott Betend (University of Western Australia)
-email=mark.jessell@uwa.edu.au; julien.perret@uwa.edu.au
+version=3.2.1
+author=Julien Perret, Mark Jessell and Eliott Betend (University of Western Australia)
+email=julien.perret@uwa.edu.au; mark.jessell@uwa.edu.au
 
 about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 
@@ -21,7 +21,21 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=3.2.0.2
+changelog=3.2.1
+     3.2.1 2026-10
+       **GEOL-QMAPS Template v3.2.1 Compatibility**
+       * Renamed the Photographs_PT / Compilation_Photographs_PT "Azimut" field references to "Azimuth" throughout the plugin (image-direction map tip, the EXIF-to-Azimuth tool, and the in-memory photo layer built by the FieldMove import), matching the field rename made in GEOL-QMAPS template v3.2.1
+       * Made the photo-layer map tip detect the Azimuth field dynamically instead of assuming it exists, since the same map tip is also applied to Sampling_PT/Compilation_Sampling_PT layers, which have no Azimuth field
+       * Replaced the hard-coded Zenodo template download URL/version and extracted-folder name in the Rejig tool with dynamic resolution via GEOL-QMAPS' stable Zenodo "concept" record, so the tool automatically follows whichever template release is currently latest (past and future) without requiring a plugin code change at every template release
+       **Import Tool Fix**
+       * Fixed Step 3 (Generate QGIS Layers) of the Import Legacy Field Data tool silently generating no scratch layers at all: UUID hashing relied on the "Existing databases - raw data" column being encountered before "UUID" while looping over fields in schema order, but the template's actual field order has UUID first on every layer, so the hash was referenced before assignment (NameError) on every single row, silently dropping it. The hash and parsed value are now computed once per row from their column directly, independent of field order.
+       **Copyright Notice**
+       * Updated the copyright notice shown across the plugin windows to "2026 Centre for Exploration Targeting, School of Earth and Oceans, University of Western Australia. All Rights Reserved."
+       **Cross-Version Field-Rename Awareness (Rejig & Merge Projects)**
+       * Fixed the Rejig tool silently dropping a field's data when migrating an older project to the latest template if that field had since been renamed (e.g. Azimut/Reliabilit/Metamorphi/Deformatio/Stratigrap/Struct_Tec/Struc_Tect/Texture/DipDir/Width_mm): feature copying now falls back to the field's known historical name(s) whenever the current name doesn't exist on the source feature, so the value still carries over
+       * Fixed the Merge Projects tool copying feature attributes by column *position* rather than by name, which could silently misassign values into the wrong field whenever the two projects' GeoPackages came from different template versions with different column layouts; attributes are now matched by name (with the same rename-aware fallback as Rejig)
+       * Introduced a single shared, documented table of known historical field renames (FIELD_RENAME_RULES) used by both tools, making it straightforward to add future renames in one place
+       * Reviewed the full template field/layer schema against the plugin's hard-coded field-name references; confirmed all other v3.2.1 field renames (Reliabilit->Confidence_Index/Reliability, Metamorphi->Index_Minerals, Deformatio->Strain_Intensity, Stratigrap->Stratigraphic_Unit, Struct_Tec/Struc_Tect/Texture->Strain_Pattern, DipDir->Dip_Dir, Width_mm->Width_m on Dikes-Sills_PT) require no further plugin code changes beyond the above
      3.2.0.2 2026-08
        * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
        * Improved robustness of QField package sync validation on macOS and Windows.
