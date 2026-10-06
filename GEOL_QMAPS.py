@@ -4921,35 +4921,31 @@ class GEOL_QMAPS:
         else:
             package_root = qfield_path
 
-        # Step 1b: Locate .qgs file and set root for CURRENT_MISSION.gpkg
-        qgs_files = []
+        # Step 1b: Locate CURRENT_MISSION.gpkg directly to anchor the package
+        # root. This used to instead search for a .qgs project file, purely
+        # to derive the package root from its location - the project file's
+        # own content was never opened or read. That broke for QField
+        # packages where QFieldSync produced a .qgz project file instead of
+        # a .qgs (both are valid outputs depending on QFieldSync's settings/
+        # version), even though the actual field data (CURRENT_MISSION.gpkg)
+        # was packaged correctly either way. Anchoring on the GeoPackage
+        # itself removes the dependency on the project file's format.
+        gpkg_matches = []
         for root, dirs, files in os.walk(package_root):
             for f in files:
-                if f.lower().endswith('.qgs'):
-                    qgs_files.append(os.path.join(root, f))
-        if not qgs_files:
+                if f == 'CURRENT_MISSION.gpkg':
+                    gpkg_matches.append(os.path.join(root, f))
+        if not gpkg_matches:
             self.iface.messageBar().pushMessage(
-                "No .qgs project file found in the QField package: may be corrupted.",
-                level=Qgis.MessageLevel.Critical,
-                duration=5
-            )
-            if temp_dir:
-                temp_dir.cleanup()
-            return
-        qgs_path = qgs_files[0]
-        pkg_root = os.path.dirname(qgs_path)
-
-        # Check for CURRENT_MISSION.gpkg in QField root
-        qfield_pkg = os.path.join(pkg_root, 'CURRENT_MISSION.gpkg')
-        if not os.path.isfile(qfield_pkg):
-            self.iface.messageBar().pushMessage(
-                "No CURRENT_MISSION.gpkg found in the QField package: corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
+                "No CURRENT_MISSION.gpkg found in the QField package: may be corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
                 level=Qgis.MessageLevel.Critical,
                 duration=10
             )
             if temp_dir:
                 temp_dir.cleanup()
             return
+        qfield_pkg = gpkg_matches[0]
+        pkg_root = os.path.dirname(qfield_pkg)
 
         # Step 2: Validate QGIS project via existing function
         if not self.is_valid_geol_qmaps_project(qgis_folder):
