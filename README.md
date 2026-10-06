@@ -2,16 +2,13 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.1.1 - October 2026*
+*version 3.2.1 - October 2026*
 
-# Changelog 3.2.1.1
+# Changelog 3.2.1
 
       * Fixed QGIS hanging on startup on Windows/macOS: a dependency check used to run "pip install" via sys.executable whenever scipy was below 1.17.0, but on QGIS's bundled Python sys.executable is the QGIS executable itself, so it launched a second QGIS instance and froze the first one waiting for it to close. The check (and the scipy version it was enforcing, which the plugin never actually needed) has been removed.
       * Lowered the scipy requirement to >=1.10 so it no longer exceeds the version QGIS itself bundles, and removed an unused scipy import so scipy is now only loaded lazily by the Create Virtual Stops tool that actually needs it.
       * Set plugin_dependencies=qpip so QGIS can offer to install qpip automatically when installing GEOL-QMAPS.
-
-# Changelog 3.2.1
-
       * Updated the plugin to match the GEOL-QMAPS QGIS template v3.2.1: renamed the Photographs_PT / Compilation_Photographs_PT "Azimut" field references to "Azimuth" (image-direction map tip and EXIF-to-Azimuth tool) and made the map tip detect that field dynamically, since it is also used on Sampling_PT/Compilation_Sampling_PT, which has no Azimuth field.
       * The Rejig tool now resolves the latest template release from Zenodo dynamically (via GEOL-QMAPS' stable Zenodo record) instead of a hard-coded version/URL, so it stays current with every future template release (and continues to support past ones, ≥3.1.0) without needing a plugin update each time.
       * **Rejig** and **Merge Projects** now carry a field's data across a template-version field rename instead of losing it (Rejig) or risking it landing in the wrong field (Merge Projects, which previously copied attributes by column position rather than by name). Both tools share one documented table of known historical renames.
