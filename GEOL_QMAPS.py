@@ -3929,16 +3929,65 @@ class GEOL_QMAPS:
             print(f"Error processing the GeoPackage layer: {e}")
 
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        # layer_csv is a QGIS layer object that is already open on the same
-        # underlying GeoPackage table that was just rewritten on disk (e.g. by
-        # add_row_to_csv_layer/delete_row_from_csv_layer via fiona). Since that
-        # file already holds the complete, correct set of rows, all we need to
-        # do is make the already-open layer re-read it - no manual copying of
-        # features between layer instances (they share the same backing store,
-        # so mutating one via dataProvider() also mutates what the other sees).
-        layer_csv.dataProvider().reloadData()
-        layer_csv.updateFields()
-        layer_csv.triggerRepaint()
+        """Refresh an already-loaded dictionary CSV layer after its table was
+        rewritten on disk by add_row_to_csv_layer/delete_row_from_csv_layer
+        (via a separate fiona/GDAL connection).
+
+        A plain dataProvider().reloadData() does not reliably pick up a table
+        that was dropped and recreated by a different GDAL connection on the
+        same GeoPackage file: other layers keep showing the item list from
+        before the edit, so a newly added item never appears in their
+        ValueRelation dropdowns, and a feature whose field was defaulted to
+        that new value shows it unresolved in curly braces in the attribute
+        form, as if it weren't in the dictionary at all - even though the csv
+        layer itself (and the file on disk) already has it.
+
+        To force a genuinely fresh read, open a brand new QgsVectorLayer on
+        the same source and copy its features into the layer object(s) QGIS
+        already has open for this table - updated in place, since other
+        layers' ValueRelation widgets are bound to them by layer id, not by
+        name, so swapping in a new layer object wouldn't reach those widgets.
+        Every layer sharing this display name is refreshed (not just the one
+        instance the caller passed in), since a project can end up with more
+        than one after a merge or rejig.
+        """
+        fresh_table = QgsVectorLayer(
+            f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
+        )
+        if not fresh_table.isValid():
+            print(f"Failed to load new data from {dictionaries_path}.")
+            return
+
+        fresh_field_names = fresh_table.fields().names()
+        fresh_rows = [feature.attributes() for feature in fresh_table.getFeatures()]
+        fid_index = fresh_field_names.index("fid") if "fid" in fresh_field_names else None
+
+        targets = QgsProject.instance().mapLayersByName(layer_csv.name())
+        if layer_csv not in targets:
+            targets.append(layer_csv)
+
+        for target in targets:
+            if target.fields().names() != fresh_field_names:
+                print(
+                    f"The schema of the new data does not match the existing layer '{layer_csv.name()}'. Update failed."
+                )
+                continue
+
+            if not target.isEditable():
+                target.startEditing()
+            target.dataProvider().truncate()
+            for row in fresh_rows:
+                new_feature = QgsFeature(target.fields())
+                attrs = list(row)
+                if fid_index is not None:
+                    # Let the provider assign a fresh fid rather than reusing
+                    # one read from a different connection's copy of the table.
+                    attrs[fid_index] = None
+                new_feature.setAttributes(attrs)
+                target.dataProvider().addFeatures([new_feature])
+            target.commitChanges()
+            target.updateFields()
+            target.triggerRepaint()
 
     def _resolve_dictionary_layer(self, layer_key):
         """Resolve the QGIS layer object for a dictionary CSV given its Group__Name-style key."""
