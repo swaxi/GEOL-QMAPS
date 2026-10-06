@@ -205,7 +205,6 @@ import shutil
 from pathlib import Path
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
 import hashlib
 

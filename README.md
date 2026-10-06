@@ -2,7 +2,13 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.1 - October 2026*
+*version 3.2.1.1 - October 2026*
+
+# Changelog 3.2.1.1
+
+      * Fixed QGIS hanging on startup on Windows/macOS: a dependency check used to run "pip install" via sys.executable whenever scipy was below 1.17.0, but on QGIS's bundled Python sys.executable is the QGIS executable itself, so it launched a second QGIS instance and froze the first one waiting for it to close. The check (and the scipy version it was enforcing, which the plugin never actually needed) has been removed.
+      * Lowered the scipy requirement to >=1.10 so it no longer exceeds the version QGIS itself bundles, and removed an unused scipy import so scipy is now only loaded lazily by the Create Virtual Stops tool that actually needs it.
+      * Set plugin_dependencies=qpip so QGIS can offer to install qpip automatically when installing GEOL-QMAPS.
 
 # Changelog 3.2.1
 
@@ -66,13 +72,13 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   * a log file (**`List of updates of the different releases.docx`**),
 
 ### *4.2. Installing Dependencies with qpip (Recommended)*
-The **GEOL-QMAPS** relies on several Python packages that are not always included in a standard QGIS installation. To simplify dependency management, the plugin supports installation through **qpip**, the QGIS Python package manager.
+The **GEOL-QMAPS** relies on several Python packages that are not always included in a standard QGIS installation. To simplify dependency management, the plugin supports installation through **qpip**, the QGIS Python package manager, and declares it as a plugin dependency, so the QGIS Plugin Manager will typically offer to install it automatically together with GEOL-QMAPS.
 
 Before installing **GEOL-QMAPS**, it is recommended to:
-1. Install the **qpip** plugin from the QGIS Plugin Manager.
+1. Install the **qpip** plugin from the QGIS Plugin Manager (if it wasn't installed automatically).
 2. Allow **qpip** to install any missing dependencies automatically when prompted by the **GEOL-QMAPS** plugin (or any other plugin with depedencies).
 
-Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations. The declared `numpy` and `scipy` version ranges (`numpy>=1.26.4,<2.0`, `scipy>=1.17.0,<1.18`) match those used by the other `swaxi` QGIS plugins (Stereoplot, Geochemistry Plotting Tools), so installing several of them together converges on one consistent set of package versions instead of each plugin pulling in a different one.
+Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations. The declared `numpy` version range (`numpy>=1.26.4,<2.0`) matches the one used by the other `swaxi` QGIS plugins (Stereoplot, Geochemistry Plotting Tools), so installing several of them together converges on one consistent set of package versions instead of each plugin pulling in a different one. `scipy` (used only by the Create Virtual Stops tool) is declared with a much wider floor (`scipy>=1.10`) that QGIS's own bundled scipy already satisfies on every supported version, so qpip generally has nothing to install for it.
 
 > **Important:** If the **GEOL-QMAPS** plugin fails to start or reports missing Python modules, first verify that qpip is installed and that all required dependencies have been successfully installed. In most cases, dependency-related issues can be resolved by reinstalling the missing packages through qpip and restarting QGIS.
 

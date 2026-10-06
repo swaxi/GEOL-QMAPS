@@ -24,50 +24,6 @@
 """
 
 
-def _check_dependencies():
-    """Upgrade scipy if it doesn't satisfy requirements.txt's floor (>= 1.17.0)."""
-    import importlib
-    import subprocess  # nosec - only used below with a fixed argv list, no shell=True
-    import sys
-    import os
-
-    needs_upgrade = False
-    try:
-        import scipy
-        from packaging.version import Version
-        if Version(scipy.__version__) < Version("1.17.0"):
-            needs_upgrade = True
-    except ImportError:
-        needs_upgrade = True
-    except Exception:
-        # packaging not available — fall back to a tuple comparison
-        try:
-            import scipy
-            parts = tuple(int(x) for x in scipy.__version__.split(".")[:2])
-            if parts < (1, 17):
-                needs_upgrade = True
-        except Exception:
-            needs_upgrade = True
-
-    if needs_upgrade:
-        requirements = os.path.join(os.path.dirname(__file__), "requirements.txt")
-        # sys.executable is the running interpreter's full path, and requirements
-        # is derived from this plugin's own install location, not external input
-        subprocess.call(
-            [sys.executable, "-m", "pip", "install", "--upgrade", "-r", requirements],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )  # nosec B603
-        # Upgraded packages are not reloaded until QGIS restarts.
-        from qgis.PyQt.QtWidgets import QMessageBox
-        QMessageBox.information(
-            None,
-            "GEOL-QMAPS: Dependencies updated",
-            "Python dependencies were upgraded to fix a NumPy compatibility issue.\n\n"
-            "Please restart QGIS to complete the update.",
-        )
-
-
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
     """Load GEOL_QMAPS class from file GEOL_QMAPS.
@@ -75,7 +31,13 @@ def classFactory(iface):  # pylint: disable=invalid-name
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
-    #
-    _check_dependencies()
+    # NOTE: this used to call a _check_dependencies() helper here that shelled
+    # out to `sys.executable -m pip install --upgrade ...` on the main thread
+    # whenever scipy was below an overly strict floor. On QGIS's bundled
+    # Python, sys.executable is the QGIS executable itself, not a plain
+    # python.exe, so that command launched a second QGIS instance and hung
+    # the first one waiting on it (no timeout, main thread). The plugin does
+    # not actually need a recent scipy (see requirements.txt), so the check
+    # and the auto-upgrade have been removed rather than fixed in place.
     from .GEOL_QMAPS import GEOL_QMAPS
     return GEOL_QMAPS(iface)
