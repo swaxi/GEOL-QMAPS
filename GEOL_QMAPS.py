@@ -4515,21 +4515,27 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.clear()
             return
 
-        # 3d) Unzip the downloaded archive into the parent folder, tracking what's
-        # newly added so the extracted release folder can be found regardless of
-        # its exact name.
+        # 3d) Unzip the downloaded archive into the parent folder.
         import zipfile
-        existing_entries_before = set(os.listdir(str(parent))) if parent.exists() else set()
         with zipfile.ZipFile(local_path, 'r') as zf:
             zf.extractall(str(parent))
+            # Read the archive's own top-level folder name(s) directly, rather
+            # than diffing the parent folder's contents before/after extraction.
+            # That diff previously treated an already-present extracted copy
+            # (e.g. left over from updating a different project in the same
+            # parent folder) as "nothing new", so updating a second project
+            # there wrongly reported the QGIS_TEMPLATE folder as missing even
+            # though extraction succeeded both times.
+            archive_top_level_dirs = sorted({
+                name.split("/")[0] for name in zf.namelist() if "/" in name
+            })
 
-        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the newly
+        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the
         # extracted release. Resolved dynamically (rather than a hardcoded
         # "GEOL-QMAPS_vX.Y.Z" folder name) so this keeps working for every future
         # template release without code changes.
-        new_entries = sorted(set(os.listdir(str(parent))) - existing_entries_before)
         template_src = None
-        for entry in new_entries:
+        for entry in archive_top_level_dirs:
             candidate = parent / entry / "QGIS_TEMPLATE"
             if candidate.is_dir():
                 template_src = candidate
