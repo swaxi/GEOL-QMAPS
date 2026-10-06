@@ -5895,20 +5895,15 @@ class GEOL_QMAPS:
                 self.dlg.lineEdit_7.clear()
                 return
 
-            file = []
-
-
-            # first create temp layer and new geopackage
-            temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
-
-            options = QgsVectorFileWriter.SaveVectorOptions()
-            options.driverName = "GPKG"  # Specify the GeoPackage format
-
-            transform_context = QgsCoordinateTransformContext()
-
-            QgsVectorFileWriter.writeAsVectorFormatV3(
-                temp_layer, newGeopackagePath, transform_context, options
-            )
+            # Start from a clean file each run: each merge below writes its
+            # own named table (zonal_data, litho_data, ...) and GDAL's GPKG
+            # driver creates export.gpkg automatically on the first write, so
+            # nothing needs to be pre-created here. Removing any export.gpkg
+            # left over from a previous run also clears out the empty, no
+            # longer created "export" layer that an earlier version of this
+            # tool used to leave behind to bootstrap the file.
+            if os.path.exists(newGeopackagePath):
+                os.remove(newGeopackagePath)
 
             # Zonal Data
             file1 = (
