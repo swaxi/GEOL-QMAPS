@@ -5845,39 +5845,30 @@ class GEOL_QMAPS:
 
     ### Export Data ###
     def exportData(self):
-        # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
+        # Combines sets of lithology, structure and zonal layers into merged
+        # export layers. Each source layer already carries a native "Layer"
+        # field recording which layer a feature came from, populated when the
+        # feature was created (like every other GEOL-QMAPS metadata field),
+        # so there is no need to inject/overwrite it here. The previous code
+        # also did so on the wrong layers regardless (self.layers_names,
+        # i.e. the plain CURRENT_MISSION layers), not the Compilation_ layers
+        # actually merged into the export below, so it had no effect on the
+        # exported output - it only needlessly edited and committed changes
+        # to the user's live field data every time this tool was run.
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
-            proj = QgsProject.instance()
-
-            for name in self.layers_names:
-                layer = proj.mapLayersByName(name)[0]
-                caps = layer.dataProvider().capabilities()
-
-                # Get the list of fields in the layer
-                existing_fields = [field.name() for field in layer.fields()]
-
-                # Check if 'src_layer' field exists, if not, add it
-                if "Layer" not in existing_fields:
-                    # Add Fields if the provider supports it
-                    if caps & QgsVectorDataProvider.AddAttributes:
-                        res = layer.dataProvider().addAttributes(
-                            [QgsField("Layer", _QVAR_STRING)]
-                        )
-                        layer.updateFields()
-
-                src_layer_idx = layer.fields().lookupField("Layer")
-
-                # Start editing mode to modify attributes
-                layer.startEditing()
-                # Change attribute values
-                for f in layer.getFeatures():
-                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
-
-                # Commit changes
-                layer.commitChanges()
-
+            # Resolve the active project's COMPILATION.gpkg fresh from the
+            # currently open project, rather than relying on
+            # self.geopackage_file_path: that is only (re)computed in run(),
+            # so if the user switches to a different GEOL-QMAPS project
+            # without reopening the plugin dock (e.g. it was already open),
+            # it keeps pointing at whichever project was active the last
+            # time run() executed - typically the first one opened in the
+            # session - not the currently active one.
             project = QgsProject.instance()
-            proj_file_path = project.fileName()
+            proj_base_path = os.path.dirname(project.fileName()) + "/"
+            geopackage_file_path = self.mynormpath(
+                proj_base_path + self.dir_1 + "COMPILATION.gpkg"
+            )
 
             # Build the export folder
             export_folder = self.mynormpath(self.dlg.lineEdit_7.text())
@@ -5921,14 +5912,14 @@ class GEOL_QMAPS:
 
             # Zonal Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Deformation zones_PG"
             )
             file2 = (
-                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
+                geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
             )
             file3 = (
-                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
+                geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
             )
 
             newLayer = (
@@ -5949,31 +5940,31 @@ class GEOL_QMAPS:
 
             # Lithology Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Local lithologies_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Supergene lithologies_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Sedimentary lithologies_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file5 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file6 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
             file7 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Metamorphic lithologies_PT"
             )
 
@@ -5994,38 +5985,38 @@ class GEOL_QMAPS:
 
             # Structural Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Foliation-cleavage_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Shear zones and faults_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Folds_PT"
             )
             file5 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Fractures_PT"
             )
-            file6 = (self.geopackage_file_path
+            file6 = (geopackage_file_path
                      + "|layername=Compilation_Veins_PT"
             )
             file7 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Dikes-Sills_PT"
                     )
             file8 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Lithological contacts_PT"
             )
             file9 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Lineations_PT"
             )
 
@@ -6056,11 +6047,11 @@ class GEOL_QMAPS:
 
             # Geophysical Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Density_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
@@ -6081,19 +6072,19 @@ class GEOL_QMAPS:
 
             # Stops-Samples-Photographs-Comments Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Stops_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Sampling_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Photographs_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Observations_PT"
             )
 
@@ -6114,19 +6105,19 @@ class GEOL_QMAPS:
 
             # Linear Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Observations_LN"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_GPS Tracks_LN"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Lithological contacts_LN"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Planar structures_LN"
             )
 
