@@ -7,7 +7,7 @@ name=geol_qmaps
 qgisMinimumVersion=3.30.0
 qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
-version=3.2.1
+version=3.2.2
 author=Julien Perret, Mark Jessell and Eliott Betend (University of Western Australia)
 email=julien.perret@uwa.edu.au; mark.jessell@uwa.edu.au
 
@@ -21,7 +21,11 @@ repository=https://github.com/swaxi/WAXI_QF
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=3.2.1
+changelog=3.2.2
+     3.2.2 2026-10
+       **GEOL-QMAPS Template v3.2.2 Compatibility**
+       * Updated code to match the template's reference CSV files being renamed (no more "_WAXI4" suffix): columns_reference_WAXI4.csv -> columns_reference.csv, columns_reference_fieldnames_aliases_WAXI4.csv -> columns_reference_fieldnames_aliases.csv, and the (currently unused/commented-out) reference to columns_types_structures_WAXI4.csv -> columns_types_structures.csv.
+       * Fixed three stale pre-v3.2.1 field names left over in the template's own columns_reference.csv and columns_reference_fieldnames_aliases.csv, which map real GeoPackage field names on CURRENT_MISSION/COMPILATION layers to their standard alias/description for the Import Legacy Field Data tool: Struct_Tec -> Strain_Pattern, Metamorphi -> Index_Minerals, Reliabilit -> Confidence_Index (the gpkg schema itself is unchanged between v3.2.1 and v3.2.2; these two reference files had simply never been updated when those fields were renamed in v3.2.1).
      3.2.1 2026-10
        **Fixed QGIS Hang on Plugin Load (Windows/macOS)**
        * Removed the startup dependency check that shelled out to "sys.executable -m pip install --upgrade -r requirements.txt" whenever scipy was below 1.17.0. On QGIS's bundled Python, sys.executable is the QGIS executable itself (not python.exe), so that command launched a second QGIS instance instead of running pip; the first QGIS then hung on the main thread waiting for it to close, with no timeout, and the command's exit code was never checked, so the "dependencies updated" message shown afterwards was misleading in every case (pip never ran).

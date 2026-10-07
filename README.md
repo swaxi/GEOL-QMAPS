@@ -2,7 +2,12 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.1 - October 2026*
+*version 3.2.2 - October 2026*
+
+# Changelog 3.2.2
+
+      * Updated the plugin to match the GEOL-QMAPS template v3.2.2's reference CSV files being renamed (no more "_WAXI4" suffix): columns_reference_WAXI4.csv -> columns_reference.csv, columns_reference_fieldnames_aliases_WAXI4.csv -> columns_reference_fieldnames_aliases.csv.
+      * Fixed three field names in the template's own columns_reference.csv / columns_reference_fieldnames_aliases.csv that had been left stale since the v3.2.1 field renames (Struct_Tec -> Strain_Pattern, Metamorphi -> Index_Minerals, Reliabilit -> Confidence_Index); the CURRENT_MISSION/COMPILATION GeoPackage schema itself is unchanged between v3.2.1 and v3.2.2.
 
 # Changelog 3.2.1
 

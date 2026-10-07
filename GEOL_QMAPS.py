@@ -1272,19 +1272,19 @@ class GEOL_QMAPS:
         input_file = pd.DataFrame(data_list, columns=noms_des_champs)
         input_file = input_file.astype(str)
 
-        # 2. Load columns_reference_WAXI4.csv
+        # 2. Load columns_reference.csv
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_WAXI4.csv",
+            self.dir_99 + "/columns_reference.csv",
         )
         column_reference = pd.read_csv(emplacement_files_WAXI_columns)
         list_column_reference = column_reference.columns.tolist()
 
-        # 3. Load columns_reference_fieldnames_aliases_WAXI4.csv
+        # 3. Load columns_reference_fieldnames_aliases.csv
         alias_file_path = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_fieldnames_aliases_WAXI4.csv",
+            self.dir_99 + "/columns_reference_fieldnames_aliases.csv",
         )
         alias_df = pd.read_csv(alias_file_path)
 
@@ -1525,7 +1525,7 @@ class GEOL_QMAPS:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_WAXI4.csv",
+            self.dir_99 + "/columns_reference.csv",
         )
 
         column_reference = pd.read_csv(emplacement_files_WAXI_columns)
@@ -2388,7 +2388,7 @@ class GEOL_QMAPS:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_types_structures_WAXI4.csv",
+            self.dir_99 + "/columns_types_structures.csv",
         )
 
         Dataframe = pd.read_csv(emplacement_files_WAXI_columns)'''
