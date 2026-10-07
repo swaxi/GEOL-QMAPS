@@ -8,6 +8,8 @@
 
       * Updated the plugin to match the GEOL-QMAPS template v3.2.2's reference CSV files being renamed (no more "_WAXI4" suffix): columns_reference_WAXI4.csv -> columns_reference.csv, columns_reference_fieldnames_aliases_WAXI4.csv -> columns_reference_fieldnames_aliases.csv.
       * Fixed three field names in the template's own columns_reference.csv / columns_reference_fieldnames_aliases.csv that had been left stale since the v3.2.1 field renames (Struct_Tec -> Strain_Pattern, Metamorphi -> Index_Minerals, Reliabilit -> Confidence_Index); the CURRENT_MISSION/COMPILATION GeoPackage schema itself is unchanged between v3.2.1 and v3.2.2.
+      * Four more fields were renamed in a later v3.2.2 revision, aligning the odd ones out with the name already used everywhere else: Dikes-Sills_PT/Lithology zones_PG's Lithology -> Litho, Dikes-Sills_PT's Strain_Intensity -> Def_int, Density_PT's Stratigraphic_Unit -> Stratigraphy, and Planar structures_LN's Nature -> Reliability. Updated the Rejig/Merge Projects field-rename table so a project built on the earlier naming still carries its data over correctly (chained through the v3.2.1 intermediate names where applicable). The Import tool needed no changes, since it already reads field names dynamically; it also now benefits for Dikes-Sills_PT/Lithology zones_PG, since the WAXI4 legacy-column alias table only ever recognised "Litho", not "Lithology".
+      * Replaced the GEOL-QMAPS data dictionary with the updated GEOL-QMAPS_v3.2.2_data_dictionary.xlsx, reflecting all of the above.
 
 # Changelog 3.2.1
 
@@ -150,7 +152,7 @@ The figure below summarises the different field data that can be collected using
 
 ![Field_Layers](Field_Layers.png) 
 
-A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.1_data_dictionary.xlsx).
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.2_data_dictionary.xlsx).
 
 #### 5.1.3. Coordinate Reference System
 By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojected CRS, enabling compatibility with global datasets.
@@ -268,7 +270,7 @@ For instructions on plotting on the fly structural measurements contained in any
    
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
-A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.1_data_dictionary.xlsx).
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.2_data_dictionary.xlsx).
 
 To activate tracking, ensure that positioning is enabled in QField. <br>
 Next, open the side dashboard, long-press on the **GPS Tracks_PT** where you want to save your tracks, and select the *Setup Tracking* button to configure the tracking session.

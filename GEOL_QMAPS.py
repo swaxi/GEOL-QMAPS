@@ -313,15 +313,22 @@ def _get_fuzz_matcher():
 # Each rule is (candidate old names, tried in order; current field name; the
 # set of layer names -CURRENT_MISSION.gpkg spelling, without any
 # "Compilation_" prefix- it applies to, or None for every layer that has that
-# field). As introduced by template v3.2.1:
+# field). As introduced by template v3.2.1, with v3.2.2 follow-ups below:
 FIELD_RENAME_RULES = [
     (["Azimut"], "Azimuth", None),
     (["Existing d"], "Existing databases - raw data", None),  # pre-fix truncated column name
     (["Reliabilit"], "Reliability", {"Lithological contacts_LN"}),
     (["Reliabilit"], "Confidence_Index", None),
     (["Metamorphi"], "Index_Minerals", None),
-    (["Deformatio"], "Strain_Intensity", {"Dikes-Sills_PT"}),
-    (["Stratigrap"], "Stratigraphic_Unit", {"Density_PT"}),
+    # Strain_Intensity was itself a v3.2.1 rename of Deformatio on
+    # Dikes-Sills_PT; v3.2.2 renamed it again to Def_int (the name already
+    # used for the same concept on every lithology layer), so both historical
+    # spellings are tried.
+    (["Strain_Intensity", "Deformatio"], "Def_int", {"Dikes-Sills_PT"}),
+    # Likewise Stratigraphic_Unit was v3.2.1's rename of Stratigrap on
+    # Density_PT; v3.2.2 renamed it again to Stratigraphy (the name already
+    # used everywhere else).
+    (["Stratigraphic_Unit", "Stratigrap"], "Stratigraphy", {"Density_PT"}),
     (["DipDir"], "Dip_Dir", {"Lithological contacts_LN"}),
     (["Width_mm"], "Width_m", {"Dikes-Sills_PT"}),
     # "Texture" is only a historical alias of Strain_Pattern on these two
@@ -330,6 +337,13 @@ FIELD_RENAME_RULES = [
     # remapped.
     (["Texture"], "Strain_Pattern", {"Dikes-Sills_PT", "Metamorphic lithologies_PT"}),
     (["Struct_Tec", "Struc_Tect"], "Strain_Pattern", None),
+    # v3.2.2: aligned the odd-one-out "Lithology" spelling on these two
+    # layers with the "Litho" name every other layer already uses.
+    (["Lithology"], "Litho", {"Dikes-Sills_PT", "Lithology zones_PG"}),
+    # v3.2.2: Planar structures_LN's "Nature" field was renamed to
+    # "Reliability" - a different field from (and unrelated to) the
+    # Lithological contacts_LN "Reliability" above, which came from Reliabilit.
+    (["Nature"], "Reliability", {"Planar structures_LN"}),
 ]
 
 
