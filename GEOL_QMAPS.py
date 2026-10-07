@@ -6187,7 +6187,14 @@ class GEOL_QMAPS:
 
             project = QgsProject.instance()
             file = []
-            self.geopackage_file_path = self.mynormpath(self.geopackage_file_path)
+            # Resolve COMPILATION.gpkg fresh from the currently active project
+            # rather than self.geopackage_file_path, which is only (re)computed
+            # in run() and so would keep pointing at whichever project was
+            # active the last time the plugin dock was (re)opened if the user
+            # has since switched to a different one (see exportData()).
+            geopackage_file_path = self.mynormpath(
+                os.path.dirname(project.fileName()) + "/" + self.dir_1 + "COMPILATION.gpkg"
+            )
 
             layer_names = [
                 "Compilation_Lineations_PT",
@@ -6211,7 +6218,7 @@ class GEOL_QMAPS:
             ]
 
             for layer_name in layer_names:
-                file.append(f"{self.geopackage_file_path}|layername={layer_name}")
+                file.append(f"{geopackage_file_path}|layername={layer_name}")
 
             print("Starting layer merging process...")
 
@@ -6603,12 +6610,31 @@ class GEOL_QMAPS:
         # Figure out which field index holds your JSON back-reference
         idx_json = dst.fields().indexFromName("Existing databases - raw data")
 
+        # Match attributes by name (falling back to a field's known historical
+        # name via FIELD_RENAME_RULES), not by position: the scratch layer
+        # (src) was built from whichever field order the Compilation_ layer
+        # (dst) had at the time Step 3 ran, which can since have changed (e.g.
+        # a Rejig in between) if the user generates a scratch layer and only
+        # merges it later, so the two field orders are not guaranteed to still
+        # line up.
+        dst_fields = dst.fields()
+        rename_candidates = _field_rename_candidates(dst.name(), [f.name() for f in dst_fields])
+
         new_feats = []
         for f in src.getFeatures():
-            nf = QgsFeature(dst.fields())
+            nf = QgsFeature(dst_fields)
             nf.setGeometry(f.geometry())
-            # copy every attribute (including UUID, Azimuth, Plunge, etc.)
-            nf.setAttributes(f.attributes())
+            # copy every attribute (including UUID, Azimuth, Plunge, etc.) by name
+            src_field_names = f.fields().names()
+            for dst_idx in range(dst_fields.count()):
+                fld_name = dst_fields.at(dst_idx).name()
+                if fld_name in src_field_names:
+                    nf.setAttribute(dst_idx, f.attribute(fld_name))
+                else:
+                    for old_name in rename_candidates.get(fld_name, ()):
+                        if old_name in src_field_names:
+                            nf.setAttribute(dst_idx, f.attribute(old_name))
+                            break
 
             # now inject your JSON text up‐front, if it exists
             try:
