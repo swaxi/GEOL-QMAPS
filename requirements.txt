@@ -1,12 +1,16 @@
-scipy >= 1.10
-pandas >= 1.5.0, < 3.0
-numpy >= 1.26.4, < 2.0
-defusedxml
-fiona
+# Minimum versions only (no upper caps), harmonised with the Stereoplot and
+# Geochemistry Plotting Tools plugins. Floors are the oldest versions the
+# plugin code needs, so qpip never replaces the newer copies QGIS itself ships
+# (e.g. numpy 2.x, pandas 3.x, scipy 1.18 in QGIS 3.44 / 4.x): the plugin only
+# uses basic pandas I/O/DataFrame features and scipy.spatial.distance.euclidean.
+numpy>=1.21
+scipy>=1.7
+pandas>=1.3
 Pillow
-packaging
-fuzzywuzzy
+fiona
+defusedxml
 rapidfuzz
+fuzzywuzzy
 # Note: GDAL/OGR (osgeo) is intentionally not listed - it ships with QGIS's own
 # Python environment and must match QGIS's bundled native GDAL library exactly;
 # installing a separate copy via pip/qpip can break the QGIS install.

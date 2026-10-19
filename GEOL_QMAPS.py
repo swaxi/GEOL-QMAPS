@@ -76,6 +76,7 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.core import (
     Qgis,
+    QgsMessageLog,
     QgsProject,
     QgsVectorLayer,
     QgsPoint,
@@ -145,7 +146,6 @@ from PIL.ExifTags import TAGS, GPSTAGS
 
 from osgeo import ogr
 import os
-import subprocess  # nosec - only used below with fixed argv lists, no shell=True
 import sys
 import numpy as np
 import shutil
@@ -157,22 +157,12 @@ plugin_directory = os.path.dirname(__file__)
 biblio_python_directory = os.path.join(plugin_directory, "biblio_Python")
 sys.path.append(biblio_python_directory)
 
-try:
-    import defusedxml.ElementTree as ET
-
-except ImportError:
-    try:
-        # Fixed, hardcoded argv (no shell, no user input) - safe despite Bandit's generic warning
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "defusedxml"]
-        )  # nosec B603
-
-        import defusedxml.ElementTree as ET
-
-    except Exception:
-        # Fallback if install fails: use the bundled biblio_Python/defusedxml copy
-        # (already on sys.path, see above), same module used on the success paths.
-        import defusedxml.ElementTree as ET
+# defusedxml is declared in requirements.txt (installed by qpip) and also
+# bundled in biblio_Python (already on sys.path, see above), so this import
+# always succeeds. It no longer falls back to `sys.executable -m pip install`:
+# on QGIS's bundled Python sys.executable is the QGIS executable itself, so
+# that would launch a second QGIS instance and hang this one.
+import defusedxml.ElementTree as ET
 from datetime import datetime
 import re
 
@@ -417,31 +407,24 @@ class GEOL_QMAPS:
         self.fichier_output_structures = None
 
         ## Python library integration
-        def install_library(library_name):
-            try:
-                # sys.executable is the running interpreter's full path (not a bare
-                # command looked up on PATH), and library_name is always one of the
-                # fixed literals passed below - safe despite Bandit's generic warning
-                subprocess.check_call(
-                    [sys.executable, "-m", "pip", "install", library_name]
-                )  # nosec B603
-                print(f"Successfully installed {library_name}")
-            except subprocess.CalledProcessError as e:
-                print(f"Error installing {library_name}: {e}")
-
-        # Library fiona
+        # Third-party dependencies are declared in requirements.txt and
+        # installed by qpip (plugin_dependencies=qpip in metadata.txt). This
+        # used to shell out to `sys.executable -m pip install fiona/fuzzywuzzy`
+        # here, at plugin load, when either was missing - but on QGIS's
+        # bundled Python sys.executable is the QGIS executable itself, so that
+        # launched a second QGIS instance and hung the first one (the same bug
+        # removed from __init__.py in 3.2.1). fuzzywuzzy is bundled in
+        # biblio_Python anyway (with rapidfuzz/difflib fallbacks), and fiona is
+        # only imported inside the tools that use it, so a missing fiona is now
+        # just reported in the QGIS log instead.
         try:
-            import fiona
-
-        except:
-            install_library("fiona")
-
-        # Library FuzzyWuzzy
-        try:
-            import fuzzywuzzy
-
-        except:
-            install_library("fuzzywuzzy")
+            import fiona  # noqa: F401
+        except ImportError:
+            QgsMessageLog.logMessage(
+                "The 'fiona' Python package is not installed: the GEOL-QMAPS tools that "
+                "read/write GeoPackage layers directly need it. Install it with the qpip "
+                "plugin (or 'pip install fiona' in the OSGeo4W Shell), then restart QGIS.",
+                "GEOL-QMAPS", getattr(Qgis, "MessageLevel", Qgis).Warning)
 
     @staticmethod
     def set_header_resize_mode(header, mode_name: str = "Interactive") -> None:
@@ -4863,7 +4846,7 @@ class GEOL_QMAPS:
                 self.iface.mainWindow(),
                 "Select QField package folder",
                 "",
-                QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+                QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.ReadOnly
             )
 
         if path:
@@ -4877,7 +4860,7 @@ class GEOL_QMAPS:
             self.iface.mainWindow(),
             "Select the master GEOL‑QMAPS project folder to update with new data collected in the field",
             "",
-            QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.ReadOnly
         )
         if folder:
             self.dlg.lineEdit_QGISFolder.setText(folder)
