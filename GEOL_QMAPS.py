@@ -76,6 +76,7 @@ from qgis.PyQt.QtWidgets import (
 )
 from qgis.core import (
     Qgis,
+    QgsMessageLog,
     QgsProject,
     QgsVectorLayer,
     QgsPoint,
@@ -145,7 +146,6 @@ from PIL.ExifTags import TAGS, GPSTAGS
 
 from osgeo import ogr
 import os
-import subprocess  # nosec - only used below with fixed argv lists, no shell=True
 import sys
 import numpy as np
 import shutil
@@ -157,22 +157,12 @@ plugin_directory = os.path.dirname(__file__)
 biblio_python_directory = os.path.join(plugin_directory, "biblio_Python")
 sys.path.append(biblio_python_directory)
 
-try:
-    import defusedxml.ElementTree as ET
-
-except ImportError:
-    try:
-        # Fixed, hardcoded argv (no shell, no user input) - safe despite Bandit's generic warning
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "defusedxml"]
-        )  # nosec B603
-
-        import defusedxml.ElementTree as ET
-
-    except Exception:
-        # Fallback if install fails: use the bundled biblio_Python/defusedxml copy
-        # (already on sys.path, see above), same module used on the success paths.
-        import defusedxml.ElementTree as ET
+# defusedxml is declared in requirements.txt (installed by qpip) and also
+# bundled in biblio_Python (already on sys.path, see above), so this import
+# always succeeds. It no longer falls back to `sys.executable -m pip install`:
+# on QGIS's bundled Python sys.executable is the QGIS executable itself, so
+# that would launch a second QGIS instance and hang this one.
+import defusedxml.ElementTree as ET
 from datetime import datetime
 import re
 
@@ -205,7 +195,6 @@ import shutil
 from pathlib import Path
 from qgis.PyQt.QtWidgets import QFileDialog
 
-from scipy.spatial.distance import cdist
 from processing.gui.AlgorithmExecutor import execute_in_place
 import hashlib
 
@@ -304,6 +293,68 @@ def _get_fuzz_matcher():
     return _GEOL_QMAPS_FUZZ
 
 
+# Known historical field renames across GEOL-QMAPS template releases. Shared by
+# every tool that copies feature data between a project built on an older
+# template version and one built on the current/latest schema (Rejig, Merge
+# Projects, ...), so a field's value still carries over even though the field
+# is no longer looked up under its old name -- without this, the value would
+# either be silently dropped (name-based copy) or, worse, land in the wrong
+# field entirely (position-based copy, if the column layout also drifted).
+# Each rule is (candidate old names, tried in order; current field name; the
+# set of layer names -CURRENT_MISSION.gpkg spelling, without any
+# "Compilation_" prefix- it applies to, or None for every layer that has that
+# field). As introduced by template v3.2.1, with v3.2.2 follow-ups below:
+FIELD_RENAME_RULES = [
+    (["Azimut"], "Azimuth", None),
+    (["Existing d"], "Existing databases - raw data", None),  # pre-fix truncated column name
+    (["Reliabilit"], "Reliability", {"Lithological contacts_LN"}),
+    (["Reliabilit"], "Confidence_Index", None),
+    (["Metamorphi"], "Index_Minerals", None),
+    # Strain_Intensity was itself a v3.2.1 rename of Deformatio on
+    # Dikes-Sills_PT; v3.2.2 renamed it again to Def_int (the name already
+    # used for the same concept on every lithology layer), so both historical
+    # spellings are tried.
+    (["Strain_Intensity", "Deformatio"], "Def_int", {"Dikes-Sills_PT"}),
+    # Likewise Stratigraphic_Unit was v3.2.1's rename of Stratigrap on
+    # Density_PT; v3.2.2 renamed it again to Stratigraphy (the name already
+    # used everywhere else).
+    (["Stratigraphic_Unit", "Stratigrap"], "Stratigraphy", {"Density_PT"}),
+    (["DipDir"], "Dip_Dir", {"Lithological contacts_LN"}),
+    (["Width_mm"], "Width_m", {"Dikes-Sills_PT"}),
+    # "Texture" is only a historical alias of Strain_Pattern on these two
+    # layers; elsewhere (e.g. Igneous extrusive lithologies_PT) "Texture" is a
+    # distinct, still-current field with an unrelated meaning and must NOT be
+    # remapped.
+    (["Texture"], "Strain_Pattern", {"Dikes-Sills_PT", "Metamorphic lithologies_PT"}),
+    (["Struct_Tec", "Struc_Tect"], "Strain_Pattern", None),
+    # v3.2.2: aligned the odd-one-out "Lithology" spelling on these two
+    # layers with the "Litho" name every other layer already uses.
+    (["Lithology"], "Litho", {"Dikes-Sills_PT", "Lithology zones_PG"}),
+    # v3.2.2: Planar structures_LN's "Nature" field was renamed to
+    # "Reliability" - a different field from (and unrelated to) the
+    # Lithological contacts_LN "Reliability" above, which came from Reliabilit.
+    (["Nature"], "Reliability", {"Planar structures_LN"}),
+]
+
+
+def _field_rename_candidates(layer_name, dst_field_names):
+    """Map each current field name on this layer to the historical name(s)
+    (in priority order) that may hold its data in an older project, restricted
+    to fields that actually exist on the destination layer."""
+    dst_field_names = set(dst_field_names)
+    layer_stem = layer_name[len("Compilation_"):] if layer_name.startswith("Compilation_") else layer_name
+    candidates = {}
+    for old_names, new_field, layers in FIELD_RENAME_RULES:
+        if layers is not None and layer_stem not in layers:
+            continue
+        if new_field not in dst_field_names:
+            continue
+        bucket = candidates.setdefault(new_field, [])
+        for old_name in old_names:
+            if old_name not in bucket:
+                bucket.append(old_name)
+    return candidates
+
 
 class GEOL_QMAPS:
     """QGIS Plugin Implementation."""
@@ -356,31 +407,24 @@ class GEOL_QMAPS:
         self.fichier_output_structures = None
 
         ## Python library integration
-        def install_library(library_name):
-            try:
-                # sys.executable is the running interpreter's full path (not a bare
-                # command looked up on PATH), and library_name is always one of the
-                # fixed literals passed below - safe despite Bandit's generic warning
-                subprocess.check_call(
-                    [sys.executable, "-m", "pip", "install", library_name]
-                )  # nosec B603
-                print(f"Successfully installed {library_name}")
-            except subprocess.CalledProcessError as e:
-                print(f"Error installing {library_name}: {e}")
-
-        # Library fiona
+        # Third-party dependencies are declared in requirements.txt and
+        # installed by qpip (plugin_dependencies=qpip in metadata.txt). This
+        # used to shell out to `sys.executable -m pip install fiona/fuzzywuzzy`
+        # here, at plugin load, when either was missing - but on QGIS's
+        # bundled Python sys.executable is the QGIS executable itself, so that
+        # launched a second QGIS instance and hung the first one (the same bug
+        # removed from __init__.py in 3.2.1). fuzzywuzzy is bundled in
+        # biblio_Python anyway (with rapidfuzz/difflib fallbacks), and fiona is
+        # only imported inside the tools that use it, so a missing fiona is now
+        # just reported in the QGIS log instead.
         try:
-            import fiona
-
-        except:
-            install_library("fiona")
-
-        # Library FuzzyWuzzy
-        try:
-            import fuzzywuzzy
-
-        except:
-            install_library("fuzzywuzzy")
+            import fiona  # noqa: F401
+        except ImportError:
+            QgsMessageLog.logMessage(
+                "The 'fiona' Python package is not installed: the GEOL-QMAPS tools that "
+                "read/write GeoPackage layers directly need it. Install it with the qpip "
+                "plugin (or 'pip install fiona' in the OSGeo4W Shell), then restart QGIS.",
+                "GEOL-QMAPS", getattr(Qgis, "MessageLevel", Qgis).Warning)
 
     @staticmethod
     def set_header_resize_mode(header, mode_name: str = "Interactive") -> None:
@@ -1225,19 +1269,19 @@ class GEOL_QMAPS:
         input_file = pd.DataFrame(data_list, columns=noms_des_champs)
         input_file = input_file.astype(str)
 
-        # 2. Load columns_reference_WAXI4.csv
+        # 2. Load columns_reference.csv
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_WAXI4.csv",
+            self.dir_99 + "/columns_reference.csv",
         )
         column_reference = pd.read_csv(emplacement_files_WAXI_columns)
         list_column_reference = column_reference.columns.tolist()
 
-        # 3. Load columns_reference_fieldnames_aliases_WAXI4.csv
+        # 3. Load columns_reference_fieldnames_aliases.csv
         alias_file_path = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_fieldnames_aliases_WAXI4.csv",
+            self.dir_99 + "/columns_reference_fieldnames_aliases.csv",
         )
         alias_df = pd.read_csv(alias_file_path)
 
@@ -1478,7 +1522,7 @@ class GEOL_QMAPS:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_reference_WAXI4.csv",
+            self.dir_99 + "/columns_reference.csv",
         )
 
         column_reference = pd.read_csv(emplacement_files_WAXI_columns)
@@ -2341,7 +2385,7 @@ class GEOL_QMAPS:
         WAXI_projet_path = os.path.abspath(QgsProject.instance().fileName())
         emplacement_files_WAXI_columns = os.path.join(
             os.path.dirname(WAXI_projet_path),
-            self.dir_99 + "/columns_types_structures_WAXI4.csv",
+            self.dir_99 + "/columns_types_structures.csv",
         )
 
         Dataframe = pd.read_csv(emplacement_files_WAXI_columns)'''
@@ -3062,6 +3106,7 @@ class GEOL_QMAPS:
                 measure_idx = headers.index("Measure") if "Measure" in headers else None
                 trend_idx = headers.index("Trend") if "Trend" in headers else None
                 younging_idx = headers.index("Younging") if "Younging" in headers else None
+                existing_db_idx = headers.index("Existing databases - raw data") if "Existing databases - raw data" in headers else None
 
                 # Retrieve geometry column index
                 if "Geometry" not in headers:
@@ -3175,20 +3220,35 @@ class GEOL_QMAPS:
                     feature = QgsFeature(layer.fields())
                     geometry_wkt = row.iloc[geometry_column_index]
                     feature.setGeometry(QgsGeometry.fromWkt(geometry_wkt))
-                    
+
+                    # Precompute the UUID hash and parsed "Existing databases - raw
+                    # data" dict from the row directly (by column index), rather
+                    # than relying on encountering that column before "UUID" while
+                    # iterating fields below. The template's actual field order has
+                    # "UUID" *before* "Existing databases - raw data" on every
+                    # layer, so computing these lazily during the loop raised a
+                    # NameError on every row (UUID was always processed first),
+                    # silently dropping every feature and leaving scratch layers
+                    # with 0 features.
+                    row_hash = ""
+                    row_existing_db_dict = {}
+                    if existing_db_idx is not None:
+                        existing_db_value = row.iloc[existing_db_idx]
+                        row_hash = hashlib.sha256(str(existing_db_value).encode()).hexdigest()
+                        for pair in str(existing_db_value)[:-1].split(";"):
+                            if ":" in pair:
+                                key = pair.split(":")[0]
+                                entry = pair.split(":")[1]
+                                row_existing_db_dict[key] = entry
+
                     # Other fields of the attribute table by looping through sheet columns
                     for i, value in enumerate(row):
-
-                        if field_names[i] == "Existing databases - raw data":
-                            hash = hashlib.sha256(value.encode()).hexdigest()
 
                         type_donnee = type_field_data[i]
                         if type_donnee == "String" or type_donnee == "JSON":
                             if field_names[i] == "UUID":
-                                feature.setAttribute(
-                                    i, str(hash)
-                                )  # relies on 'UUID' field coming after 'Existing databases - raw data' field
-                                self.sheetHashUUID[str(hash)] = [new_text]
+                                feature.setAttribute(i, str(row_hash))
+                                self.sheetHashUUID[str(row_hash)] = [row_existing_db_dict]
                             elif field_names[i] == "Measure" and ("Lineations_PT" in sheet or "Folds_PT" in sheet):
                                 # Preserve the layer-specific Measure value prepared during structure_sorting.
                                 # Lineations_PT should normally keep "Trend - Plunge"; Folds_PT should keep
@@ -3201,13 +3261,7 @@ class GEOL_QMAPS:
                                 else:
                                     feature.setAttribute(i, "")
                             elif field_names[i] == "Existing databases - raw data":
-                                new_text = {}
-                                for pair in value[:-1].split(";"):
-                                    if ":" in pair:
-                                        key = pair.split(":")[0]
-                                        entry = pair.split(":")[1]
-                                        new_text[key] = entry
-                                feature.setAttribute(i, str(new_text))
+                                feature.setAttribute(i, str(row_existing_db_dict))
 
                             else:
                                 feature.setAttribute(i, str(value))
@@ -3872,16 +3926,65 @@ class GEOL_QMAPS:
             print(f"Error processing the GeoPackage layer: {e}")
 
     def reload_csv(self, dictionaries_path, layer_csv, current_layer):
-        # layer_csv is a QGIS layer object that is already open on the same
-        # underlying GeoPackage table that was just rewritten on disk (e.g. by
-        # add_row_to_csv_layer/delete_row_from_csv_layer via fiona). Since that
-        # file already holds the complete, correct set of rows, all we need to
-        # do is make the already-open layer re-read it - no manual copying of
-        # features between layer instances (they share the same backing store,
-        # so mutating one via dataProvider() also mutates what the other sees).
-        layer_csv.dataProvider().reloadData()
-        layer_csv.updateFields()
-        layer_csv.triggerRepaint()
+        """Refresh an already-loaded dictionary CSV layer after its table was
+        rewritten on disk by add_row_to_csv_layer/delete_row_from_csv_layer
+        (via a separate fiona/GDAL connection).
+
+        A plain dataProvider().reloadData() does not reliably pick up a table
+        that was dropped and recreated by a different GDAL connection on the
+        same GeoPackage file: other layers keep showing the item list from
+        before the edit, so a newly added item never appears in their
+        ValueRelation dropdowns, and a feature whose field was defaulted to
+        that new value shows it unresolved in curly braces in the attribute
+        form, as if it weren't in the dictionary at all - even though the csv
+        layer itself (and the file on disk) already has it.
+
+        To force a genuinely fresh read, open a brand new QgsVectorLayer on
+        the same source and copy its features into the layer object(s) QGIS
+        already has open for this table - updated in place, since other
+        layers' ValueRelation widgets are bound to them by layer id, not by
+        name, so swapping in a new layer object wouldn't reach those widgets.
+        Every layer sharing this display name is refreshed (not just the one
+        instance the caller passed in), since a project can end up with more
+        than one after a merge or rejig.
+        """
+        fresh_table = QgsVectorLayer(
+            f"{dictionaries_path}|layername={current_layer}", current_layer, "ogr"
+        )
+        if not fresh_table.isValid():
+            print(f"Failed to load new data from {dictionaries_path}.")
+            return
+
+        fresh_field_names = fresh_table.fields().names()
+        fresh_rows = [feature.attributes() for feature in fresh_table.getFeatures()]
+        fid_index = fresh_field_names.index("fid") if "fid" in fresh_field_names else None
+
+        targets = QgsProject.instance().mapLayersByName(layer_csv.name())
+        if layer_csv not in targets:
+            targets.append(layer_csv)
+
+        for target in targets:
+            if target.fields().names() != fresh_field_names:
+                print(
+                    f"The schema of the new data does not match the existing layer '{layer_csv.name()}'. Update failed."
+                )
+                continue
+
+            if not target.isEditable():
+                target.startEditing()
+            target.dataProvider().truncate()
+            for row in fresh_rows:
+                new_feature = QgsFeature(target.fields())
+                attrs = list(row)
+                if fid_index is not None:
+                    # Let the provider assign a fresh fid rather than reusing
+                    # one read from a different connection's copy of the table.
+                    attrs[fid_index] = None
+                new_feature.setAttributes(attrs)
+                target.dataProvider().addFeatures([new_feature])
+            target.commitChanges()
+            target.updateFields()
+            target.triggerRepaint()
 
     def _resolve_dictionary_layer(self, layer_key):
         """Resolve the QGIS layer object for a dictionary CSV given its Group__Name-style key."""
@@ -4380,7 +4483,7 @@ class GEOL_QMAPS:
         else:
             print (f"{old} is version {raw} and can be be updated to the latest version automatically.")
 
-        # 3. Download + unpack latest template --> TO BE UPDATED FOR EVERY NEW RELEASE --> v3.2.0 at the moment
+        # 3. Download + unpack latest template.
         # 3a) Quick connectivity check (DNS socket to 8.8.8.8:53)
         import socket
         try:
@@ -4395,11 +4498,39 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.clear()
             return
 
-        # 3b) Attempt download with 60 s timeout
+        # 3b) Resolve the latest template release from Zenodo and download it.
+        # GEOL-QMAPS' Zenodo "concept" record id (7834717) always identifies the
+        # record family; querying it follows Zenodo's redirect to whichever
+        # version is currently the latest, so this automatically picks up every
+        # future template release without any hardcoded version/URL/filename
+        # here (no more "update this at every release" maintenance).
         tmpzip = Path(tempfile.gettempdir()) / "QGIS_TEMPLATE.zip"
-        url = "https://zenodo.org/records/20549571/files/GEOL-QMAPS_v3.2.0.zip?download=1" #TO BE UPDATED AT EVERY RELEASE
+        concept_record_api_url = "https://zenodo.org/api/records/7834717"
         from urllib.parse import urlparse
         from urllib.request import urlopen, Request
+        import json as _json
+        try:
+            with urlopen(Request(concept_record_api_url), timeout=30) as resp:  # nosec B310
+                latest_record = _json.loads(resp.read().decode("utf-8"))
+            zip_entry = next(
+                (f for f in latest_record.get("files", [])
+                 if str(f.get("key", "")).lower().endswith(".zip")),
+                None,
+            )
+            if zip_entry is None:
+                raise ValueError("No .zip file found in the latest GEOL-QMAPS Zenodo record.")
+            url = zip_entry["links"]["self"]
+            latest_version = latest_record.get("metadata", {}).get("version", "unknown")
+            print(f"Resolved latest GEOL-QMAPS template release from Zenodo: v{latest_version} ({url})")
+        except Exception as e:
+            self.iface.messageBar().pushMessage(
+                f"Could not resolve the latest GEOL-QMAPS template release from Zenodo:\n{e}",
+                level=Qgis.MessageLevel.Critical, duration=10
+            )
+            self.dlg.lineEdit_15.clear()
+            return
+
+        # 3c) Attempt download with 60 s timeout
         try:
             parsed_url = urlparse(url)
 
@@ -4430,13 +4561,38 @@ class GEOL_QMAPS:
             self.dlg.lineEdit_15.clear()
             return
 
-        # 3c) Unzip the downloaded archive into the parent folder
+        # 3d) Unzip the downloaded archive into the parent folder.
         import zipfile
         with zipfile.ZipFile(local_path, 'r') as zf:
             zf.extractall(str(parent))
+            # Read the archive's own top-level folder name(s) directly, rather
+            # than diffing the parent folder's contents before/after extraction.
+            # That diff previously treated an already-present extracted copy
+            # (e.g. left over from updating a different project in the same
+            # parent folder) as "nothing new", so updating a second project
+            # there wrongly reported the QGIS_TEMPLATE folder as missing even
+            # though extraction succeeded both times.
+            archive_top_level_dirs = sorted({
+                name.split("/")[0] for name in zf.namelist() if "/" in name
+            })
 
-        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the new release
-        template_src = parent / "GEOL-QMAPS_v3.2.0" / "QGIS_TEMPLATE" #TO BE UPDATED AT EVERY RELEASE
+        # 4a) Define template_src as the QGIS_TEMPLATE subfolder of the
+        # extracted release. Resolved dynamically (rather than a hardcoded
+        # "GEOL-QMAPS_vX.Y.Z" folder name) so this keeps working for every future
+        # template release without code changes.
+        template_src = None
+        for entry in archive_top_level_dirs:
+            candidate = parent / entry / "QGIS_TEMPLATE"
+            if candidate.is_dir():
+                template_src = candidate
+                break
+        if template_src is None:
+            self.iface.messageBar().pushMessage(
+                "ERROR: Could not locate a QGIS_TEMPLATE folder inside the downloaded template archive.",
+                level=Qgis.MessageLevel.Critical, duration=10
+            )
+            self.dlg.lineEdit_15.clear()
+            return
 
 
         # 4b) Prepare the destination name and remove any stale copy
@@ -4556,6 +4712,11 @@ class GEOL_QMAPS:
         driver = ogr.GetDriverByName("GPKG")
         raw_version = raw  # the version string you read earlier, e.g. "3.1.0"
 
+        # Field-rename-aware copy: without this, a project created before a
+        # rename would silently lose that column's data, since the old feature
+        # has no field under the new name. See FIELD_RENAME_RULES/
+        # _field_rename_candidates() near the top of this module.
+
         for pkg_rel in ["0_FIELD_DATA/CURRENT_MISSION.gpkg",
                         "1_EXISTING_FIELD_DATABASE/COMPILATION.gpkg"]:
             old_pkg = str(old / pkg_rel)
@@ -4589,6 +4750,8 @@ class GEOL_QMAPS:
                     continue
 
                 dst_def = dst_layer.GetLayerDefn()
+                dst_field_names = [dst_def.GetFieldDefn(fi).GetName() for fi in range(dst_def.GetFieldCount())]
+                rename_candidates = _field_rename_candidates(new_name, dst_field_names)
                 # start transaction for speed
                 dst_layer.StartTransaction()
                 src_layer.ResetReading()
@@ -4602,6 +4765,16 @@ class GEOL_QMAPS:
                         fld_name = fld_def.GetName()
                         if feat.GetFieldIndex(fld_name) != -1:
                             out_feat.SetField(fld_name, feat.GetField(fld_name))
+                        else:
+                            # Field doesn't exist under its current name on this
+                            # older feature; see if it was collected under a
+                            # historical name instead, so the value still carries
+                            # over rather than being silently dropped.
+                            for old_field_name in rename_candidates.get(fld_name, ()):
+                                src_idx = feat.GetFieldIndex(old_field_name)
+                                if src_idx != -1:
+                                    out_feat.SetField(fld_name, feat.GetField(src_idx))
+                                    break
                     # copy geometry
                     geom = feat.GetGeometryRef()
                     if geom:
@@ -4673,7 +4846,7 @@ class GEOL_QMAPS:
                 self.iface.mainWindow(),
                 "Select QField package folder",
                 "",
-                QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+                QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.ReadOnly
             )
 
         if path:
@@ -4687,7 +4860,7 @@ class GEOL_QMAPS:
             self.iface.mainWindow(),
             "Select the master GEOL‑QMAPS project folder to update with new data collected in the field",
             "",
-            QFileDialog.ShowDirsOnly | QFileDialog.ReadOnly
+            QFileDialog.Option.ShowDirsOnly | QFileDialog.Option.ReadOnly
         )
         if folder:
             self.dlg.lineEdit_QGISFolder.setText(folder)
@@ -4745,35 +4918,31 @@ class GEOL_QMAPS:
         else:
             package_root = qfield_path
 
-        # Step 1b: Locate .qgs file and set root for CURRENT_MISSION.gpkg
-        qgs_files = []
+        # Step 1b: Locate CURRENT_MISSION.gpkg directly to anchor the package
+        # root. This used to instead search for a .qgs project file, purely
+        # to derive the package root from its location - the project file's
+        # own content was never opened or read. That broke for QField
+        # packages where QFieldSync produced a .qgz project file instead of
+        # a .qgs (both are valid outputs depending on QFieldSync's settings/
+        # version), even though the actual field data (CURRENT_MISSION.gpkg)
+        # was packaged correctly either way. Anchoring on the GeoPackage
+        # itself removes the dependency on the project file's format.
+        gpkg_matches = []
         for root, dirs, files in os.walk(package_root):
             for f in files:
-                if f.lower().endswith('.qgs'):
-                    qgs_files.append(os.path.join(root, f))
-        if not qgs_files:
+                if f == 'CURRENT_MISSION.gpkg':
+                    gpkg_matches.append(os.path.join(root, f))
+        if not gpkg_matches:
             self.iface.messageBar().pushMessage(
-                "No .qgs project file found in the QField package: may be corrupted.",
-                level=Qgis.MessageLevel.Critical,
-                duration=5
-            )
-            if temp_dir:
-                temp_dir.cleanup()
-            return
-        qgs_path = qgs_files[0]
-        pkg_root = os.path.dirname(qgs_path)
-
-        # Check for CURRENT_MISSION.gpkg in QField root
-        qfield_pkg = os.path.join(pkg_root, 'CURRENT_MISSION.gpkg')
-        if not os.path.isfile(qfield_pkg):
-            self.iface.messageBar().pushMessage(
-                "No CURRENT_MISSION.gpkg found in the QField package: corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
+                "No CURRENT_MISSION.gpkg found in the QField package: may be corrupted, or not packaged from a GEOL-QMAPS QGIS project.",
                 level=Qgis.MessageLevel.Critical,
                 duration=10
             )
             if temp_dir:
                 temp_dir.cleanup()
             return
+        qfield_pkg = gpkg_matches[0]
+        pkg_root = os.path.dirname(qfield_pkg)
 
         # Step 2: Validate QGIS project via existing function
         if not self.is_valid_geol_qmaps_project(qgis_folder):
@@ -5521,7 +5690,11 @@ class GEOL_QMAPS:
                     if not os.path.exists(df): shutil.copy2(sf, df)
 
         def append_gpkg(src_gpkg, dst_gpkg):
-            # Append features from src_gpkg into dst_gpkg without editing layer state
+            # Append features from src_gpkg into dst_gpkg without editing layer state.
+            # Sub-project and main/merged project may come from different template
+            # versions with different field orders (or renamed fields), so
+            # attributes are matched by NAME (with a rename-aware fallback via
+            # _field_rename_candidates), never copied by position.
             ds_src = ogr.Open(src_gpkg)
             ds_dst = ogr.Open(dst_gpkg, 1)  # open for update
             if not ds_src or not ds_dst:
@@ -5534,17 +5707,29 @@ class GEOL_QMAPS:
                 src_uri = f"{src_gpkg}|layername={name}"
                 dst_vl = QgsVectorLayer(dst_uri, name, 'ogr')
                 src_vl = QgsVectorLayer(src_uri, name, 'ogr')
-                # Identify PK fields to null out
-                pk_indices = dst_vl.dataProvider().pkAttributeIndexes()
+                if not dst_vl.isValid() or not src_vl.isValid():
+                    continue
+                dst_fields = dst_vl.fields()
+                # Identify PK fields to leave null (so the destination auto-assigns new ones)
+                pk_indices = set(dst_vl.dataProvider().pkAttributeIndexes())
+                rename_candidates = _field_rename_candidates(name, [f.name() for f in dst_fields])
                 to_add = []
                 for feat in src_vl.getFeatures():
-                    new_feat = QgsFeature(dst_vl.fields())
+                    new_feat = QgsFeature(dst_fields)
                     new_feat.setGeometry(feat.geometry())
-                    attrs = feat.attributes()
-                    for idx in pk_indices:
-                        if 0 <= idx < len(attrs):
-                            attrs[idx] = None
-                    new_feat.setAttributes(attrs)
+                    for dst_idx in range(dst_fields.count()):
+                        if dst_idx in pk_indices:
+                            continue
+                        fld_name = dst_fields.at(dst_idx).name()
+                        src_idx = feat.fields().indexFromName(fld_name)
+                        if src_idx != -1:
+                            new_feat.setAttribute(dst_idx, feat.attribute(src_idx))
+                        else:
+                            for old_name in rename_candidates.get(fld_name, ()):
+                                old_idx = feat.fields().indexFromName(old_name)
+                                if old_idx != -1:
+                                    new_feat.setAttribute(dst_idx, feat.attribute(old_idx))
+                                    break
                     new_feat.setId(-1)
                     to_add.append(new_feat)
                 if to_add:
@@ -5657,39 +5842,30 @@ class GEOL_QMAPS:
 
     ### Export Data ###
     def exportData(self):
-        # Combines sets of lithology, structure and zoneal layers into 3 shapefiles
+        # Combines sets of lithology, structure and zonal layers into merged
+        # export layers. Each source layer already carries a native "Layer"
+        # field recording which layer a feature came from, populated when the
+        # feature was created (like every other GEOL-QMAPS metadata field),
+        # so there is no need to inject/overwrite it here. The previous code
+        # also did so on the wrong layers regardless (self.layers_names,
+        # i.e. the plain CURRENT_MISSION layers), not the Compilation_ layers
+        # actually merged into the export below, so it had no effect on the
+        # exported output - it only needlessly edited and committed changes
+        # to the user's live field data every time this tool was run.
         if os.path.exists(self.mynormpath(self.dlg.lineEdit_7.text())):
-            proj = QgsProject.instance()
-
-            for name in self.layers_names:
-                layer = proj.mapLayersByName(name)[0]
-                caps = layer.dataProvider().capabilities()
-
-                # Get the list of fields in the layer
-                existing_fields = [field.name() for field in layer.fields()]
-
-                # Check if 'src_layer' field exists, if not, add it
-                if "Layer" not in existing_fields:
-                    # Add Fields if the provider supports it
-                    if caps & QgsVectorDataProvider.AddAttributes:
-                        res = layer.dataProvider().addAttributes(
-                            [QgsField("Layer", _QVAR_STRING)]
-                        )
-                        layer.updateFields()
-
-                src_layer_idx = layer.fields().lookupField("Layer")
-
-                # Start editing mode to modify attributes
-                layer.startEditing()
-                # Change attribute values
-                for f in layer.getFeatures():
-                    layer.changeAttributeValue(f.id(), src_layer_idx, name)
-
-                # Commit changes
-                layer.commitChanges()
-
+            # Resolve the active project's COMPILATION.gpkg fresh from the
+            # currently open project, rather than relying on
+            # self.geopackage_file_path: that is only (re)computed in run(),
+            # so if the user switches to a different GEOL-QMAPS project
+            # without reopening the plugin dock (e.g. it was already open),
+            # it keeps pointing at whichever project was active the last
+            # time run() executed - typically the first one opened in the
+            # session - not the currently active one.
             project = QgsProject.instance()
-            proj_file_path = project.fileName()
+            proj_base_path = os.path.dirname(project.fileName()) + "/"
+            geopackage_file_path = self.mynormpath(
+                proj_base_path + self.dir_1 + "COMPILATION.gpkg"
+            )
 
             # Build the export folder
             export_folder = self.mynormpath(self.dlg.lineEdit_7.text())
@@ -5716,31 +5892,26 @@ class GEOL_QMAPS:
                 self.dlg.lineEdit_7.clear()
                 return
 
-            file = []
-
-
-            # first create temp layer and new geopackage
-            temp_layer = QgsVectorLayer("Point?crs=EPSG:4326", "temp_layer", "memory")
-
-            options = QgsVectorFileWriter.SaveVectorOptions()
-            options.driverName = "GPKG"  # Specify the GeoPackage format
-
-            transform_context = QgsCoordinateTransformContext()
-
-            QgsVectorFileWriter.writeAsVectorFormatV3(
-                temp_layer, newGeopackagePath, transform_context, options
-            )
+            # Start from a clean file each run: each merge below writes its
+            # own named table (zonal_data, litho_data, ...) and GDAL's GPKG
+            # driver creates export.gpkg automatically on the first write, so
+            # nothing needs to be pre-created here. Removing any export.gpkg
+            # left over from a previous run also clears out the empty, no
+            # longer created "export" layer that an earlier version of this
+            # tool used to leave behind to bootstrap the file.
+            if os.path.exists(newGeopackagePath):
+                os.remove(newGeopackagePath)
 
             # Zonal Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Deformation zones_PG"
             )
             file2 = (
-                self.geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
+                geopackage_file_path + "|layername=Compilation_Alteration zones_PG"
             )
             file3 = (
-                self.geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
+                geopackage_file_path + "|layername=Compilation_Lithology zones_PG"
             )
 
             newLayer = (
@@ -5761,31 +5932,31 @@ class GEOL_QMAPS:
 
             # Lithology Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Local lithologies_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Supergene lithologies_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Sedimentary lithologies_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Volcanoclastic lithologies_PT"
             )
             file5 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Igneous extrusive lithologies_PT"
             )
             file6 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Igneous intrusive lithologies_PT"
             )
             file7 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Metamorphic lithologies_PT"
             )
 
@@ -5806,38 +5977,38 @@ class GEOL_QMAPS:
 
             # Structural Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Bedding-Lava flow-S0_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Foliation-cleavage_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Shear zones and faults_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Folds_PT"
             )
             file5 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Fractures_PT"
             )
-            file6 = (self.geopackage_file_path
+            file6 = (geopackage_file_path
                      + "|layername=Compilation_Veins_PT"
             )
             file7 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Dikes-Sills_PT"
                     )
             file8 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Lithological contacts_PT"
             )
             file9 = (
-                    self.geopackage_file_path
+                    geopackage_file_path
                     + "|layername=Compilation_Lineations_PT"
             )
 
@@ -5868,11 +6039,11 @@ class GEOL_QMAPS:
 
             # Geophysical Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Density_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Magnetic susceptibility_PT"
             )
 
@@ -5893,19 +6064,19 @@ class GEOL_QMAPS:
 
             # Stops-Samples-Photographs-Comments Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Stops_PT"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Sampling_PT"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Photographs_PT"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Observations_PT"
             )
 
@@ -5926,19 +6097,19 @@ class GEOL_QMAPS:
 
             # Linear Data
             file1 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Observations_LN"
             )
             file2 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_GPS Tracks_LN"
             )
             file3 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Lithological contacts_LN"
             )
             file4 = (
-                self.geopackage_file_path
+                geopackage_file_path
                 + "|layername=Compilation_Planar structures_LN"
             )
 
@@ -5999,7 +6170,14 @@ class GEOL_QMAPS:
 
             project = QgsProject.instance()
             file = []
-            self.geopackage_file_path = self.mynormpath(self.geopackage_file_path)
+            # Resolve COMPILATION.gpkg fresh from the currently active project
+            # rather than self.geopackage_file_path, which is only (re)computed
+            # in run() and so would keep pointing at whichever project was
+            # active the last time the plugin dock was (re)opened if the user
+            # has since switched to a different one (see exportData()).
+            geopackage_file_path = self.mynormpath(
+                os.path.dirname(project.fileName()) + "/" + self.dir_1 + "COMPILATION.gpkg"
+            )
 
             layer_names = [
                 "Compilation_Lineations_PT",
@@ -6023,7 +6201,7 @@ class GEOL_QMAPS:
             ]
 
             for layer_name in layer_names:
-                file.append(f"{self.geopackage_file_path}|layername={layer_name}")
+                file.append(f"{geopackage_file_path}|layername={layer_name}")
 
             print("Starting layer merging process...")
 
@@ -6415,12 +6593,31 @@ class GEOL_QMAPS:
         # Figure out which field index holds your JSON back-reference
         idx_json = dst.fields().indexFromName("Existing databases - raw data")
 
+        # Match attributes by name (falling back to a field's known historical
+        # name via FIELD_RENAME_RULES), not by position: the scratch layer
+        # (src) was built from whichever field order the Compilation_ layer
+        # (dst) had at the time Step 3 ran, which can since have changed (e.g.
+        # a Rejig in between) if the user generates a scratch layer and only
+        # merges it later, so the two field orders are not guaranteed to still
+        # line up.
+        dst_fields = dst.fields()
+        rename_candidates = _field_rename_candidates(dst.name(), [f.name() for f in dst_fields])
+
         new_feats = []
         for f in src.getFeatures():
-            nf = QgsFeature(dst.fields())
+            nf = QgsFeature(dst_fields)
             nf.setGeometry(f.geometry())
-            # copy every attribute (including UUID, Azimuth, Plunge, etc.)
-            nf.setAttributes(f.attributes())
+            # copy every attribute (including UUID, Azimuth, Plunge, etc.) by name
+            src_field_names = f.fields().names()
+            for dst_idx in range(dst_fields.count()):
+                fld_name = dst_fields.at(dst_idx).name()
+                if fld_name in src_field_names:
+                    nf.setAttribute(dst_idx, f.attribute(fld_name))
+                else:
+                    for old_name in rename_candidates.get(fld_name, ()):
+                        if old_name in src_field_names:
+                            nf.setAttribute(dst_idx, f.attribute(old_name))
+                            break
 
             # now inject your JSON text up‐front, if it exists
             try:
@@ -6523,13 +6720,21 @@ class GEOL_QMAPS:
             return False
 
         image_expression = build_map_tip_image_expression(source_field_name, photo_field_name)
+        # Azimuth (image direction) only exists on the Photographs layers, not on
+        # Sampling_PT/Compilation_Sampling_PT, which also use this map tip template.
+        # Detect it dynamically so this keeps working regardless of layer/version.
+        azimuth_field_name = "Azimuth" if "Azimuth" in field_names else None
+        azimuth_line = (
+            f'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "{azimuth_field_name}" %]'
+            if azimuth_field_name else ""
+        )
         template = f"""
 <div style="max-width: 500px;">
   <div style="margin-bottom: 0px;">[% "Comments" %]</div>
   <div style="text-align: center; margin-bottom: 0px;">
     <img src="[% {image_expression} %]" style="max-width: 95%; height: auto; display: block; margin: 0 auto;" />
   </div>
-  <div>[% "Date" %]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Image Direction: [% "Azimut" %]</div>
+  <div>[% "Date" %]{azimuth_line}</div>
 </div>
 """
         layer.setMapTipTemplate(template)
@@ -7283,10 +7488,10 @@ class GEOL_QMAPS:
             # Field indices
             idx_full = layer.fields().indexFromName("Full_Path")
             idx_exif = layer.fields().indexFromName("EXIF_Azimuth")
-            idx_az = layer.fields().indexFromName("Azimut")
+            idx_az = layer.fields().indexFromName("Azimuth")
             if idx_full < 0 or idx_exif < 0 or idx_az < 0:
                 self.iface.messageBar().pushMessage(
-                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimut attributes.",
+                    f"Layer '{name}' missing one of Full_Path, EXIF_Azimuth or Azimuth attributes.",
                     level=Qgis.MessageLevel.Critical, duration=10
                 )
                 layer.rollback()
@@ -7297,7 +7502,7 @@ class GEOL_QMAPS:
                 fid = feat.id()
                 full_path = feat["Full_Path"]
                 exif_val = feat["EXIF_Azimuth"]
-                az_val = feat["Azimut"]
+                az_val = feat["Azimuth"]
                 new_exif = None
 
                 # If EXIF_Azimuth is null/empty, try to compute it

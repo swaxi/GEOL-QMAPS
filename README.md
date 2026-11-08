@@ -2,17 +2,19 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.0.2 - August 2026*
+*version 3.2.2 - November 2026*
 
-# Changelog 3.2.0.2
+# Changelog 3.2.2
 
-      * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
-      * Improved robustness of QField package sync validation on macOS and Windows.
-      * Improved photograph path updates for the CURRENT_MISSION and COMPILATION photograph layers so the Source and Full_Path attributes stay consistent with map tips.
-      * Harmonised numpy/scipy/pandas version constraints in Requirements.txt with the Stereoplot and Geochemistry Plotting Tools plugins, so installing all three on the same QGIS Python environment converges on one mutually compatible dependency set.
-      * Fixed a NameError crash in ppigrf.py and a broken defusedxml fallback path.
-      * Fixed a Qt6/QGIS4 compatibility bug affecting QAction, which moved from QtWidgets to QtGui in Qt6.
-  
+      * Updated the plugin to match the GEOL-QMAPS template v3.2.2's reference CSV files being renamed (no more "_WAXI4" suffix): columns_reference_WAXI4.csv -> columns_reference.csv, columns_reference_fieldnames_aliases_WAXI4.csv -> columns_reference_fieldnames_aliases.csv.
+      * Fixed three field names in the template's own columns_reference.csv / columns_reference_fieldnames_aliases.csv that had been left stale since the v3.2.1 field renames (Struct_Tec -> Strain_Pattern, Metamorphi -> Index_Minerals, Reliabilit -> Confidence_Index); the CURRENT_MISSION/COMPILATION GeoPackage schema itself is unchanged between v3.2.1 and v3.2.2.
+      * Four more fields were renamed in a later v3.2.2 revision, aligning the odd ones out with the name already used everywhere else: Dikes-Sills_PT/Lithology zones_PG's Lithology -> Litho, Dikes-Sills_PT's Strain_Intensity -> Def_int, Density_PT's Stratigraphic_Unit -> Stratigraphy, and Planar structures_LN's Nature -> Reliability. Updated the Rejig/Merge Projects field-rename table so a project built on the earlier naming still carries its data over correctly (chained through the v3.2.1 intermediate names where applicable). The Import tool needed no changes, since it already reads field names dynamically; it also now benefits for Dikes-Sills_PT/Lithology zones_PG, since the WAXI4 legacy-column alias table only ever recognised "Litho", not "Lithology".
+      * Replaced the GEOL-QMAPS data dictionary with the updated GEOL-QMAPS_v3.2.2_data_dictionary.xlsx, reflecting all of the above.
+      * Audited every tool against the current schema. Fixed two more cases of the same two bug classes already fixed elsewhere this release: the Merge Layers tool (Step 4 of Import Legacy Field Data) was copying attributes by column position rather than by name (like Merge Projects before it), and Create Virtual Stops was reading COMPILATION.gpkg from whichever project was active when the plugin dock was last (re)opened rather than the currently active one (like Export Compilation Layers before it). All other tools (Clip, Save Style Template, Remove Duplicate UUIDs, Sync QField to QGIS, FieldMove Import, Edit Dictionaries, Set User by Default) already read field names dynamically and need no changes.
+      * Dependencies: `requirements.txt` now declares minimum versions only (`numpy>=1.21`, `scipy>=1.7`, `pandas>=1.3`, plus Pillow, fiona, defusedxml, rapidfuzz and fuzzywuzzy), harmonised with Stereoplot and Geochemistry Plotting Tools. The previous upper caps (`numpy<2.0`, `pandas<3.0`) conflicted with the numpy 2.x / pandas 3.x shipped by QGIS 3.44 and QGIS 4, making qpip install older duplicate copies that shadow QGIS's own packages. Removed the unused `packaging` entry.
+      * QGIS 4 (Qt6): fixed the plugin panel failing to open under QGIS 4, caused by Qt enum values written in the old unscoped form (`Qt.AlignRight`, `QFrame.VLine`...), which PyQt6 no longer accepts; same fix for the folder pickers of the Sync QField to QGIS tool. QGIS 4 decides compatibility from `qgisMaximumVersion` (4.99), the `supportsQt6` flag being obsolete.
+      * Removed the remaining automatic `pip install` attempts (for fiona/fuzzywuzzy at QGIS start-up, and defusedxml), which could hang QGIS like the start-up dependency check removed in 3.2.1. Dependencies are installed by qpip; a missing fiona is now reported in the QGIS log.
+
 Full changelog: <a href="https://github.com/swaxi/GEOL-QMAPS/blob/main/metadata.txt">Metadata</a> 
 
 ## 1. Description
@@ -57,7 +59,7 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
 
 ## 4. Installation
 ### *4.1. GEOL-QMAPS QGIS Template* 
-* Visit [the Zenodo repository of the QGIS template](https://zenodo.org/records/13374088)
+* Visit [the Zenodo repository of the QGIS template](https://zenodo.org/records/7834717)
 
 * Save the latest version of the QGIS mapping project template to disk as a zip file
 
@@ -66,13 +68,13 @@ The current version of GEOL-QMAPS is supported by *QGIS 3.42.0 (Münster)* and *
   * a log file (**`List of updates of the different releases.docx`**),
 
 ### *4.2. Installing Dependencies with qpip (Recommended)*
-The **GEOL-QMAPS** relies on several Python packages that are not always included in a standard QGIS installation. To simplify dependency management, the plugin supports installation through **qpip**, the QGIS Python package manager.
+The **GEOL-QMAPS** relies on several Python packages that are not always included in a standard QGIS installation. To simplify dependency management, the plugin supports installation through **qpip**, the QGIS Python package manager, and declares it as a plugin dependency, so the QGIS Plugin Manager will typically offer to install it automatically together with GEOL-QMAPS.
 
 Before installing **GEOL-QMAPS**, it is recommended to:
-1. Install the **qpip** plugin from the QGIS Plugin Manager.
+1. Install the **qpip** plugin from the QGIS Plugin Manager (if it wasn't installed automatically).
 2. Allow **qpip** to install any missing dependencies automatically when prompted by the **GEOL-QMAPS** plugin (or any other plugin with depedencies).
 
-Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations. The declared `numpy` and `scipy` version ranges (`numpy>=1.26.4,<2.0`, `scipy>=1.17.0,<1.18`) match those used by the other `swaxi` QGIS plugins (Stereoplot, Geochemistry Plotting Tools), so installing several of them together converges on one consistent set of package versions instead of each plugin pulling in a different one.
+Using **qpip** ensures that all Python dependencies are installed within the active QGIS environment and avoids conflicts with system-wide Python installations. The plugin only declares minimum versions (`numpy>=1.21`, `scipy>=1.7`, `pandas>=1.3`), the same floors as the other `swaxi` QGIS plugins (Stereoplot, Geochemistry Plotting Tools), and no upper limits: QGIS's own bundled numpy/scipy/pandas (e.g. numpy 2.x and pandas 3.x in QGIS 3.44 and QGIS 4) already satisfy them, so qpip normally only installs the packages QGIS doesn't ship (fiona, defusedxml, rapidfuzz, fuzzywuzzy) and never replaces the ones it does.
 
 > **Important:** If the **GEOL-QMAPS** plugin fails to start or reports missing Python modules, first verify that qpip is installed and that all required dependencies have been successfully installed. In most cases, dependency-related issues can be resolved by reinstalling the missing packages through qpip and restarting QGIS.
 
@@ -99,7 +101,7 @@ The figure below, adapted from Perret et al. ([2024](https://doi.org/10.1016/j.a
 
 ### *5.1. Architecture of the QGIS Mapping Template* 
 #### 5.1.1. Repository Content
-Open the unzipped `GEOL_QMAPS_vX.X.X`, downloaded on [Zenodo](https://zenodo.org/records/13374088) (version X.X.X).
+Open the unzipped `GEOL_QMAPS_vX.X.X`, downloaded on [Zenodo](https://zenodo.org/records/7834717) (version X.X.X).
 
 The `.\QGIS_TEMPLATE` repository contains several sub-folders where relevant geodata can be sorted by theme. 
 
@@ -137,7 +139,7 @@ The figure below summarises the different field data that can be collected using
 
 ![Field_Layers](Field_Layers.png) 
 
-A detailed description of the attributes and the design of attribute forms for each field data layer is ![attached](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf).
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.2_data_dictionary.xlsx).
 
 #### 5.1.3. Coordinate Reference System
 By default, the QGIS project template is set to the `WGS 84: EPSG:4326` unprojected CRS, enabling compatibility with global datasets.
@@ -255,7 +257,7 @@ For instructions on plotting on the fly structural measurements contained in any
    
 ### *5.3. Fieldwork: Data Collection* 
 Go out and collect the data.<br>
-A detailed description of the attributes and the design of attribute forms for each field data layer is provided in the following ![document](GEOL-QMAPS_Details_AttributeForms_FieldDataLayers.pdf)
+A detailed description of the layer templates and the dictionaries of the solution, including the attributes and the design of attribute forms for each field data layer, is provided in the [GEOL-QMAPS data dictionary](GEOL-QMAPS_v3.2.2_data_dictionary.xlsx).
 
 To activate tracking, ensure that positioning is enabled in QField. <br>
 Next, open the side dashboard, long-press on the **GPS Tracks_PT** where you want to save your tracks, and select the *Setup Tracking* button to configure the tracking session.
@@ -295,7 +297,7 @@ Modifications made by distributed field teams can be then compiled using the cus
 ### *6.1. Open and Navigate the Plugin*
 > [!CAUTION]
 > *Make sure the GEOL-QMAPS plugin is installed* (see subsection 4.2.). <br>
-> *Also, an existing GEOL-QMAPS QGIS project compatible with the plugin version installed must be open to run this plugin, otherwise the Dialog will not display. In other words, make sure to download the [latest GEOL-QMAPS QGIS template](https://zenodo.org/records/13374088) if the updated version of the plugin is installed.*
+> *Also, an existing GEOL-QMAPS QGIS project compatible with the plugin version installed must be open to run this plugin, otherwise the Dialog will not display. In other words, make sure to download the [latest GEOL-QMAPS QGIS template](https://zenodo.org/records/7834717) if the updated version of the plugin is installed.*
 
 Make sure to activate the GEOL-QMAPS plugin in the QGIS Plugin Repository Manager, and click on the plugin icon ![WAXI icon](icon.png) to display the plugin window, docked to the QGIS window.<br>
 
@@ -457,6 +459,6 @@ Allows a new directory to be defined for the storage of field and sampling pictu
 
 ## Credits
 * GEOL-QMAPS QGIS Mapping Template - [J. Perret](julien.perret@uwa.edu.au)
-* GEOL-QMAPS Custom QGIS Plugin - [M.W. Jessell](mark.jessell@uwa.edu.au), [J. Perret](julien.perret@uwa.edu.au), E. Bétend
+* GEOL-QMAPS Custom QGIS Plugin - [J. Perret](julien.perret@uwa.edu.au), [M.W. Jessell](mark.jessell@uwa.edu.au), E. Bétend
 * User Guide-README - [J. Perret](julien.perret@uwa.edu.au), [M.W. Jessell](mark.jessell@uwa.edu.au)
  
