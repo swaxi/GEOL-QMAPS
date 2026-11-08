@@ -2,7 +2,7 @@
 
 *author: [Julien Perret](mailto:julien.perret@uwa.edu.au)*
 
-*version 3.2.2 - October 2026*
+*version 3.2.2 - November 2026*
 
 # Changelog 3.2.2
 
