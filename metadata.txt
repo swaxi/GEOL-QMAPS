@@ -9,7 +9,7 @@ qgisMaximumVersion=4.99
 description=The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 version=3.2.2
 author=Julien Perret, Mark Jessell and Eliott Betend (Centre for Exploration Targeting, University of Western Australia)
-email=julien.perret@uwa.edu.au; mark.jessell@uwa.edu.au
+email=julien.perret@uwa.edu.au
 
 about= The geol_qmaps plugin facilitates legacy field data import, fieldwork preparation and post-fieldwork processing using the GEOL-QMAPS QGIS mapping template developed by the WAXI Team. 
 
@@ -37,6 +37,7 @@ changelog=3.2.2
        * Fixed the plugin panel failing to open under QGIS 4 (Qt6/PyQt6): the Python-generated dock widget used unscoped Qt enum values (Qt.AlignRight, Qt.AlignVCenter, Qt.ScrollBarAsNeeded, Qt.ScrollBarAlwaysOn, QFrame.VLine, QFrame.NoFrame), which PyQt6 no longer accepts; they are now fully scoped (Qt.AlignmentFlag.AlignRight, QFrame.Shape.VLine ...), which works on both Qt5 and Qt6. Same fix for the two folder pickers of the Sync QField to QGIS tool (QFileDialog.Option.ShowDirsOnly / ReadOnly).
        * Removed the remaining runtime "sys.executable -m pip install" calls - for fiona/fuzzywuzzy in the plugin's constructor (i.e. at every QGIS start-up) and the defusedxml import fallback - which could hang QGIS the same way as the start-up dependency check removed in 3.2.1 (on QGIS's bundled Python, sys.executable is the QGIS executable itself, so they launched a second QGIS instance). Dependencies are installed by qpip from requirements.txt; fuzzywuzzy and defusedxml are also bundled in biblio_Python, and a missing fiona is now reported in the QGIS log instead.
        * Checked QGIS 4 readiness: QGIS 4 only uses qgisMaximumVersion (4.99) to decide compatibility, and the supportsQt6 flag is obsolete (removed from QGIS core), so it stays out of metadata.txt. A static check of the whole plugin against PyQt6 found no other unscoped enums, removed classes or removed methods.
+     
      3.2.1 2026-10
        **Fixed QGIS Hang on Plugin Load (Windows/macOS)**
        * Removed the startup dependency check that shelled out to "sys.executable -m pip install --upgrade -r requirements.txt" whenever scipy was below 1.17.0. On QGIS's bundled Python, sys.executable is the QGIS executable itself (not python.exe), so that command launched a second QGIS instance instead of running pip; the first QGIS then hung on the main thread waiting for it to close, with no timeout, and the command's exit code was never checked, so the "dependencies updated" message shown afterwards was misleading in every case (pip never ran).
@@ -63,6 +64,7 @@ changelog=3.2.2
        * Fixed the Merge Projects tool copying feature attributes by column *position* rather than by name, which could silently misassign values into the wrong field whenever the two projects' GeoPackages came from different template versions with different column layouts; attributes are now matched by name (with the same rename-aware fallback as Rejig)
        * Introduced a single shared, documented table of known historical field renames (FIELD_RENAME_RULES) used by both tools, making it straightforward to add future renames in one place
        * Reviewed the full template field/layer schema against the plugin's hard-coded field-name references; confirmed all other v3.2.1 field renames (Reliabilit->Confidence_Index/Reliability, Metamorphi->Index_Minerals, Deformatio->Strain_Intensity, Stratigrap->Stratigraphic_Unit, Struct_Tec/Struc_Tect/Texture->Strain_Pattern, DipDir->Dip_Dir, Width_mm->Width_m on Dikes-Sills_PT) require no further plugin code changes beyond the above
+     
      3.2.0.2 2026-08
        * Fixed a crash in the Sync QField to QGIS tool caused by the temporary-directory variable not being initialized on some early-return paths.
        * Improved robustness of QField package sync validation on macOS and Windows.
@@ -74,11 +76,13 @@ changelog=3.2.2
        * Fixed a broken defusedxml fallback path that referenced a non-existent module and would have raised ModuleNotFoundError if the primary import and the pip-install-then-reimport attempt both failed
        * Aligned the internal scipy auto-upgrade version check with the new Requirements.txt floor (was checking against an older, inconsistent floor)
        * Fixed a Qt6/QGIS4 compatibility bug: QAction is now imported with a Qt5/Qt6-safe fallback (previously imported only from QtWidgets, which raises ImportError under Qt6 since QAction moved to QtGui)
+     
      3.2.0.1 2026-07
        * Updated and completed Requirements.txt
        * Optimisation and bug fixes for the Set User By Default tool
        * Fixed the Edit Dictionaries tool
        * General code security and robustness improvements
+     
      3.2.0 2026-06
        **GUI Improvements**
        * Replaced the legacy .ui-based dockwidget with a fully Python-generated interface
@@ -93,6 +97,7 @@ changelog=3.2.2
        * Updated the Archive Current Field Data tool for better handling of photographs
        **Documentation**
        * Updated README documentation to reflect the revised plugin architecture and stereonet workflow
+    
     3.1.5 2025-11
       * Supports QT6
       **Bug Fixes & Functional Improvements**  
@@ -102,6 +107,7 @@ changelog=3.2.2
       **New Functionalities**  
       * New **QField Compass Tool** to use your mobile device as a geological compass in QField, with autoloading of structural information  
       * New **QField Stereonet Tool** to plot structural measurements in a lower-hemisphere stereonet on the fly in QField 
+    
     3.1.4 2025-08
       * Updated the plugin to support retrieval of the latest version (v3.1.4) from the Zenodo repository  
       * Improved compatibility checks: added warnings or approval messages when opening the plugin against different template versions  
@@ -130,6 +136,7 @@ changelog=3.2.2
       **New Functionalities**  
       * **New tool in the Data Management tab** to synchronise a QField package (ZIP or folder) to the GEOL-QMAPS QGIS master project (creates a local copy)  
       * **New tool in the Data Management tab** to update the current GEOL-QMAPS QGIS project to the latest version of the template hosted on Zenodo  
+    
     3.1.3 2025-04
       **Updated import tool**
       * add tester code for non-import functionality
