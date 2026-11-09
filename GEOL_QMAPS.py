@@ -118,22 +118,10 @@ from qgis.PyQt.QtCore import Qt
 
 
 # Qt5/Qt6 Compatibility Layer
-try:
-    # Try Qt6 style first
-    _test = Qt.DockWidgetArea.RightDockWidgetArea
-    # Qt6 detected
-    QT6 = True
-
-    # Qt6 style enums are already available
-    RightDockWidgetArea = Qt.DockWidgetArea.RightDockWidgetArea
-
-
-except AttributeError:
-    # Qt5 detected
-    QT6 = False
-
-    # Qt5 style enums
-    RightDockWidgetArea = Qt.RightDockWidgetArea
+# Scoped enums (Qt.DockWidgetArea.RightDockWidgetArea) work with both PyQt6 and
+# the PyQt5 5.15 shipped with QGIS >= 3.30 (qgisMinimumVersion), so no fallback
+# to the unscoped Qt5-only form is needed.
+RightDockWidgetArea = Qt.DockWidgetArea.RightDockWidgetArea
 
 
 
@@ -6232,7 +6220,7 @@ class GEOL_QMAPS:
                         print(f"Skipping empty geometry in layer {i}")
                         continue
 
-                    if geom.wkbType() == QgsWkbTypes.Point:
+                    if geom.wkbType() == Qgis.WkbType.Point:
                         point = geom.asPoint()
                         all_points.append([point.x(), point.y()])
                         all_features.append(feature)
@@ -7535,7 +7523,7 @@ class GEOL_QMAPS:
                     continue
 
                 # Get the point geometry as lat/lon (assuming the layer has point geometry)
-                if geometry.type() == QgsWkbTypes.PointGeometry:
+                if geometry.type() == Qgis.GeometryType.Point:
                     lat, lon = geometry.asPoint().y(), geometry.asPoint().x()
                 else:
                     print(f"Feature ID {feature_id} does not have point geometry.")
